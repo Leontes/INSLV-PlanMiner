@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <streambuf>
 #include <string>
@@ -85,6 +86,11 @@ class SilenceStdout {
 
 std::vector<Rule> learn(const Dataset& data, const Options& options) {
   check(data);
+  if (options.episode_size == 0 ||
+      options.episode_size > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+    throw std::invalid_argument("inslv: el tamaño del episodio tiene que estar entre 1 y " +
+                                std::to_string(std::numeric_limits<int>::max()));
+  }
 
   // example_set recibe las columnas de todas las variables, con la clase al final. Los
   // desconocidos se marcan con missing_value y cada clase, con el centro de su etiqueta.

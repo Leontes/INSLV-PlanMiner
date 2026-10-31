@@ -27,6 +27,20 @@ jobs:
       - name: Tests
         run: ctest --preset ci-${{ matrix.compiler }}
 
+  lentos:
+    name: Tests lentos (aut, boxA y ring)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar y compilar
+        run: |
+          cmake --preset release
+          cmake --build --preset release -j "$(nproc)"
+
+      - name: Tests lentos
+        run: ctest --preset lento
+
   sanitizers:
     name: AddressSanitizer y UBSan
     runs-on: ubuntu-24.04

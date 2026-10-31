@@ -1,0 +1,1323 @@
+# Reglas de referencia de INSLV: las que da old/ al aprender ring sin la partición 0,
+# reglas descriptivas, episodios de 5000 ejemplos y la semilla por defecto.
+# Generado por inslv_generar_referencias (tests/oraculo): no editar a mano.
+reglas 63
+regla 0 131.8669999999999 0.6535243993853671 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 0 1 3 4
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3 4
+condicion 18 0 1 3 4
+condicion 19 1 2 3
+regla 0 220.8108000000001 0.6200349304744912 20
+condicion 0 0 1 2 3
+condicion 1 0 1 2 3
+condicion 2 0 1 2 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 3 4
+condicion 6 1 2 3
+condicion 7 0 1 2 4
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 0 1 2 4
+condicion 19 1 2 3
+regla 1 10.815400000000002 0.7675128618198825 20
+condicion 0 0 2 3 4
+condicion 1 2 3 4
+condicion 2 0 2 3 4
+condicion 3 2
+condicion 4 2
+condicion 5 2 4
+condicion 6 2
+condicion 7 0 3 4
+condicion 8 2
+condicion 9 2 3 4
+condicion 10 0 2
+condicion 11 2 3 4
+condicion 12 2 3 4
+condicion 13 0 2 3 4
+condicion 14 0 3 4
+condicion 15 2
+condicion 16 2 3 4
+condicion 17 0 3 4
+condicion 18 3 4
+condicion 19 2
+regla 0 70.21820000000007 0.7725523292141072 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 1 3 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 69.4354 0.7904373724882 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 1 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 63.37499999999997 0.6692678443701446 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 0 1 3 4
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 1 3 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 3 4
+regla 0 70.36100000000005 0.7782481809139926 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 4
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 63.82959999999998 0.795260058881256 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 98.57100000000001 0.7370606697657894 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 0 1 2 4
+condicion 8 0 1 2 4
+condicion 9 0 1 2 4
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 1 2 4
+condicion 16 0 1 4
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 42.39219999999997 0.7652297512732606 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 0 1 3 4
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 3 4
+condicion 15 0 1 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 4
+condicion 19 1 2 3
+regla 0 63.81640000000004 0.7785996920023929 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 3 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 65.53500000000001 0.7718355149900931 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 83.9288 0.6463388833164132 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 3 4
+regla 0 125.82540000000002 0.652762051032887 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 0 1 3 4
+condicion 8 0 1 3 4
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 1 1898.155400000004 0.7382151782968354 20
+condicion 0 2
+condicion 1 2
+condicion 2 2
+condicion 3 2 3 4
+condicion 4 2
+condicion 5 2 3 4
+condicion 6 2 3 4
+condicion 7 2
+condicion 8 2
+condicion 9 2
+condicion 10 2 3 4
+condicion 11 2 3 4
+condicion 12 2
+condicion 13 2
+condicion 14 2 3 4
+condicion 15 2
+condicion 16 2
+condicion 17 2
+condicion 18 2
+condicion 19 2
+regla 0 466.1039999999999 0.7991319971353988 18
+condicion 1 1 2 3 4
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 2 3
+condicion 7 0 1 4
+condicion 8 0 1 2 3
+condicion 9 0 1 2 3
+condicion 10 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3 4
+condicion 19 1 2 3
+regla 1 2.3448 0.9865502595563945 20
+condicion 0 0 3 4
+condicion 1 2
+condicion 2 2
+condicion 3 2
+condicion 4 0 3 4
+condicion 5 2
+condicion 6 2
+condicion 7 2
+condicion 8 2
+condicion 9 0 3 4
+condicion 10 0 3 4
+condicion 11 2
+condicion 12 0 3 4
+condicion 13 2
+condicion 14 0 3 4
+condicion 15 0 3 4
+condicion 16 0 3 4
+condicion 17 2
+condicion 18 2
+condicion 19 0 3 4
+regla 0 255.25840000000005 0.7657738260661165 20
+condicion 0 1 2 3
+condicion 1 0 1 3 4
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 4
+regla 0 461.8047999999999 0.7852867166091166 20
+condicion 0 0 1 4
+condicion 1 1 2 3 4
+condicion 2 0 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 2 3
+regla 0 127.0954000000001 0.6874136006525566 20
+condicion 0 0 3 4
+condicion 1 0 1 4
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 124.67499999999998 0.853276500286519 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 4
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 246.71779999999995 0.7508866312377915 20
+condicion 0 0 1 3 4
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 0 1 4
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 127.20760000000004 0.7008361430714265 20
+condicion 0 0 3 4
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 255.75039999999962 0.5517059990708576 20
+condicion 0 0 3 4
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 3 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 477.8814000000001 0.7871776292819755 19
+condicion 0 1 2 3
+condicion 1 0 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3 4
+condicion 9 1 2 3
+condicion 10 0 1 2 3
+condicion 12 0 1 4
+condicion 13 1 2 3
+condicion 14 1 2 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 124.00879999999995 0.8442627268711934 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 0 1 4
+condicion 14 1 2 3
+condicion 15 0 1 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 136.96800000000005 0.8630551732766171 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 0 1 4
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 4
+regla 0 252.58499999999992 0.7599605372543543 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 4
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 3 4
+regla 0 259.8478 0.7661056832392813 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 0 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 0 1 3 4
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 1 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 253.18439999999987 0.7616614467781122 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 0 1 4
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 0 1 3 4
+regla 0 41.172200000000004 0.8885016981147976 20
+condicion 0 1 2 3
+condicion 1 0 1 4
+condicion 2 0 1 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 0 1 4
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 248.7514000000001 0.7499451995068256 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 0 1 3 4
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 0 1 4
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 123.43519999999997 0.8494090631702391 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 0 1 4
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 254.2551999999999 0.7709671612434774 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 0 1 3 4
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 0 1 4
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3 4
+regla 0 86.71719999999999 0.6952820452661131 20
+condicion 0 0 3 4
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 0 1 4
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 488.44520000000045 0.6312605291729185 20
+condicion 0 0 1 3 4
+condicion 1 0 2 3 4
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 253.06060000000008 0.7694142943670504 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 0 1 4
+condicion 19 1 2 3
+regla 0 134.67279999999997 0.8505171830138291 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 1 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 0 1 4
+condicion 19 1 2 3
+regla 0 132.93619999999996 0.8594248094248095 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 0 1 4
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 0 1 4
+condicion 19 1 2 3
+regla 0 136.35019999999992 0.8639768415543634 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 0 1 4
+condicion 19 1 2 3
+regla 0 258.20219999999983 0.776402709957939 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 0 1 3 4
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 0 1 4
+condicion 19 1 2 3
+regla 0 119.95060000000007 0.8503048990535967 20
+condicion 0 1 2 3
+condicion 1 0 1 4
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 0 1 4
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 431.6668000000001 0.768530156332485 19
+condicion 0 1 2 3 4
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 0 1 2 4
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 0 1 4
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 0 2 3 4
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 134.3481999999999 0.8746689655439821 20
+condicion 0 0 1 4
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 0 1 4
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 123.68559999999997 0.8484980462556294 20
+condicion 0 0 1 4
+condicion 1 0 1 4
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 255.63320000000004 0.760888398694264 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 4
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 0 1 3 4
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 130.02800000000002 0.8538840816581884 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 0 1 4
+condicion 9 1 2 3
+condicion 10 0 1 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 168.26479999999995 0.7593904949222863 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 4
+condicion 6 1 2 3
+condicion 7 0 1 3 4
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 0 1 3 4
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 496.2343999999996 0.6387896826416415 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 3 4
+condicion 6 1 2 3
+condicion 7 0 1 3 4
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 2 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 511.1830000000007 0.6394580431934416 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 0 1 3 4
+condicion 6 0 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 3 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 129.86359999999996 0.8741314701383368 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 0 1 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 129.02059999999997 0.8757931407971418 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 0 1 4
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 1 214.2406000000001 0.56411303405688 20
+condicion 0 0 1 2 4
+condicion 1 2
+condicion 2 2
+condicion 3 2
+condicion 4 2
+condicion 5 0 1 3 4
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 0 3 4
+condicion 9 1 2 3
+condicion 10 0 2 4
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 2 4
+condicion 14 0 2 4
+condicion 15 0 2
+condicion 16 2
+condicion 17 0 2
+condicion 18 2
+condicion 19 2 4
+regla 0 138.60180000000008 0.8613662474656044 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 0 1 4
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 1 2 3
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 350.7444 0.7363044151755435 20
+condicion 0 1 2 4
+condicion 1 1 2 4
+condicion 2 1 2 4
+condicion 3 1 2 4
+condicion 4 1 2 4
+condicion 5 1 2 4
+condicion 6 1 2 4
+condicion 7 1 2 4
+condicion 8 1 2 4
+condicion 9 1 2 4
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 4
+condicion 13 1 2 4
+condicion 14 1 2 3
+condicion 15 1 2 4
+condicion 16 1 2 3
+condicion 17 0 1 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 917.0614000000014 0.6353044261010449 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 3 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 2 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 1 68.86540000000002 0.7204936020658191 20
+condicion 0 2
+condicion 1 2
+condicion 2 0 2 4
+condicion 3 0 2
+condicion 4 2 3 4
+condicion 5 3 4
+condicion 6 3 4
+condicion 7 0 2 3 4
+condicion 8 3 4
+condicion 9 0 2
+condicion 10 0 1 2
+condicion 11 2
+condicion 12 2 4
+condicion 13 0 2 3 4
+condicion 14 2 4
+condicion 15 0 2
+condicion 16 2
+condicion 17 0 2
+condicion 18 2 4
+condicion 19 2 4
+regla 0 86.51480000000001 0.848414460354238 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 0 1 4
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 3 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 0 132.30320000000012 0.8683104894339639 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 0 1 4
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 1 2 3
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 1 395.6587999999999 0.6401784616238756 20
+condicion 0 2 3 4
+condicion 1 2
+condicion 2 2 3 4
+condicion 3 2
+condicion 4 2
+condicion 5 2
+condicion 6 3 4
+condicion 7 2 3 4
+condicion 8 2
+condicion 9 2 3 4
+condicion 10 2
+condicion 11 2
+condicion 12 2 3 4
+condicion 13 2
+condicion 14 2
+condicion 15 2
+condicion 16 2 3 4
+condicion 17 2
+condicion 18 2
+condicion 19 2 3 4
+regla 0 341.82520000000005 0.6507377966210435 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 3 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 0 1 3 4
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 1 2 3
+condicion 17 0 1 3 4
+condicion 18 1 2 3
+condicion 19 1 2 3
+regla 1 149.62699999999995 0.6633277229213951 20
+condicion 0 2
+condicion 1 2
+condicion 2 2
+condicion 3 0 2 4
+condicion 4 2
+condicion 5 2
+condicion 6 3 4
+condicion 7 2
+condicion 8 2
+condicion 9 2
+condicion 10 2
+condicion 11 0 2
+condicion 12 2
+condicion 13 2
+condicion 14 2
+condicion 15 3 4
+condicion 16 0 2
+condicion 17 2
+condicion 18 2
+condicion 19 2
+regla 0 130.75560000000007 0.7813907036546778 20
+condicion 0 1 2 3
+condicion 1 1 2 3
+condicion 2 1 2 3
+condicion 3 1 2 3
+condicion 4 1 2 3
+condicion 5 1 2 3
+condicion 6 0 1 3 4
+condicion 7 1 2 3
+condicion 8 1 2 3
+condicion 9 1 2 3
+condicion 10 1 2 3
+condicion 11 1 2 3
+condicion 12 1 2 3
+condicion 13 1 2 3
+condicion 14 1 2 3
+condicion 15 1 2 3
+condicion 16 0 1 3 4
+condicion 17 0 1 3 4
+condicion 18 0 1 4
+condicion 19 1 2 3

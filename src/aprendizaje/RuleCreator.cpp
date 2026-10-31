@@ -9577,7 +9577,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
      bool primera_vez=true;
 
      int limite=E_Par_Completo.N_Examples();
-     int paso=5000, pasoANT=0, trozo=0, inicio=0;
+     int paso=static_cast<int>(options.episode_size), pasoANT=0, trozo=0, inicio=0;
 
      Indiv = rango[0]*10;
      multipoblacion G(NPobBin,NPobEnt,NPobRea,rango,rangoi,rangos,mut,cruce,Elite,Indiv,tama,NFitness);
@@ -10088,12 +10088,16 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
   }
 
+  // Las descriptivas (R_prev) o sus versiones discriminantes (R_prev_dis), emparejadas regla a
+  // regla.
+  const ruleset &elegidas = options.rules == RuleType::discriminant ? R_prev_dis[0] : R_prev[0];
   std::vector<Rule> reglas;
-  for (int i=0; i<R_prev[0].N_rule(); i++){
+  for (int i=0; i<elegidas.N_rule(); i++){
     Rule regla;
-    regla.antecedent = R_prev[0].Antecedente(i);
-    regla.consequent = R_prev[0].Class_of_rule(i);
-    regla.covered = R_prev[0].Get_N_Mas(i);
+    regla.antecedent = elegidas.Antecedente(i);
+    regla.consequent = elegidas.Class_of_rule(i);
+    regla.covered = elegidas.Get_N_Mas(i);
+    regla.weight = elegidas.Get_Weight(i);
     reglas.push_back(regla);
   }
 

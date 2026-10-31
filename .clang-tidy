@@ -1,6 +1,7 @@
 # clang-tidy para el código nuevo (preset tidy). Las sublibrerías heredadas no se revisan hasta
 # que se modernicen: sus fuentes, por CMake (HEREDADA); sus cabeceras, porque HeaderFilterRegex
 # solo admite las del código nuevo. Al modernizar una, se añade aquí include/inslv/<nombre>/.
+# Fuera: performance-enum-size, que pide un tipo base de un byte para cada enum.
 Checks: >
   -*,
   bugprone-*,
@@ -13,10 +14,11 @@ Checks: >
   modernize-*,
   -modernize-use-trailing-return-type,
   performance-*,
+  -performance-enum-size,
   portability-*,
   readability-*,
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-function-cognitive-complexity
-HeaderFilterRegex: '(include/inslv/inslv\.hpp|tests/)'
+HeaderFilterRegex: '(include/inslv/inslv\.hpp|include/inslv/formatos/|tests/)'
 FormatStyle: file

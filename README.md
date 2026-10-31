@@ -35,8 +35,22 @@ data.classes = {0, 1, 1, 0};   // index of a target label
 
 for (const inslv::Rule& rule : inslv::learn(data)) {
   // rule.antecedent: attributes and the labels they accept; rule.consequent: the class;
-  // rule.covered: positive examples covered
+  // rule.covered: positive examples covered; rule.weight: its weight when classifying
 }
+```
+
+The options choose the descriptive rules (the default, the ones PlanMiner uses) or the
+discriminant ones, with only the minimal conditions, and the episode size. Datasets in the NSLV
+format are read with `inslv/formatos/nslv.hpp`:
+
+```cpp
+#include "inslv/formatos/nslv.hpp"
+
+inslv::Dataset data = inslv::nslv::leer("irs.dom", {"irs1.datos", "irs2.datos"});
+inslv::Options options;
+options.rules = inslv::RuleType::discriminant;
+options.episode_size = 50;  // examples per episode (5000 by default)
+std::vector<inslv::Rule> rules = inslv::learn(data, options);
 ```
 
 ```cmake
@@ -44,8 +58,7 @@ add_subdirectory(inslv)  # or FetchContent
 target_link_libraries(my_program PRIVATE inslv::inslv)
 ```
 
-The interface will change when the port reaches it: names in Spanish, discriminant rules and
-classification.
+The interface will change when the port reaches it: names in Spanish and classification.
 
 ## Structure
 
@@ -58,14 +71,23 @@ classification.
 | `src/genetico/` | the genetic algorithm: the genetic code, the populations and their operators |
 | `src/reglas/` | the rule set and its inference |
 | `src/aprendizaje/` | NSLV's incremental learning |
+| `src/formatos/` | the NSLV format reader, apart from the engine |
 | `tests/` | unit, equivalence and oracle tests; `apoyo/`: what they share |
 | `tests/datos/nslv/` | five datasets in the NSLV format, each with its domain and 10 cross-validation partitions: aut, boxA, irs, ring and wne |
 | `tests/datos/keel/` | the aut partitions in the KEEL format, to test the reader |
 | `tests/datos/planminer/` | 26 equivalence cases: the input of INSLV in the original PlanMiner and the rules it returned |
+| `tests/datos/referencias/` | the rules the original gives with the NSLV datasets |
+| `docs/es/`, `docs/en/` | documentation, in Spanish and English |
 | `cmake/` | CMake modules: warnings, sanitizers, coverage, sub-libraries, dependencies and the oracle |
 
 `build/` (builds), `old/` (the original code, the tests' oracle) and `privado/` (private
 documents) are not in git.
+
+## Documentation
+
+- [Tests](docs/en/tests.md): labels, test data, reference rules, the oracle, sanitizers and
+  coverage.
+- [Licenses](LICENSES.md): the code's, NSLV's and the test data's.
 
 ## Development
 
@@ -78,18 +100,19 @@ cmake --preset tidy && cmake --build --preset tidy  # clang-tidy on the new code
 git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
 ```
 
-- **Tests:** by CTest label (`ctest --preset debug -L unidad`): `unidad` (the interface),
-  `equivalencia` (the rules against the ones the original gave, stored in `tests/datos`) and
+- **Tests:** by CTest label (`ctest --preset debug -L unidad`): `unidad` (the interface and the
+  reader), `equivalencia` (the rules against the ones the original gave, stored in
+  `tests/datos`), `lento` (the same with the large datasets: `ctest --preset lento`) and
   `oraculo` (only locally, with `old/`: the library against the original built into the same
-  program).
+  program). See [Tests](docs/en/tests.md).
 - **Code inherited from the original:** for now every sub-library holds the original code
   (`HEREDADA` in its `CMakeLists.txt`). It is built without the new code's warnings, formatting
   or clang-tidy until it is modernized. Everything else is built with strict warnings, and the
   continuous integration treats them as errors.
 - **Test dependencies:** GoogleTest 1.14 or later (if it is not installed, CMake downloads it);
   for coverage, gcovr.
-- **Continuous integration:** builds and tests with GCC and Clang, with the sanitizers and with
-  clang-tidy, and checks the formatting (clang-format 18).
+- **Continuous integration:** builds and tests with GCC and Clang, runs the slow tests, the
+  sanitizers and clang-tidy, and checks the formatting (clang-format 18).
 
 ## License
 

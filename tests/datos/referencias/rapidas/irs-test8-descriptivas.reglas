@@ -1,0 +1,29 @@
+# Reglas de referencia de INSLV: las que da old/ al aprender irs sin la partición 8,
+# reglas descriptivas, episodios de 5000 ejemplos y la semilla por defecto.
+# Generado por inslv_generar_referencias (tests/oraculo): no editar a mano.
+reglas 5
+regla 2 29.200000000000006 0.9658848614072495 4
+condicion 0 1 2 3 4
+condicion 1 1 2 3
+condicion 2 2 3 4
+condicion 3 3 4
+regla 1 10.866666666666667 1 4
+condicion 0 1 2 4
+condicion 1 0 1 2
+condicion 2 2
+condicion 3 0 1
+regla 2 4.999999999999997 1 4
+condicion 0 3
+condicion 1 1 2 3
+condicion 2 0 4
+condicion 3 2 3 4
+regla 1 22.899999999999995 0.8213058419243986 4
+condicion 0 2 3 4
+condicion 1 0 1 2
+condicion 2 0 1 2
+condicion 3 2 3 4
+regla 0 24.44285714285715 1 4
+condicion 0 1
+condicion 1 1 2 3
+condicion 2 0
+condicion 3 0

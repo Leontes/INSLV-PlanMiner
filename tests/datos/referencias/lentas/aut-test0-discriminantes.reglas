@@ -1,0 +1,173 @@
+# Reglas de referencia de INSLV: las que da old/ al aprender aut sin la partición 0,
+# reglas discriminantes, episodios de 5000 ejemplos y la semilla por defecto.
+# Generado por inslv_generar_referencias (tests/oraculo): no editar a mano.
+reglas 24
+regla 1 5.346873926572762 0.9899953512800101 7
+condicion 1 0 1 3 4 5 6 7 9 10 11 12 13 14 15 16 17 18 19 20 21
+condicion 5 0 2
+condicion 7 0 3
+condicion 12 0 1 2 4 5 6
+condicion 17 0 1 2 3
+condicion 23 2 3 4
+condicion 24 2 3
+regla 5 13.282631345888365 0.997671597123894 10
+condicion 0 2 3 4
+condicion 1 0 1 2 3 4 5 6 7 8 9 11 12 13 14 15 17 18 20 21
+condicion 4 0
+condicion 8 2 3 4
+condicion 10 0 1 3 4
+condicion 13 0 3 4 5 6
+condicion 15 0 1 2 3 5 6 7
+condicion 19 0 1 2 3
+condicion 21 0 1 3 4
+condicion 24 0 1 3 4
+regla 2 12.95238095238096 1 3
+condicion 1 0 1 2 3 4 5 6 7 8 10 11 12 13 14 15 16 18 19 20
+condicion 4 1
+condicion 17 0 1 4
+regla 5 7.987085514834206 1 5
+condicion 0 2 3 4
+condicion 1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 17 18 20 21
+condicion 16 0 1 2 3
+condicion 17 0 1 4
+condicion 24 0 1 3 4
+regla 3 6.714285714285718 1 7
+condicion 1 0 1 2 3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 21
+condicion 8 0 1 4
+condicion 12 0 1 2 3 5 6
+condicion 15 0 1 2 4 5 6 7
+condicion 16 0 1
+condicion 17 0 3 4
+condicion 24 0 1 2 3
+regla 5 2.317364746945899 1 7
+condicion 0 0 1 2
+condicion 9 0 3 4
+condicion 10 0 1 4
+condicion 13 0 1 3 4 5 6
+condicion 17 0 1 2
+condicion 19 2 3
+condicion 24 0 1 4
+regla 1 1 1 4
+condicion 1 0 1 2 3 4 7 9 10 11 12 13 14 15 16 17 18 19 20 21
+condicion 3 0
+condicion 15 2 3 4 5 6 7
+condicion 22 0 1 2
+regla 4 2 1 3
+condicion 1 0 1 2 3 4 5 6 7 9 10 11 13 14 15 16 17 18 20 21
+condicion 2 1
+condicion 3 0
+regla 1 6 1 3
+condicion 1 0 2 3 4 6 7 8 9 10 11 13 14 17 21
+condicion 12 0 1 2 4 5 6
+condicion 24 3 4
+regla 1 4.769909065858363 1 4
+condicion 0 0 4
+condicion 1 3 4 9 19
+condicion 15 0 2 3 4 5 6 7
+condicion 22 1 2
+regla 3 2 1 4
+condicion 13 0 1 2 3 4 6
+condicion 15 0 1 2 4 5 6 7
+condicion 17 0 1 2
+condicion 20 4
+regla 4 4.522213911742708 1 6
+condicion 0 1 4
+condicion 1 0 1 2 3 4 5 6 7 9 10 13 14 16 18 19 20 21
+condicion 3 0
+condicion 16 3 4
+condicion 22 0 1 2
+condicion 24 1 4
+regla 3 5.35820895522388 0.9808565225971977 9
+condicion 1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+condicion 3 1
+condicion 5 0 1
+condicion 8 0 1 3 4
+condicion 12 1 2 4 5 6
+condicion 13 0 2 3 4 5 6
+condicion 15 0 1 3 4 5 6 7
+condicion 16 0 1 2 4
+condicion 20 2 3 4
+regla 3 0.8367346938775511 1 4
+condicion 0 0 1 4
+condicion 1 0 1 2 3 4 6 7 10 11 12 13 14 15 17 21
+condicion 7 0 1 2
+condicion 20 0 4
+regla 3 0.5130890052356021 1 8
+condicion 0 2 3 4
+condicion 1 0 1 2 3 4 5 7 9 10 11 12 13 14 15 16 17 18 20 21
+condicion 10 2 3 4
+condicion 16 0 3 4
+condicion 18 0 1 2
+condicion 20 0 1 4
+condicion 21 2 3 4
+condicion 24 0 1 2 4
+regla 4 2.7333333333333334 1 2
+condicion 19 0 1 4
+condicion 24 4
+regla 3 9.961904761904771 0.977909940526763 7
+condicion 4 0
+condicion 10 2 3 4
+condicion 15 1 2 3 5 6 7
+condicion 16 0 1 2
+condicion 17 0 1 2 4
+condicion 18 0 1 2
+condicion 24 0 1 2 3
+regla 4 2.086800771562414 1 4
+condicion 0 2 3 4
+condicion 1 0 1 2 3 5 6 7 8 9 10 11 13 15 16 17 18 19 20 21
+condicion 22 3 4
+condicion 24 0 1 3 4
+regla 4 1.750943396226415 1 8
+condicion 1 0 1 2 3 4 5 6 7 9 10 11 12 14 15 16 17 18 19
+condicion 8 0 1 2
+condicion 13 0 2 3 4 5 6
+condicion 14 2 3 4
+condicion 17 0 3 4
+condicion 18 1 2 3 4
+condicion 23 0 1 4
+condicion 24 0 1 2 4
+regla 4 3.8130871396177533 1 10
+condicion 1 0 1 2 3 4 6 7 8 9 10 11 12 13 14 15 16 17 18 20 21
+condicion 7 0 1 4
+condicion 8 2 3 4
+condicion 12 0 1 2 3 4 6
+condicion 13 0 3 4 5 6
+condicion 15 0 2 3 4 5 6
+condicion 21 0 1 4
+condicion 22 0 1 2
+condicion 23 0 1
+condicion 24 2 4
+regla 2 6.689695693530845 0.5336232315193261 4
+condicion 7 0 1 3 4
+condicion 8 0 1 2 4
+condicion 9 0 3 4
+condicion 23 0 2 3 4
+regla 3 0.4290372278422198 1 5
+condicion 8 0 3 4
+condicion 12 1 2 3 4 5 6
+condicion 18 1 2 3 4
+condicion 23 2 3 4
+condicion 24 1 4
+regla 0 0.631578947368421 0.8724202626641664 11
+condicion 1 0 1 2 3 4 5 6 7 9 10 11 12 14 15 16 17 18 19 20 21
+condicion 4 1
+condicion 5 0 2
+condicion 9 0 1 2 4
+condicion 12 0 1 2 3 4 6
+condicion 13 0 2 3 4 5 6
+condicion 15 0 2 3 4 5 6 7
+condicion 16 0 3 4
+condicion 22 0 2 3 4
+condicion 23 0 1
+condicion 24 0 1 2 4
+regla 2 2.2361080892911587 0.9447873596414408 10
+condicion 1 0 1 2 3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 21
+condicion 7 2 3 4
+condicion 8 0 1 3 4
+condicion 9 0 1 4
+condicion 10 0 2 3 4
+condicion 13 0 1 3 4 6
+condicion 15 0 1 2 3 5 6 7
+condicion 17 0 3 4
+condicion 20 0 2 3 4
+condicion 24 1 2 3

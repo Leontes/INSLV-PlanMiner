@@ -80,13 +80,30 @@
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "jobs": 4 }
     },
-    { "name": "debug", "inherits": "base", "configurePreset": "debug" },
-    { "name": "release", "inherits": "base", "configurePreset": "release" },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "configurePreset": "debug",
+      "filter": { "exclude": { "label": "lento" } }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "configurePreset": "release",
+      "filter": { "exclude": { "label": "lento" } }
+    },
+    {
+      "name": "lento",
+      "displayName": "Los tests lentos (aut, boxA, ring), en Release",
+      "inherits": "base",
+      "configurePreset": "release",
+      "filter": { "include": { "label": "lento" } }
+    },
     {
       "name": "asan",
       "inherits": "base",
       "configurePreset": "asan",
-      "filter": { "exclude": { "label": "oraculo" } },
+      "filter": { "exclude": { "label": "oraculo|lento" } },
       "environment": {
         "ASAN_OPTIONS": "hard_rss_limit_mb=2048",
         "LSAN_OPTIONS": "suppressions=${sourceDir}/tests/lsan.supp"
@@ -96,10 +113,20 @@
       "name": "cobertura",
       "inherits": "base",
       "configurePreset": "cobertura",
-      "filter": { "exclude": { "label": "oraculo" } }
+      "filter": { "exclude": { "label": "oraculo|lento" } }
     },
-    { "name": "ci-gcc", "inherits": "base", "configurePreset": "ci-gcc" },
-    { "name": "ci-clang", "inherits": "base", "configurePreset": "ci-clang" }
+    {
+      "name": "ci-gcc",
+      "inherits": "base",
+      "configurePreset": "ci-gcc",
+      "filter": { "exclude": { "label": "lento" } }
+    },
+    {
+      "name": "ci-clang",
+      "inherits": "base",
+      "configurePreset": "ci-clang",
+      "filter": { "exclude": { "label": "lento" } }
+    }
   ],
   "workflowPresets": [
     {

@@ -35,8 +35,22 @@ data.classes = {0, 1, 1, 0};   // índice de una etiqueta de target
 
 for (const inslv::Rule& rule : inslv::learn(data)) {
   // rule.antecedent: atributos y etiquetas que admiten; rule.consequent: la clase;
-  // rule.covered: ejemplos positivos cubiertos
+  // rule.covered: ejemplos positivos cubiertos; rule.weight: su peso al clasificar
 }
+```
+
+Las opciones eligen las reglas descriptivas (las de por defecto, las que usa PlanMiner) o las
+discriminantes, con solo las condiciones mínimas, y el tamaño del episodio. Los conjuntos de datos
+en el formato de NSLV se leen con `inslv/formatos/nslv.hpp`:
+
+```cpp
+#include "inslv/formatos/nslv.hpp"
+
+inslv::Dataset data = inslv::nslv::leer("irs.dom", {"irs1.datos", "irs2.datos"});
+inslv::Options options;
+options.rules = inslv::RuleType::discriminant;
+options.episode_size = 50;  // ejemplos por episodio (5000 por defecto)
+std::vector<inslv::Rule> rules = inslv::learn(data, options);
 ```
 
 ```cmake
@@ -44,8 +58,7 @@ add_subdirectory(inslv)  # o FetchContent
 target_link_libraries(mi_programa PRIVATE inslv::inslv)
 ```
 
-La interfaz cambiará cuando el port llegue a ella: nombres en castellano, reglas discriminantes y
-clasificación.
+La interfaz cambiará cuando el port llegue a ella: nombres en castellano y clasificación.
 
 ## Estructura
 
@@ -58,14 +71,23 @@ clasificación.
 | `src/genetico/` | el algoritmo genético: el código genético, las poblaciones y sus operadores |
 | `src/reglas/` | el conjunto de reglas y su inferencia |
 | `src/aprendizaje/` | el aprendizaje incremental de NSLV |
+| `src/formatos/` | el lector del formato de NSLV, aparte del motor |
 | `tests/` | tests unitarios, de equivalencia y del oráculo; `apoyo/`: lo que comparten |
 | `tests/datos/nslv/` | cinco conjuntos de datos en el formato de NSLV, cada uno con su dominio y 10 particiones de validación cruzada: aut, boxA, irs, ring y wne |
 | `tests/datos/keel/` | las particiones de aut en el formato de KEEL, para probar el lector |
 | `tests/datos/planminer/` | 26 casos de equivalencia: la entrada de INSLV en el PlanMiner original y las reglas que devolvió |
+| `tests/datos/referencias/` | las reglas que da el original con los conjuntos de NSLV |
+| `docs/es/`, `docs/en/` | la documentación, en castellano y en inglés |
 | `cmake/` | módulos de CMake: avisos, sanitizers, cobertura, sublibrerías, dependencias y el oráculo |
 
 `build/` (compilaciones), `old/` (el código original, el oráculo de los tests) y `privado/`
 (documentos internos) no están en git.
+
+## Documentación
+
+- [Tests](docs/es/pruebas.md): etiquetas, datos de prueba, reglas de referencia, el oráculo,
+  sanitizers y cobertura.
+- [Licencias](LICENCIAS.md): la del código, la de NSLV y las de los datos de prueba.
 
 ## Desarrollo
 
@@ -78,18 +100,19 @@ cmake --preset tidy && cmake --build --preset tidy  # clang-tidy sobre el códig
 git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
 ```
 
-- **Tests:** por etiquetas de CTest (`ctest --preset debug -L unidad`): `unidad` (la interfaz),
-  `equivalencia` (las reglas frente a las que dio el original, guardadas en `tests/datos`) y
+- **Tests:** por etiquetas de CTest (`ctest --preset debug -L unidad`): `unidad` (la interfaz y el
+  lector), `equivalencia` (las reglas frente a las que dio el original, guardadas en
+  `tests/datos`), `lento` (lo mismo con los conjuntos grandes: `ctest --preset lento`) y
   `oraculo` (solo en local, con `old/`: la librería frente al original compilado en el mismo
-  programa).
+  programa). Ver [Tests](docs/es/pruebas.md).
 - **El código heredado del original:** de momento todas las sublibrerías tienen el código
   original (`HEREDADA` en su `CMakeLists.txt`). Se compila sin los avisos del código nuevo, sin
   formato y sin clang-tidy hasta que se modernice. Todo lo demás se compila con avisos
   estrictos, y la integración continua los trata como errores.
 - **Dependencias de los tests:** GoogleTest 1.14 o posterior (si no está instalado, CMake lo
   descarga); para la cobertura, gcovr.
-- **Integración continua:** compila y prueba con GCC y Clang, con los sanitizers y con
-  clang-tidy, y comprueba el formato (clang-format 18).
+- **Integración continua:** compila y prueba con GCC y Clang, pasa los tests lentos, los
+  sanitizers y clang-tidy, y comprueba el formato (clang-format 18).
 
 ## Licencia
 

@@ -54,6 +54,17 @@ struct Rule {
   std::size_t consequent = 0;
   /// Ejemplos positivos que cubre la regla (n+ en NSLV).
   double covered = 0.0;
+  /// Peso de la regla al clasificar: gana la regla con mayor adaptación del ejemplo por su peso.
+  double weight = 0.0;
+};
+
+/// Qué versión de cada regla devuelve learn. El genético obtiene las dos a la vez, con la misma
+/// bondad.
+enum class RuleType {
+  /// La más específica. Son las que usa PlanMiner.
+  descriptive,
+  /// La más general: solo las condiciones mínimas del antecedente.
+  discriminant,
 };
 
 struct Options {
@@ -64,12 +75,16 @@ struct Options {
   bool verbose = false;
   /// Si no está vacío, el informe del aprendizaje (medidas y reglas) se escribe en este fichero.
   std::filesystem::path report;
+  /// Qué versión de las reglas se devuelve.
+  RuleType rules = RuleType::descriptive;
+  /// Ejemplos por episodio del aprendizaje incremental (entre 1 y el máximo de int).
+  std::size_t episode_size = 5000;
 };
 
 /// Aprende las reglas descriptivas del conjunto de ejemplos.
 ///
-/// Lanza std::invalid_argument si el conjunto de ejemplos no es coherente: tamaños distintos,
-/// variables sin etiquetas o clases fuera de rango.
+/// Lanza std::invalid_argument si el conjunto de ejemplos no es coherente (tamaños distintos,
+/// variables sin etiquetas o clases fuera de rango) o el tamaño del episodio no es válido.
 ///
 /// Usa el generador de números aleatorios de la biblioteca de C (srand y rand) y, si verbose es
 /// false, desvía temporalmente std::cout: no se puede llamar a la vez desde varios hilos.
