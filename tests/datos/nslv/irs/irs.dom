@@ -1,0 +1,59 @@
+5
+Variable0
+0
+1
+1
+4.0
+8.0
+5
+4.0 4.0 4.0 5.0 MuyBaja
+4.0 5.0 5.0 6.0 Baja
+5.0 6.0 6.0 7.0 Media
+6.0 7.0 7.0 8.0 Alta
+7.0 7.0 7.0 8 MuyAlta
+Variable1
+0
+1
+1
+2.0
+4.5
+5
+2.0 2.0 2.0 2.6 MuyBaja
+2.0 2.6 2.6 3.2 Baja
+2.6 3.2 3.2 3.8 Media
+3.2 3.8 3.8 4.5 Alta
+3.8 4.5 4.5 4.5 MuyAlta
+Variable2
+0
+1
+1
+1.0
+7.0
+5
+1.0 1.0 1.0 2.5 MuyBaja
+1.0 2.5 2.5 4.0 Baja
+2.5 4.0 4.0 5.5 Media
+4.0 5.5 5.5 7.0 Alta
+5.5 7.0 7.0 7.0 MuyAlta
+Variable3
+0
+1
+1
+0.0
+3.0
+5
+0.0 0.0 0.0 0.75 MuyBaja
+0.0 0.75 0.75 1.5 Baja
+0.75 1.5 1.5 2.25 Media
+1.5 2.25 2.25 3.0 Alta
+2.25 3.0 3.0 3.0 MuyAlta
+Clase
+1
+0
+1
+0.0
+2.0
+3
+0 0 0 0 Iris-setosa
+1 1 1 1 Iris-versicolor
+2 2 2 2 Iris-virginica
