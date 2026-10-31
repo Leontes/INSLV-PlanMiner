@@ -1,0 +1,2 @@
+inslv_anadir_tests(inslv_oraculo oraculo test_oraculo.cpp)
+target_link_libraries(inslv_oraculo PRIVATE inslv_apoyo inslv_legacy)

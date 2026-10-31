@@ -1,0 +1,22 @@
+# clang-tidy para el código nuevo (preset tidy). Las sublibrerías heredadas no se revisan hasta
+# que se modernicen: sus fuentes, por CMake (HEREDADA); sus cabeceras, porque HeaderFilterRegex
+# solo admite las del código nuevo. Al modernizar una, se añade aquí include/inslv/<nombre>/.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  clang-analyzer-*,
+  concurrency-*,
+  misc-*,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  portability-*,
+  readability-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity
+HeaderFilterRegex: '(include/inslv/inslv\.hpp|tests/)'
+FormatStyle: file

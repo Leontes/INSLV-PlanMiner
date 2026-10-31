@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# old/ no está en el repositorio: los tests del oráculo no se compilan aquí. La equivalencia con
+# el original se comprueba con los casos guardados en tests/datos.
+
+jobs:
+  build:
+    name: Compilación y tests (${{ matrix.compiler }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar
+        run: cmake --preset ci-${{ matrix.compiler }}
+
+      - name: Compilar
+        run: cmake --build --preset ci-${{ matrix.compiler }} -j "$(nproc)"
+
+      - name: Tests
+        run: ctest --preset ci-${{ matrix.compiler }}
+
+  sanitizers:
+    name: AddressSanitizer y UBSan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar, compilar y probar
+        run: cmake --workflow --preset asan
+
+  tidy:
+    name: clang-tidy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Herramientas
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy-18
+
+      - name: Compilar con clang-tidy
+        run: |
+          cmake --preset tidy -DCMAKE_CXX_CLANG_TIDY="clang-tidy-18;--warnings-as-errors=*"
+          cmake --build --preset tidy -j "$(nproc)"
+
+  formato:
+    name: Formato
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Herramientas
+        run: pip install clang-format==18.1.3
+
+      # Las carpetas del código heredado tienen un .clang-format que desactiva el formato.
+      - name: clang-format
+        run: git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror

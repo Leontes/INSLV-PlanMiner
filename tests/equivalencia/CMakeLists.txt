@@ -1,0 +1,2 @@
+inslv_anadir_tests(inslv_equivalencia equivalencia test_equivalence.cpp)
+target_link_libraries(inslv_equivalencia PRIVATE inslv_apoyo)
