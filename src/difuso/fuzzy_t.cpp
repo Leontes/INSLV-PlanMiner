@@ -16,42 +16,12 @@ fuzzy_t::fuzzy_t(){
 }
 
 
-// Constructor parametrizado de clase
-// [a,b,c,d] representan una etiqueta trapezoidal y name es el nombre
-// de la etiqueta. Por defecto se asume que los extremos estan acotados.
-fuzzy_t::fuzzy_t(double a, double b, double c, double d, string name){
-  this->a = a;
-  this->b = b;
-  this->c = c;
-  this->d = d;
-  nombre = name;
-  menosinfinito=masinfinito=false;
-}
-
-
-// Constructor parametrizado de clase
-// [a,b,c,d] representan una etiqueta trapezoidal.
-// name es el nombre de la etiqueta
-// menos y mas representan si estan acotados o no los extremos.
-fuzzy_t::fuzzy_t(double a, double b, double c, double d, string name, bool
- menos, bool mas){
-  this->a = a;
-  this->b = b;
-  this->c = c;
-  this->d = d;
-  menosinfinito = menos;
-  masinfinito = mas;
-  nombre = name;
-}
 
 
 
 
-// Constructor de copia
-fuzzy_t::fuzzy_t(const fuzzy_t &x){
-  cout << "constructor de copia\n";
-  *this=x;
-}
+
+
 
 
 
@@ -115,10 +85,6 @@ double fuzzy_t::Adaptacion(double x) const {
 
 
 
-// Operador que permite poner nombre a la etiqueta
-void fuzzy_t::Poner_Nombre(string name){
-  nombre = name;
-}
 
 
 
@@ -134,40 +100,10 @@ void fuzzy_t::Pinta() const {
           cout << "[" << a <<","<< b <<"," << c << "," << d << "]\n";
 }
 
-// Operador que pone en el dispositivo de salida la definici�n de la etiqueta.
-string fuzzy_t::PintaS() const {
-  std::string out;
-   if (menosinfinito)
-     out += "[-inf,-inf," + to_string(c) + "," + to_string(d) + "] " + "Area: " + to_string(Area());
-   else if (masinfinito)
-          out += "[" + to_string(a) + "," + to_string(b) + ",inf,inf] " + "Area: " + to_string(Area());
-	else
-          out += "[" + to_string(a) + "," + to_string(b) + "," + to_string(c) + "," + to_string(d) + "] " + "Area: " + to_string(Area());
-
-  return out;
-}
 
 
-// Operador que pone en el dispositivo de salida la definici�n de la etiqueta.
-string fuzzy_t::SPinta() const {
-  string cadena;
-  ostringstream flujo;
-  flujo << nombre << " ";
-   if (menosinfinito)
-    flujo << "[-inf,-inf," << c << "," << d << "]";
-   else if (masinfinito)
-          flujo << "[" << a <<","<< b <<",inf,inf]";
-	else
-          flujo << "[" << a <<","<< b <<"," << c << "," << d << "]";
-  cadena = flujo.str();
-  return cadena;
-}
 
 
-// Operador que pone en el dispositivo de salida el nombre de la etiqueta
-void fuzzy_t::Print() const {
-   cout << nombre;
-}
 
 
 // Operador que devuelve en un string el nombre de la etiqueta.
@@ -176,104 +112,28 @@ string fuzzy_t::SPrint() const {
 }
 
 
-// Operador que devuelve un etiqueta (un objeto de tipo <fuzzy_t>
-fuzzy_t fuzzy_t::FuzzyLabel() const{
-  fuzzy_t aux;
-  aux=*this;
-  return aux;
-}
-
-
-// Operador que devuelve el valor central de la etiqueta
-double fuzzy_t::CenterLabel() const{
-  if (menosinfinito)
-    return c;
-  else if (masinfinito)
-          return b;
-       else
-          return (b+c)/2.0;
-}
-
-
-// Operador que determina si la etiqueta difusa representa un valor crisp
-bool fuzzy_t::IsDiscrete() const {
-  return (a==d);
-}
-
-
-// Operador que determina si la etiqueta difusa representa un intervalo cl�sico
-bool fuzzy_t::IsInterval() const{
-  return (a==b && c==d && b!=c);
-}
-
-
-// Operador que determina si la etiqueta difusa es un conjunto difuso.
-bool fuzzy_t::IsFuzzy() const{
-  return (!IsDiscrete() && !IsInterval());
-}
-
-
-
-//Operador que determina el area de la etiqueta.
-double fuzzy_t::Area() const{
-  return ((b-a)/2.0)+((d-c)/2.0)+(c-d);
-}
-
-
-
-void fuzzy_t::GetDefinicion(double &pa, double &pb, double &pc, double &pd, string &pnombre) const{
-  pa =a;
-  pb =b;
-  pc =c;
-  pd =d;
-  pnombre = nombre;
-}
-
-
-
-void fuzzy_t::PutDefinicion(double pa, double pb, double pc, double pd, string pnombre){
-  a=pa;
-  b=pb;
-  c=pc;
-  d=pd;
-  nombre=pnombre;
-}
 
 
 
 
-//Operador que guarda en un fichero binario la definici�n de la etiqueta
-void fuzzy_t::SaveBinaryCode(ofstream &f) const{
-  f.write(reinterpret_cast<const char *> (&a),sizeof(double));
-  f.write(reinterpret_cast<const char *> (&b),sizeof(double));
-  f.write(reinterpret_cast<const char *> (&c),sizeof(double));
-  f.write(reinterpret_cast<const char *> (&d),sizeof(double));
-  f.write(reinterpret_cast<const char *> (&masinfinito), sizeof(bool));
-  f.write(reinterpret_cast<const char *> (&menosinfinito), sizeof(bool));
-  int n=nombre.length();
-  f.write(reinterpret_cast<const char *> (&n),sizeof(int));
-  f.write(nombre.c_str(),n);
-}
 
 
-//Operador que asigna a un objeto etiqueta con la informaci�n procedente
-// de un fichero binario.
-void fuzzy_t::LoadBinaryCode(ifstream &f) {
-  char *aux;
-  int n;
 
-  f.read(reinterpret_cast<char *> (&a),sizeof(double));
-  f.read(reinterpret_cast<char *> (&b),sizeof(double));
-  f.read(reinterpret_cast<char *> (&c),sizeof(double));
-  f.read(reinterpret_cast<char *> (&d),sizeof(double));
-  f.read(reinterpret_cast<char *> (&masinfinito), sizeof(bool));
-  f.read(reinterpret_cast<char *> (&menosinfinito), sizeof(bool));
-  f.read(reinterpret_cast<char *> (&n),sizeof(int));
-  aux=new char[n+1];
-  f.read(aux,n);
-  aux[n]='\0';
-  nombre=aux;
-  delete [] aux;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }  // namespace inslv

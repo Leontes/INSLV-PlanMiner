@@ -25,8 +25,8 @@ function(inslv_anadir_sublibreria nombre)
   inslv_activar_cobertura(${target})
 
   if(arg_HEREDADA)
-    # Clang da por defecto avisos que GCC no da (arrays de longitud variable, using namespace std
-    # antes de las cabeceras estándar...): se callan todos.
+    # Clang da por defecto avisos que GCC no da: using namespace std antes de las cabeceras
+    # estándar, que no tiene opción propia para callarlo, y un else colgante. Se callan todos.
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       target_compile_options(${target} PRIVATE -Wno-everything)
     endif()

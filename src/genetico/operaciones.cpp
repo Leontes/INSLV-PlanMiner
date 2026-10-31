@@ -22,10 +22,6 @@ int Select_Random_Individuo(int n, int menos_este, int eli){
 
 
 
-int PuntoCorte(int n){
-  double nd=n;
-  return (1.0*n*rand()/(RAND_MAX+1.0));
-}
 
 void PuntoCorte2(int n, int &a, int &b){
   double nd=n;

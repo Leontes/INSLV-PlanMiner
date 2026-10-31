@@ -22,45 +22,24 @@ class example_set {
     int *rule_aislada;
     int n_partition;
     int *partition;
-    void Realojar(int new_examples);
     std::vector<int> n_clase;
   public:
     example_set();
     example_set(int ejemplos, int variables);
-    example_set(const example_set &x);
-    example_set(const char *nom_fich);
     example_set(std::vector < std::vector < double > > * dataset);
     example_set &operator=(const example_set &x);
     ~example_set();
-    void AddExampleFich(const char *nom_fich, int par, bool order = false); // order=F -> as it is, order=T -> random
-    void AddNewColumn(int col1, int col2, int op);
     double Data(int ejemplo, int variable) const;
     vectordouble Data(int ejemplo) const;
-    void AddExample(vectordouble w, int posicion);
     int N_Examples() const;
-    int N_Partitions() const;
     void Generate_Partitions(int num_partition);
-    bool Is_Training_Example(int ejemplo, int particion) const;
-    bool Is_Test_Example(int ejemplo, int particion) const;
-    int Training_Example(int particion) const;
-    int Test_Example(int particion) const;
-    int Not_Covered_Training_Example (int particion) const;
     int Not_Covered_Examples() const;
     void Examples_per_Class(int VarClass,int particion, int nclasses, int *n_example_in_class) const;
-    int N_Variables() const;
-    void Remove(int *v, int tama);
-    void Mark(int *v, int tama);
-    void UnMark(int *v, int tama);
-    void Mark(int *v, int tama, double *grado);
-    void Mark(int *v, int tama, double *grado, double *peso);
     void Mark(int *v, int tama, double *grado_p, double *peso_p, double *grado_n, double *peso_n, int *rule, int *r_aislada);
 
 
-    void UnMark(int *v, int tama, double *grado);
-    void UnMark(int *v, int tama, double *grado, double *peso);
     void UnMarkAll();
     bool Is_Covered(int i) const;
-    double Grade_Is_Covered (int i) const;
     double Grade_Is_Positive_Covered(int i) const;
     double Grade_Is_Negative_Covered(int i) const;
     double Peso_Is_Positive_Covered(int i) const;

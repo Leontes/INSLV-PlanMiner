@@ -25,7 +25,6 @@
 #include "inslv/genetico/genetcode.h"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/datos/vectordouble.h"
-#include "inslv/reglas/Relaciones.h"
 
 namespace inslv {
 class ruleset {
@@ -60,7 +59,6 @@ class ruleset {
           conforman el antecedente y consecuente de las regla
           tomar� sus valores.
     */
-    ruleset(const VectorVar &x);
 
 
     /**
@@ -76,7 +74,6 @@ class ruleset {
     /**
     @brief Constructor de copia de los objetos ruleset.
     */
-    ruleset(const ruleset &x);
 
     /**
     @brief Redefinici� del operador de asignaci� entre objetos de
@@ -107,13 +104,11 @@ class ruleset {
 
     void AddDomain_Funcion(const VectorVar &x);
 
-    void Add(const genetcode &x);
 
     void Add(const genetcode &x, double weight);
 
     void Add(const genetcode &x, double mas, double menos, bool modif);
 
-    void Add_Weight(int rule, double weight);
 
     void Add_Weight(int rule, double mas, double menos);
 
@@ -128,15 +123,12 @@ class ruleset {
 
     double Get_N_Mas(int rule) const;
 
-    void Put_N_Mas(int rule, double value);
 
-    void Put_N_Menos(int rule, double value);
 
     void Add_N_Menos(int rule, double value);
 
     double Get_N_Menos(int rule) const;
 
-    double Put_N_Menos(int rule) const;
 
     void Modificada(int rule, bool value);
 
@@ -145,21 +137,16 @@ class ruleset {
     void FixModifyToTrue();
 
 
-    void Anular_N_Mas_y_N_Menos(int i);
 
-    void Anular_N_Mas_y_N_Menos_Todas();
 
 
     void Remove();
 
     genetcode *Extract(int i, double &weight);
 
-    genetcode *Extract(int i, double &mas, double &menos, bool modif);
 
 
-    void Insert(int i, genetcode *r, double weight);
 
-    void Insert(int i, genetcode *r, double mas, double menos, bool modif);
 
     genetcode *Get_Code_Rule(int i) const;
 
@@ -183,8 +170,6 @@ class ruleset {
     double Variables_per_rule() const;
     int Variables_of_rule(int i) const;
     int New_Atributes_of_rule(int i) const;
-    int Stable_of_rule(int i) const;
-    double *SeeAdaptaciones_of_rule(int i) const;
 
 
     int Numero_Ceros_of_rule(int i) const;
@@ -192,7 +177,6 @@ class ruleset {
     /**
       @brief Devuelve la proporcion de variables usadas en relacion a las variables involucradas
     */
-    double Variables_Used() const;
 
 
     /**
@@ -209,12 +193,8 @@ class ruleset {
            un ejemplo que se desea clasificar.
     @return el ordinal de la clase a la que pertenece.
     */
-    int InferenceC(const vectordouble &v, const Relaciones &RI) const;
 
-    int InferenceC(const vectordouble &v, const Relaciones &RI, double &grado) const;
 
-    int InferenceCPeso(const vectordouble &v, const Relaciones &RI,
-                       double &grado) const;
 
     /**
     @brief Devuelve la clase a la que pertenece un ejemplo.
@@ -222,7 +202,6 @@ class ruleset {
            un ejemplo que se desea clasificar.
     @return el ordinal de la clase a la que pertenece.
     */
-    int InferenceC(const vectordouble &v) const;
 
 
     /**
@@ -233,13 +212,11 @@ class ruleset {
            de las reglas existentes en la base de datos.
     @return el ordinal de la clase a la que pertenece.
     */
-    int InferenceC(const vectordouble &v, double &grado) const;
 
     int InferenceC(const vectordouble &v, double &grado, int &regla_disparada) const;
 
     int InferenceC(const vectordouble &v, int clase, double &grado_p, double &peso_p, double &grado_n, double &peso_n, int &regla_disparada, int &aislada) const;
 
-    int InferenceC_debug(const vectordouble &v, int clase, double &grado_p, double &peso_p, double &grado_n, double &peso_n, int &regla_disparada, int &aislada) const;
 
     /**
     @brief Devuelve el valor que resulta de aplicar el ejemplo al
@@ -248,7 +225,6 @@ class ruleset {
            un ejemplo que se desea clasificar.
     @return el valor resultante de la inferencia del ejemplo.
     */
-    double InferenceF(const vectordouble &v) const;
 
     /**
     @brief Devuelve un objeto de tipo VectorVar que contiene el nmero
@@ -258,7 +234,6 @@ class ruleset {
     @return Devuelve un objeto de tipo VectorVar que es una copia de
             la informaci� contenida dentro del objeto ruleset.
     */
-    VectorVar ArrayVar() const;
 
     /**
     @brief Guarda en un archivo la informaci� contenida en un
@@ -266,7 +241,6 @@ class ruleset {
     @param nomfich (string) nombre del fichero donde se desea
 			     almacenar el conjunto de reglas.
     */
-    void Save(string nomfich) const;
 
     int Class_of_rule (int i) const;
 
@@ -276,29 +250,21 @@ class ruleset {
     @param nomfich (string) nombre del fichero donde se encuentra
 			     almacenado un conjunto de reglas.
     */
-    void Load(string nomfich);
 
 
-    void Print(int rule) const;
 
     string SPrint(int i) const;
 
     string SPrint_Consequent(int i) const;
 
 
-    void SaveRuleInterpreted(const char *nomfich) const;
 
     void SaveRuleInterpreted_append(const char *nomfich) const;
 
 
-    void Print(int rule, const Relaciones &RI) const;
 
-    string SPrint(int i, const Relaciones &RI) const;
 
-    void SaveRuleInterpreted(const char *nomfich, const Relaciones &RI) const;
 
-    void SaveRuleInterpreted(const char *nomfich, const Relaciones &RI,
-                             double training, double test) const;
 
     std::vector<Condition> Antecedente(int i) const;
 

@@ -37,7 +37,6 @@ class fuzzy_t {
 
      Crea un objeto de tipo fuzzy_t, con definicion [a,b,c,d,"name"]
      */
-     fuzzy_t(double a, double b, double c, double d, string name);
 
 
      /**
@@ -56,14 +55,11 @@ class fuzzy_t {
 
      Crea un objeto de tipo fuzzy_t, con definicion [a,b,c,d,"name",menos,mas]
      */
-     fuzzy_t(double a, double b, double c, double d, string name, bool menos,
- bool mas);
 
      /**
      @brief Constructor de cop�a de los objetos fuzzy_t.
      @param x (fuzzy_t) objeto sobre el que se realiza la cop�a.
      */
-     fuzzy_t(const fuzzy_t &x);
 
      /**
      @brief Sobrecarga del operador de asignaci�n que permite realizar la asignaci�n entre
@@ -123,7 +119,6 @@ bool mas);
      @pre El objeto debe estar creado.
      @param name (string) es el nuevo nombre que se le quiere asignar a la etiqueta.
      */
-     void Poner_Nombre(string name);
 
      /**
      @brief Saca por la salida est�ndar la descripci�n de la etiqueta definida en el
@@ -135,55 +130,42 @@ bool mas);
      trapecio que representa la etiqueta pudiendo ser a y b (-inf) y c y d (+inf).
      */
      void Pinta() const;
-     std::string PintaS() const;
 
-     string SPinta() const;
 
-     void Print() const;
 
      string SPrint() const;
 
      /**
      @brief Devuelve un objeto de tipo fuzzy_t.
      */
-     fuzzy_t FuzzyLabel() const;
 
      /**
      @brief Devuelve el valor central del n�cleo de la etiqueta difusa.
      */
-     double CenterLabel() const;
 
 
      /**
      @brief Devuelve si la etiqueta representa un valor discreto.
      */
-     bool IsDiscrete() const;
 
 
      /**
      @brief Devuelve si la etiqueta representa un intervalo.
      */
-     bool IsInterval() const;
 
      /**
      @brief Devuelve si la etiqueta representa una etiqueta
             difusa trapezoidal que no es un valor discreto ni
             un intervalo.
      */
-     bool IsFuzzy() const;
 
      /**
      @brief Devuelve el area definida por la etiqueta difusa.
      */
-     double Area() const;
 
-     void GetDefinicion(double &a, double &b, double &c, double &d, string &nombre) const;
 
-     void PutDefinicion(double a, double b, double c, double d, string nombre);
 
-     void SaveBinaryCode(ofstream &f) const;
 
-     void LoadBinaryCode(ifstream &f);
 
 
 };

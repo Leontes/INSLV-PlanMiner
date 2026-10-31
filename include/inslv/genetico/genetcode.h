@@ -36,7 +36,6 @@ class genetcode {
    double **mreal;
   public:
    genetcode();
-   genetcode(const genetcode &x);
    ~genetcode();
    genetcode &operator=(const genetcode &x);
    void PutBinary(int bin, int*nbin, char **mbin);
@@ -44,7 +43,6 @@ class genetcode {
    void PutReal(int rea, int*nrea, double **mrea);
    void PutValueBinary(int fila, int columna, char value);
    void PutValueInteger(int fila, int columna, int value);
-   void PutValueReal(int fila, int columna, double value);
    int TamaBinary(int fila) const;
    int TamaInteger(int fila) const;
    int TamaReal(int fila) const;
@@ -54,8 +52,6 @@ class genetcode {
    char GetValueBinary(int fila, int columna) const;
    int GetValueInteger(int fila, int columna) const;
    double GetValueReal(int fila, int columna) const;
-   void SaveCode(ofstream &f) const;
-   void LoadCode(ifstream &f);
 };
 
 }  // namespace inslv

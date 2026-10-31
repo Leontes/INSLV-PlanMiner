@@ -28,41 +28,6 @@ genetcode::genetcode(){
   mreal=0;
 }
 
-genetcode::genetcode(const genetcode &x){
-  binary=x.binary;
-  nbinary=new int[binary];
-  for (int i=0; i<binary; i++)
-    nbinary[i]=x.nbinary[i];
-  mbinary= new char*[binary];
-  for (int i=0; i<binary; i++){
-    mbinary[i]= new char[nbinary[i]];
-    for (int j=0; j<nbinary[i]; j++)
-      mbinary[i][j]=x.mbinary[i][j];
-  }
-
-  integer=x.integer;
-  ninteger=new int[integer];
-  for (int i=0; i<integer; i++)
-    ninteger[i]=x.ninteger[i];
-  minteger= new int*[integer];
-  for (int i=0; i<integer; i++){
-    minteger[i]= new int[ninteger[i]];
-    for (int j=0; j<ninteger[i]; j++)
-      minteger[i][j]=x.minteger[i][j];
-  }
-
-  real=x.real;
-  nreal=new int[real];
-  for (int i=0; i<real; i++)
-    nreal[i]=x.nreal[i];
-  mreal= new double*[real];
-  for (int i=0; i<real; i++){
-    mreal[i]= new double[nreal[i]];
-    for (int j=0; j<nreal[i]; j++)
-      mreal[i][j]=x.mreal[i][j];
-  }
-
-}
 
 
 genetcode::~genetcode(){
@@ -170,9 +135,6 @@ void genetcode::PutValueInteger(int fila, int columna, int value){
   minteger[fila][columna]=value;
 }
 
-void genetcode::PutValueReal(int fila, int columna, double value){
-  mreal[fila][columna]=value;
-}
 
 
 int genetcode::TamaBinary(int fila) const{
@@ -222,76 +184,7 @@ double genetcode::GetValueReal(int fila, int columna) const{
 
 
 
-void genetcode::SaveCode(ofstream &f) const{
-
-    f.write(reinterpret_cast<const char *>(&binary),sizeof(int));
-    for (int j=0; j<binary; j++){
-      f.write(reinterpret_cast<const char *>(&(nbinary[j])),sizeof(int));
-      f.write(reinterpret_cast<const char *>(mbinary[j]),sizeof(char)*nbinary[j]);
-    }
-    f.write(reinterpret_cast<const char *>(&integer),sizeof(int));
-    for (int j=0; j<integer; j++){
-      f.write(reinterpret_cast<const char *>(&(ninteger[j])),sizeof(int));
-      f.write(reinterpret_cast<const char *> (minteger[j]),sizeof(int)*ninteger[j]);
-    }
-    f.write(reinterpret_cast<const char *>(&real),sizeof(int));
-    for (int j=0; j<real; j++){
-      f.write(reinterpret_cast<const char *>(&(nreal[j])),sizeof(int));
-      f.write(reinterpret_cast<const char *>(mreal[j]),sizeof(double)*nreal[j]);
-    }
-}
 
 
-void genetcode::LoadCode(ifstream &f){
-
-    //Eliminar la informacion del objeto
-  if (binary>0){
-    for (int i=0; i<binary; i++)
-      delete [] mbinary[i];
-    delete [] mbinary;
-    delete [] nbinary;
-  }
-
-  if (integer>0){
-    for (int i=0; i<integer; i++)
-      delete [] minteger[i];
-    delete [] minteger;
-    delete [] ninteger;
-  }
-
-  if (real>0){
-    for (int i=0; i<real; i++)
-      delete [] mreal[i];
-    delete [] mreal;
-    delete [] nreal;
-  }
-
-  // Crear el objeto a partir del fichero
-    f.read(reinterpret_cast<char *>(&binary),sizeof(int));
-    nbinary = new int[binary];
-    mbinary = new char *[binary];
-    for (int j=0; j<binary; j++){
-      f.read(reinterpret_cast<char *>(&(nbinary[j])),sizeof(int));
-      mbinary[j] = new char[nbinary[j]];
-      f.read(reinterpret_cast<char *> (mbinary[j]),sizeof(char)*nbinary[j]);
-    }
-    f.read(reinterpret_cast<char *> (&integer),sizeof(int));
-    ninteger = new int[integer];
-    minteger = new int*[integer];
-    for (int j=0; j<integer; j++){
-      f.read(reinterpret_cast<char *>(&(ninteger[j])),sizeof(int));
-      minteger[j] = new int[ninteger[j]];
-      f.read(reinterpret_cast<char *> (minteger[j]),sizeof(int)*ninteger[j]);
-    }
-    f.read(reinterpret_cast<char *> (&real),sizeof(int));
-    nreal = new int[real];
-    mreal = new double *[real];
-    for (int j=0; j<real; j++){
-      f.read(reinterpret_cast<char *>(&(nreal[j])),sizeof(int));
-      mreal[j]= new double[nreal[j]];
-      f.read(reinterpret_cast<char *> (mreal[j]),sizeof(double)*nreal[j]);
-    }
-
-}
 
 }  // namespace inslv
