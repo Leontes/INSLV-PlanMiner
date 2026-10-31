@@ -85,8 +85,8 @@ cmake --workflow --preset cobertura  # cobertura con gcov (GCC)
 cmake --build --preset cobertura --target informe_cobertura
 ```
 
-- **Sanitizers:** el código del original tiene tres fugas de memoria conocidas, de unos 800 bytes
-  por llamada. `tests/lsan.supp` las ignora una a una: cualquier otra hace fallar los tests.
+- **Sanitizers:** sin supresiones: cualquier fuga de memoria o comportamiento indefinido hace
+  fallar los tests. Las tres fugas del original (unos 800 bytes por llamada) están corregidas.
 - **Cobertura:** se instrumentan la librería y sus sublibrerías, no los tests. El informe queda en
   `build/cobertura/cobertura/` (`index.html` y `resumen.txt`); necesita gcovr.
 

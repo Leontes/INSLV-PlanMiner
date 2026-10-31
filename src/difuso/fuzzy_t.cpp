@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include "inslv/difuso/fuzzy_t.h"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -91,13 +92,13 @@ double fuzzy_t::Adaptacion(double x) const {
 
 // Operador que pone en el dispositivo de salida la definici�n de la etiqueta.
 void fuzzy_t::Pinta() const {
-   cout << "Nombre: " << nombre << endl;
+   progreso() << "Nombre: " << nombre << endl;
    if (menosinfinito)
-     cout << "[-inf,-inf," << c << "," << d << "]\n";
+     progreso() << "[-inf,-inf," << c << "," << d << "]\n";
    else if (masinfinito)
-          cout << "[" << a <<","<< b <<",inf,inf]\n";
+          progreso() << "[" << a <<","<< b <<",inf,inf]\n";
 	else
-          cout << "[" << a <<","<< b <<"," << c << "," << d << "]\n";
+          progreso() << "[" << a <<","<< b <<"," << c << "," << d << "]\n";
 }
 
 

@@ -85,8 +85,8 @@ cmake --workflow --preset cobertura  # coverage with gcov (GCC)
 cmake --build --preset cobertura --target informe_cobertura
 ```
 
-- **Sanitizers:** the original code has three known memory leaks, about 800 bytes per call.
-  `tests/lsan.supp` ignores them one by one: any other one makes the tests fail.
+- **Sanitizers:** no suppressions: any memory leak or undefined behaviour makes the tests fail.
+  The three leaks of the original (about 800 bytes per call) are fixed.
 - **Coverage:** the library and its sub-libraries are instrumented, not the tests. The report is
   written to `build/cobertura/cobertura/` (`index.html` and `resumen.txt`); it needs gcovr.
 

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
+#include <stdexcept>
+#include <string>
 #include <stdio.h>
 #include <iostream>
 #include <string>
@@ -113,15 +115,11 @@ int domain_t::Size() const {
 // a una determinada etiqueta del dominio referenciada por su posici�n dentro
 // del dominio.
 double domain_t::Adaptacion(double x, const int etiqueta) const{
-  if (numero==0) {
-    cout << "El dominio no esta creado\n";
-    exit(1);
-  }
+  if (numero==0)
+    throw std::logic_error("inslv: el dominio no está creado");
 
-  if (etiqueta>=numero){
-    cout << "Esa etiqueta no esta en el dominio\n";
-    exit(1);
-  }
+  if (etiqueta>=numero)
+    throw std::logic_error("inslv: la etiqueta " + std::to_string(etiqueta) + " no está en el dominio");
 
   return label[etiqueta].Adaptacion(x);
 }
@@ -134,16 +132,12 @@ double domain_t::Adaptacion(double x, const int etiqueta) const{
 // representa ausencia y el uno presencia.
 double domain_t::Adaptacion(double x, string etiquetas) const{
   double mayor, nuevo;
-  if (numero==0) {
-    cout << "El dominio no esta creado\n";
-    exit(1);
-  }
+  if (numero==0)
+    throw std::logic_error("inslv: el dominio no está creado");
 
   mayor=etiquetas.length();
-  if (mayor>numero){
-    cout << "Esa etiqueta no esta en el dominio\n";
-    exit(1);
-  }
+  if (mayor>numero)
+    throw std::logic_error("inslv: hay más etiquetas que las del dominio");
 
   mayor=0;
   for (int i=0; i<numero and mayor<1; i++)

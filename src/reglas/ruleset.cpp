@@ -20,6 +20,7 @@
 #include <cmath>
 #include <algorithm>
 #include "inslv/reglas/ruleset.h"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -317,7 +318,7 @@ genetcode *ruleset::Get_Code_Rule(int i) const {
   if (i<n_rule)
    aux=rule[i];
   else
-    cout << "Error en Get_Code_Rule: Indice " << i << " de regla fuera de rango\n";
+    progreso() << "Error en Get_Code_Rule: Indice " << i << " de regla fuera de rango\n";
 
   return aux;
 }
@@ -692,10 +693,10 @@ int ruleset::InferenceC(const vectordouble &v, int clase, double &grado_p, doubl
         (adaptacion_particular[i]==grado_n and peso[i]==peso_n and i<indice_neg)) )
        de_clase++;
    if (de_clase==0){
-      cout << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p << " Grado Neg: "<< grado_n << "  Regla: " << re <<endl;
+      progreso() << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p << " Grado Neg: "<< grado_n << "  Regla: " << re <<endl;
       for (int t=0; t<n_rule; t++)
-        cout <<"\t"<<adaptacion_particular[t];
-      cout << endl;
+        progreso() <<"\t"<<adaptacion_particular[t];
+      progreso() << endl;
    }
 
    aislada=de_clase;
@@ -912,7 +913,7 @@ string ruleset::SPrint(int i) const{
 void ruleset::SaveRuleInterpreted_append(const char *nomfich) const {
   ofstream f(nomfich,ios::app);
   string regla;
-  cout << "Numero de reglas =" << n_rule << endl;
+  progreso() << "Numero de reglas =" << n_rule << endl;
   for (int i=0; i<n_rule; i++){
     regla=SPrint(i);
     f << regla.c_str() << endl;

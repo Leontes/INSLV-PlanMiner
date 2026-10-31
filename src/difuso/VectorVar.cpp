@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 using namespace std;
+#include <stdexcept>
+#include <string>
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
 #include <limits>
 #include "inslv/difuso/VectorVar.h"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -134,9 +137,9 @@ void VectorVar::Encode(int &tb, int &te) const {
 
 void VectorVar::Pinta() const{
   for (int i=0; i<numero; i++){
-    std::cout << std::endl;
+    progreso() << std::endl;
     lista[i].Pinta();
-    std::cout << "----------" << std::endl;
+    progreso() << "----------" << std::endl;
   }
 }
 
@@ -192,10 +195,8 @@ int VectorVar::SizeDomain(int variable) const{
 double VectorVar::Adaptacion(double x, int variable, int dominio) const {
   if (variable >=0 && variable < numero)
     return lista[variable].Adaptacion(x,dominio);
-  else {
-    cout << "Esa variable no existe\n";
-    exit(1);
-  }
+  else
+    throw std::logic_error("inslv: no existe la variable " + std::to_string(variable));
 }
 
 
@@ -400,7 +401,7 @@ int VectorVar::Consecuente() const {
   if (i!=numero)
     return i;
   else {
-    cout << "No hay variable consecuente\n";
+    progreso() << "No hay variable consecuente\n";
     return -1;
   }
 }

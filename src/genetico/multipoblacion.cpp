@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cmath>
 #include "inslv/genetico/multipoblacion.h"
+#include "inslv/comun/progreso.hpp"
 #include "inslv/genetico/operaciones.h"
 #include "inslv/datos/example_set.h"
 
@@ -71,7 +72,8 @@ multipoblacion::~multipoblacion(){
     if (modificado!=0)
       delete [] modificado;
     if (valoracion!=0){
-      for (int i=0; i<n_valoracion; i++)
+      // El constructor reserva una fila por individuo (en el original se liberaban n_valoracion).
+      for (int i=0; i<n_individuos; i++)
         delete [] valoracion[i];
       delete [] valoracion;
     }
@@ -286,10 +288,10 @@ double multipoblacion::Sort_4L(example_set &E, int n_clases, int *n_examples_per
     ind_clase[cl[0]][ind_clase[cl[0]][0]]=i;
   }
 
-  /*cout << "\t(" << ind_clase[0][0];
+  /*progreso() << "\t(" << ind_clase[0][0];
   for (int i=1; i<n_clases; i++)
-    cout << ", " << ind_clase[i][0];
-  cout << ")\n";*/
+    progreso() << ", " << ind_clase[i][0];
+  progreso() << ")\n";*/
 
 
 
@@ -371,13 +373,13 @@ double multipoblacion::Sort_4L(example_set &E, int n_clases, int *n_examples_per
 
 void multipoblacion::PintaFitness_Estacionario(int i) const{
   double minf0,minf1,minf2,maxf0,maxf1,maxf2;
-  cout << "Fitnes: ";
+  progreso() << "Fitnes: ";
   for (int j=0; j<n_valoracion; j++)
-    cout << valoracion[i][j] << "   ";
+    progreso() << valoracion[i][j] << "   ";
   //cout << "[" << MediaFitness_Estacionario(minf0,maxf0,minf1,maxf1,minf2,maxf2) << "]";
   //cout << "(" << minf0 << "," << maxf0 <<") , ("<<minf1 <<","<<maxf1<<") , ("<<minf2 << "," << maxf2 <<") ";
-  cout << "Clase => " << ClaseIndividuo(i);
-  cout << endl;
+  progreso() << "Clase => " << ClaseIndividuo(i);
+  progreso() << endl;
 }
 
 
@@ -388,10 +390,10 @@ void multipoblacion::PintaFitness_Estacionario(int i) const{
     Pe[j][0].Pinta(i);
   for (int j=0; j<poblacionesB; j++)
     Pb[j][0].Pinta(i);
-  cout << "Fitnes: ";
+  progreso() << "Fitnes: ";
   for (int j=0; j<n_valoracion; j++)
-    cout << valoracion[i][j] << " ";
-  cout << endl <<endl;
+    progreso() << valoracion[i][j] << " ";
+  progreso() << endl <<endl;
 
 }*/
 

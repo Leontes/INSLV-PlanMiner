@@ -5,8 +5,11 @@ using namespace std;
 #include <stdlib.h>
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 #include <utility>
 #include "inslv/datos/example_set.h"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -27,8 +30,10 @@ example_set::example_set(){
 }
 
 example_set::example_set(int ejemplos, int variables){
+  // En el original solo avisaba y dejaba los punteros sin inicializar.
   if (ejemplos<0 ||variables<=0)
-    cout << "No se admiten valores negativos\n";
+    throw std::logic_error("inslv: example_set con " + std::to_string(ejemplos) + " ejemplos y " +
+                           std::to_string(variables) + " variables");
   else {
     n_example=ejemplos;
     n_variable=variables;
@@ -104,19 +109,23 @@ example_set::example_set(std::vector < std::vector < double > > * dataset){
 
 
 example_set &example_set::operator=(const example_set &x){
-  if (n_example>0 && n_variable>0 && data!=0){
+  if (this == &x)
+    return *this;
+  // Se libera también sin ejemplos: los constructores reservan los vectores aunque estén vacíos
+  // (en el original solo se liberaban si había ejemplos).
+  if (data!=0){
     for (int i=0; i<n_example; i++)
       delete [] data[i];
-    delete []data;
-    delete []partition;
-    delete []covered;
-    delete []g_positive_covered;
-    delete []g_negative_covered;
-    delete []peso_positive;
-    delete []peso_negative;
-    delete []rule_used;
-    delete []rule_aislada;
   }
+  delete []data;
+  delete []partition;
+  delete []covered;
+  delete []g_positive_covered;
+  delete []g_negative_covered;
+  delete []peso_positive;
+  delete []peso_negative;
+  delete []rule_used;
+  delete []rule_aislada;
 
   n_example=x.n_example;
   n_variable=x.n_variable;
@@ -151,19 +160,20 @@ example_set &example_set::operator=(const example_set &x){
 
 
 example_set::~example_set(){
-  if (n_example>0 && n_variable>0 && data!=0){
+  // Se libera también sin ejemplos (ver operator=).
+  if (data!=0){
     for (int i=0; i<n_example; i++)
       delete [] data[i];
-    delete [] data;
-    delete [] covered;
-    delete []g_positive_covered;
-    delete []g_negative_covered;
-    delete []peso_positive;
-    delete []peso_negative;
-    delete []rule_used;
-    delete []rule_aislada;
-    delete [] partition;
   }
+  delete [] data;
+  delete [] covered;
+  delete []g_positive_covered;
+  delete []g_negative_covered;
+  delete []peso_positive;
+  delete []peso_negative;
+  delete []rule_used;
+  delete []rule_aislada;
+  delete [] partition;
 
 }
 
@@ -184,7 +194,7 @@ void example_set::OrderByClass(int order, int VarClase) { // order=0 -> as it is
 
   switch (order) {
     case 1: { // Ordered by class (in order)
-     cout << "Total 1: " << n_example << endl;
+     progreso() << "Total 1: " << n_example << endl;
      for (int i = 0; i < n_example; i++) {
        vector<double> aux(n_variable);
        for (int j = 0; j < n_variable; j++) {
@@ -212,19 +222,19 @@ void example_set::OrderByClass(int order, int VarClase) { // order=0 -> as it is
        }
      }
 
-     cout << "Clases" << endl;
+     progreso() << "Clases" << endl;
      for (int i = 0; i < n_clase.size(); i++)
-       cout << n_clase[i] << endl;
-     /*cout << "CARGA: " << VarClase << endl;
+       progreso() << n_clase[i] << endl;
+     /*progreso() << "CARGA: " << VarClase << endl;
      for (int i = 0; i < n_example; i++) {
        for (int j = 0; j < n_variable; j++)
-	 cout << data[i][j] << " ";
-       cout << endl;
+	 progreso() << data[i][j] << " ";
+       progreso() << endl;
      }*/
      }
      break;
     case 2: { // Ordered by class (one at a time... 1 2 3)
-      cout << "Total 2: " << n_example << endl;
+      progreso() << "Total 2: " << n_example << endl;
       for (int i = 0; i < n_example; i++) {
 	vector<double> aux(n_variable);
 	for (int j = 0; j < n_variable; j++) {
@@ -270,14 +280,14 @@ void example_set::OrderByClass(int order, int VarClase) { // order=0 -> as it is
 	} while ((index[k] == n_clase[k]) && (i + 1 < n_example));
       }
 
-      cout << "Clases" << endl;
+      progreso() << "Clases" << endl;
       for (int i = 0; i < n_clase.size(); i++)
-	cout << n_clase[i] << endl;
-      /*cout << "CARGA: " << VarClase << endl;
+	progreso() << n_clase[i] << endl;
+      /*progreso() << "CARGA: " << VarClase << endl;
       for (int i = 0; i < n_example; i++) {
 	for (int j = 0; j < n_variable; j++)
-	  cout << data[i][j] << " ";
-	cout << endl;
+	  progreso() << data[i][j] << " ";
+	progreso() << endl;
       }*/
     }
     break;
@@ -312,10 +322,8 @@ int example_set::N_Examples() const{
 
 
 void example_set::Generate_Partitions(int num_partition){
-  if (num_partition<1){
-     cout << "Numero ilegal de particiones\n";
-     exit(1);
-  }
+  if (num_partition<1)
+     throw std::logic_error("inslv: número de particiones no válido: " + std::to_string(num_partition));
 
 
   n_partition=num_partition;
@@ -474,7 +482,7 @@ int example_set::Rule_Aislada(int i) const{
     if (partition[i]!=particion)
      sum++;
 
-  cout << "ejemplos: " << sum << "  variables: " << n_variable << endl;
+  progreso() << "ejemplos: " << sum << "  variables: " << n_variable << endl;
   example_set E1(sum,  n_variable);
 
 
@@ -496,10 +504,10 @@ example_set example_set::Extract_Training_Set(int particion, int VarClase, int o
     if (partition[i]!=particion)
       sum++;
 
-  cout << "ejemplos: " << sum << "  variables: " << n_variable << endl;
+  progreso() << "ejemplos: " << sum << "  variables: " << n_variable << endl;
   example_set E1 = example_set(sum,  n_variable);
 
-  cout << "Training E" << endl;
+  progreso() << "Training E" << endl;
 
   int l=0;
   for (int i=0; i<n_example; i++){
@@ -520,13 +528,13 @@ example_set example_set::Extract_Training_Set(int particion, int VarClase, int o
   }
 
 
-  /*cout << "Training E ordered" << endl;
+  /*progreso() << "Training E ordered" << endl;
   for (int i=0; i< E1.N_Examples(); i++) {
     for (int j=0; j<n_variable; j++)
-      cout << E1.data[i][j] << " ";
-    cout << endl;
+      progreso() << E1.data[i][j] << " ";
+    progreso() << endl;
   }
-  cout << "end" << endl;*/
+  progreso() << "end" << endl;*/
 
   return E1;
 }
@@ -537,7 +545,7 @@ example_set example_set::Extract_Test_Set(int particion, int VarClase) const{
     if (partition[i]==particion)
       sum++;
 
-  cout << "ejemplos: " << sum << "  variables: " << n_variable << endl;
+  progreso() << "ejemplos: " << sum << "  variables: " << n_variable << endl;
   example_set E1 = example_set(sum,  n_variable);
 
   int l=0;

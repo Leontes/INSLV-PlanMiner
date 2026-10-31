@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 using namespace std;
+#include <stdexcept>
+#include <string>
 #include <iostream>
 #include <string>
 #include <cstdlib>
 #include "inslv/difuso/variable_t.h"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -102,10 +105,8 @@ double sup, double  *a, double *b, double *c, double *d, string *name, bool sing
 // Operador que devuelve el grado de adaptaci�n de un determinado valor x
 // a la etiqueta "etiqueta" de la variable.
 double variable_t::Adaptacion(double x, int etiqueta) const {
-  if (dominio==0){
-    cout << "Variable sin dominio asociado\n";
-    exit(1);
-  }
+  if (dominio==0)
+    throw std::logic_error("inslv: la variable " + nombre + " no tiene dominio");
   return (*dominio).Adaptacion(x,etiqueta);
 }
 
@@ -116,10 +117,8 @@ double variable_t::Adaptacion(double x, int etiqueta) const {
 // viene expresado como un vector ordenado (cadena caracteres string) de ceros
 // y unos, representando ausencia y presencia respectivamente.
 double variable_t::Adaptacion(double x, string etiquetas) const {
-  if (dominio==0){
-    cout << "Variable sin dominio asociado\n";
-    exit(1);
-  }
+  if (dominio==0)
+    throw std::logic_error("inslv: la variable " + nombre + " no tiene dominio");
   return (*dominio).Adaptacion(x,etiquetas);
 }
 
@@ -127,12 +126,10 @@ double variable_t::Adaptacion(double x, string etiquetas) const {
 
 // Operador que pone en el dispositivo de salida la definici�n de la variable
 void variable_t::Pinta() const{
-  if (dominio==0){
-    cout << "Variable sin dominio asociado\n";
-    exit(1);
-  }
-  cout << "Variable: " << nombre << endl;
-  cout << "========================\n";
+  if (dominio==0)
+    throw std::logic_error("inslv: la variable " + nombre + " no tiene dominio");
+  progreso() << "Variable: " << nombre << endl;
+  progreso() << "========================\n";
   (*dominio).Pinta();
 }
 
@@ -141,7 +138,7 @@ void variable_t::Pinta() const{
 
 // Operador que pone en el dispositivo de salida el nombre de la variable
 void variable_t::PrintVar() const{
-  cout << nombre;
+  progreso() << nombre;
 }
 
 // Operador que devuelve en un string el nombre de la variable.

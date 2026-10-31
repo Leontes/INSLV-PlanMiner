@@ -3,15 +3,16 @@
 
 #include "inslv/inslv.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <streambuf>
 #include <string>
 #include <vector>
 
 #include "inslv/aprendizaje/RuleCreator.hpp"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -21,9 +22,46 @@ namespace {
 // fuzzy_t::MISSING, privados): se adapta por completo a todas las etiquetas.
 constexpr double missing_value = -999999999;
 
+// a <= b <= c <= d. Escrito así, también es falso si alguno es NaN.
+bool es_trapecio(const FuzzySet& etiqueta) {
+  return etiqueta.a <= etiqueta.b && etiqueta.b <= etiqueta.c && etiqueta.c <= etiqueta.d;
+}
+
+// Si el valor se adapta algo a la etiqueta: como fuzzy_t::Adaptacion, que da 0 fuera de (a, d)
+// salvo en [b, c].
+bool se_adapta(double valor, const FuzzySet& etiqueta) {
+  return (etiqueta.a < valor && valor < etiqueta.d) || (etiqueta.b <= valor && valor <= etiqueta.c);
+}
+
 void check_labels(const Variable& variable) {
   if (variable.labels.empty()) {
     throw std::invalid_argument("inslv: la variable '" + variable.name + "' no tiene etiquetas");
+  }
+  for (const FuzzySet& etiqueta : variable.labels) {
+    if (!es_trapecio(etiqueta)) {
+      throw std::invalid_argument("inslv: la etiqueta '" + etiqueta.label + "' de '" +
+                                  variable.name + "' no cumple a <= b <= c <= d");
+    }
+  }
+}
+
+// Cada valor conocido tiene que adaptarse a alguna etiqueta de su atributo: si no, la
+// implementación no puede calcular su adaptación (en el original terminaba el programa).
+void check_values(const Dataset& data) {
+  for (std::size_t i = 0; i < data.attributes.size(); ++i) {
+    const Variable& atributo = data.attributes[i];
+    for (std::size_t e = 0; e < data.values[i].size(); ++e) {
+      const double valor = data.values[i][e];
+      if (std::isnan(valor) || valor == missing_value) {
+        continue;
+      }
+      if (std::none_of(atributo.labels.begin(), atributo.labels.end(),
+                       [valor](const FuzzySet& etiqueta) { return se_adapta(valor, etiqueta); })) {
+        throw std::invalid_argument("inslv: el valor " + std::to_string(valor) + " del ejemplo " +
+                                    std::to_string(e) + " en '" + atributo.name +
+                                    "' no se adapta a ninguna de sus etiquetas");
+      }
+    }
   }
 }
 
@@ -57,30 +95,17 @@ void check(const Dataset& data) {
       throw std::invalid_argument("inslv: clase " + std::to_string(c) + " fuera de rango");
     }
   }
+  check_values(data);
 }
 
-// Desvía std::cout a ninguna parte mientras existe: la implementación original escribe su
-// progreso por la salida estándar.
-class SilenceStdout {
- public:
-  explicit SilenceStdout(bool silence) : previous_(silence ? std::cout.rdbuf(&null_) : nullptr) {}
-  ~SilenceStdout() {
-    if (previous_ != nullptr) {
-      std::cout.rdbuf(previous_);
-    }
+// Adónde va el progreso de la implementación: al flujo de las opciones, a la salida estándar con
+// verbose o a ninguna parte.
+std::ostream* destino_del_progreso(const Options& opciones) {
+  if (opciones.progress != nullptr) {
+    return opciones.progress;
   }
-  SilenceStdout(const SilenceStdout&) = delete;
-  SilenceStdout& operator=(const SilenceStdout&) = delete;
-
- private:
-  class NullBuffer : public std::streambuf {
-   protected:
-    int overflow(int c) override { return traits_type::not_eof(c); }
-  };
-
-  NullBuffer null_;
-  std::streambuf* previous_;
-};
+  return opciones.verbose ? &std::cout : nullptr;
+}
 
 }  // namespace
 
@@ -110,10 +135,9 @@ std::vector<Rule> learn(const Dataset& data, const Options& options) {
   }
   columns.push_back(std::move(classes));
 
+  const DestinoDelProgreso destino(destino_del_progreso(options));
   VectorVar variables(data);
   example_set examples(&columns);
-
-  const SilenceStdout silence(!options.verbose);
   return Aprender(variables, examples, options);
 }
 

@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -71,8 +72,10 @@ struct Options {
   /// Semilla del generador de números aleatorios. Con la misma semilla y los mismos datos el
   /// resultado es el mismo.
   unsigned seed = 0;
-  /// Si es true, el progreso del genético sale por la salida estándar.
+  /// Si es true y no hay progress, el progreso del aprendizaje sale por la salida estándar.
   bool verbose = false;
+  /// Si no es nulo, el progreso del aprendizaje (los episodios, el genético...) se escribe aquí.
+  std::ostream* progress = nullptr;
   /// Si no está vacío, el informe del aprendizaje (medidas y reglas) se escribe en este fichero.
   std::filesystem::path report;
   /// Qué versión de las reglas se devuelve.
@@ -86,8 +89,8 @@ struct Options {
 /// Lanza std::invalid_argument si el conjunto de ejemplos no es coherente (tamaños distintos,
 /// variables sin etiquetas o clases fuera de rango) o el tamaño del episodio no es válido.
 ///
-/// Usa el generador de números aleatorios de la biblioteca de C (srand y rand) y, si verbose es
-/// false, desvía temporalmente std::cout: no se puede llamar a la vez desde varios hilos.
+/// Usa el generador de números aleatorios de la biblioteca de C (srand y rand): no se puede llamar
+/// a la vez desde varios hilos, y reinicia el generador del programa que lo llama.
 std::vector<Rule> learn(const Dataset& data, const Options& options = {});
 
 }  // namespace inslv

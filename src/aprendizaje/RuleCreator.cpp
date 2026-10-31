@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "inslv/aprendizaje/RuleCreator.hpp"
+#include "inslv/comun/progreso.hpp"
+
+#include <stdexcept>
+#include <string>
 
 namespace inslv {
 
@@ -7,7 +11,7 @@ namespace inslv {
 // En el original esperaba una tecla tras los avisos de consistencia del análisis de patrones.
 // Como librería no puede bloquearse esperando la entrada estándar: solo avisa.
 void Pausa(){
-  cerr << "INSLV: aviso de consistencia en el análisis de patrones (ver la salida anterior)\n";
+  progreso() << "INSLV: aviso de consistencia en el análisis de patrones (ver la salida anterior)\n";
 }
 
 
@@ -18,7 +22,7 @@ void Pausa(){
 bool vectoresIguales(double *v1, double *v2, int tama){
   int i=0;
   /*for (int t=0; t<tama; t++){
-    cout << v1[t] << " | " << v2[t] << endl;
+    progreso() << v1[t] << " | " << v2[t] << endl;
   }*/
 
   while (i<tama and v1[i]==v2[i] ){
@@ -89,29 +93,29 @@ int Comparar2patronesPinta(const string &cad1, const string &cad2){
   bool compatibles=true;
   for (int s=0; s<cad1.length(); s++)
     if (cad1[s]==cad2[s]){
-      cout << "_";
+      progreso() << "_";
     }
     else{
       if ( (cad1[s]=='x' and cad2[s]=='0') or (cad1[s]=='0' and cad2[s]=='x') ){
-        cout << "X";
+        progreso() << "X";
 	compatibles=false;
       }
       else if (cad1[s]=='0' and cad2[s]=='1'){
-	cout << ">";
+	progreso() << ">";
 	compatibles=false;
       }
       else if (cad1[s]=='1' and cad2[s]=='0'){
-	cout << "<";
+	progreso() << "<";
 	compatibles=false;
       }
       else{
-	cout << "$";
+	progreso() << "$";
       }
 
       n_cambios++;
     }
 
-  cout << endl;
+  progreso() << endl;
 
   if (n_cambios==0)
     return 0; // Son iguales
@@ -352,23 +356,23 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
       delete [] cad;
 
       if (res!=patr){
-	cout << "No coinciden los patrones para la regla " << i << endl;
-	cout << res << endl;
-	cout << patr << endl;
+	progreso() << "No coinciden los patrones para la regla " << i << endl;
+	progreso() << res << endl;
+	progreso() << patr << endl;
 	Pausa();
       }
 
       if (regla_R!=patr and Comparar2patrones(patr,regla_R)!=1){
-	cout << "La regla discriminante "<< i << " no coincide con su patron\n";
-	cout << regla_R << endl;
-	cout << patr << endl;
+	progreso() << "La regla discriminante "<< i << " no coincide con su patron\n";
+	progreso() << regla_R << endl;
+	progreso() << patr << endl;
 	Pausa();
       }
 
       if (regla_R_des!=patr and Comparar2patrones(patr,regla_R_des)!=1){
-	cout << "La regla descriptiva "<< i << " no coincide con su patron\n";
-	cout << regla_R_des << endl;
-	cout << patr << endl;
+	progreso() << "La regla descriptiva "<< i << " no coincide con su patron\n";
+	progreso() << regla_R_des << endl;
+	progreso() << patr << endl;
 	Pausa();
      }
 
@@ -400,13 +404,13 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 
 	    // El caso raro de campatibildades entre patrones
 	    if (iguales>1 and iguales2!=2 and iguales3!=2){
-	      cout << "Caso especial de incompatibilidades entre patrones y si entre reglas\n";
-	      cout << res3 << endl;
-	      cout << res4 << endl;
-	      cout << patr << endl << endl;
-	      cout << Patron1Regla(R_Descrip,V,j) << endl;
-	      cout << Patron1Regla(R,V,j) << endl;
-	      cout << res2 << endl << endl;
+	      progreso() << "Caso especial de incompatibilidades entre patrones y si entre reglas\n";
+	      progreso() << res3 << endl;
+	      progreso() << res4 << endl;
+	      progreso() << patr << endl << endl;
+	      progreso() << Patron1Regla(R_Descrip,V,j) << endl;
+	      progreso() << Patron1Regla(R,V,j) << endl;
+	      progreso() << res2 << endl << endl;
 	      Pausa();
 	    }
 
@@ -428,7 +432,7 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 	    // Los dos patrones son compatibles
 	    else if (iguales==1){
 	      cambio=true;
-	      cout << "\t\t\t\t\tCombinando Reglas " << i <<" y " << j << " de la clase " << R.Class_of_rule(i) <<endl;
+	      progreso() << "\t\t\t\t\tCombinando Reglas " << i <<" y " << j << " de la clase " << R.Class_of_rule(i) <<endl;
 		//cout << patr << endl;
 		//cout << res2 << endl;
 		//Comparar2patronesPinta(patr,res2);
@@ -482,11 +486,11 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 	      //cout << endl;
 	      //cout << cad2 << endl;
 	      string cad4 = Patron2Patrones(cad1,cad3);
-	      cout <<  cad4 << endl;
+	      progreso() <<  cad4 << endl;
 	      int iguales4 = Comparar2patrones(cad2,cad4);
 	      if (iguales4!=0){
-		cout << cad2 << endl;
-		cout <<  cad4 << endl;
+		progreso() << cad2 << endl;
+		progreso() <<  cad4 << endl;
 		Comparar2patronesPinta(cad2,cad4);
 		Pausa();
 	      }
@@ -513,7 +517,7 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 		  aux_R_des->PutValueBinary(0,t,cad4[t]);
 
 	      if (Patron2Reglas(R_Descrip,R,V,j)!=cad4){
-		cout << "Error al componer la descrip. y la predic. en la regla " << j << endl;
+		progreso() << "Error al componer la descrip. y la predic. en la regla " << j << endl;
 		Pausa();
 	      }
 
@@ -585,14 +589,14 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 	    iguales = Comparar2patrones(res2,patr);
 
 	    if (iguales==0){
-	      cout << "las reglas " << i << " y " << j << " son contradictorias\n";
+	      progreso() << "las reglas " << i << " y " << j << " son contradictorias\n";
 	      R.Add_N_Menos(i,R.Get_N_Mas(i));
 	      R.Recalculate_Weight(i);
 	      R_Descrip.Add_N_Menos(i,R_Descrip.Get_N_Mas(i));
 	      R_Descrip.Recalculate_Weight(i);
 	    }
 	    else if (iguales==1){
-	      cout << "las reglas " << i << " y " << j << " entran en conflicto\n";
+	      progreso() << "las reglas " << i << " y " << j << " entran en conflicto\n";
 	    }
 	    else{
 	      //no entra en principio en conflicto con ninguna otra regla
@@ -901,7 +905,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 		/*genetcode code;
 		G.Codigo(0,code);
 		R.Add(code,peso);
-		cout << R.SPrint(R.N_rule()-1) << endl;
+		progreso() << R.SPrint(R.N_rule()-1) << endl;
 		R.Remove();*/
                 //cout << endl;
             }
@@ -923,10 +927,10 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
           ind_por_clase[G.ClaseIndividuo(l)]++;
         }
 
-        cout << "\t\t\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
+        progreso() << "\t\t\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
         for (int l=1; l<n_clases; l++)
-          cout << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
-        cout << endl;
+          progreso() << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
+        progreso() << endl;
 
         delete [] ind_por_clase;
         delete [] mejor_de_clase;*/
@@ -1005,10 +1009,10 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
       ind_por_clase[G.ClaseIndividuo(l)]++;
     }
 
-    cout << "=====\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
+    progreso() << "=====\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
     for (int l=1; l<n_clases; l++)
-       cout << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
-    cout << endl;
+       progreso() << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
+    progreso() << endl;
     //cin.get();
 
     delete [] ind_por_clase;
@@ -1023,7 +1027,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
     if (  G.ValorFitness(0)<=-1 and G.ValorFitness(0,1)>1 and G.ValorFitness(0,1)>= (-G.ValorFitness(0))+2 ){
 
-      cout << "->->->->->-> El nuevo caso especial\n";
+      progreso() << "->->->->->-> El nuevo caso especial\n";
       //sleep(2);
     }
 
@@ -1118,11 +1122,11 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
 
 	/*if ( !ComprobacionEspGen(s_esp,s_gen) ){
-	  cout << "esp: " << s_esp << endl;
-	  cout << "gen: " << s_gen << endl;
-	  cout << "pat: ";
+	  progreso() << "esp: " << s_esp << endl;
+	  progreso() << "gen: " << s_gen << endl;
+	  progreso() << "pat: ";
 	  Comparar2patronesPinta(s_esp,s_gen);
-	  cout << endl;
+	  progreso() << endl;
 	}*/
 
 	//Evento1_Generalizar(G, V, E, R, R_dis, R_mix, ponderacion_por_clase, F, Tabla, Tabla_Nuevas,r_obj,gen);
@@ -1146,8 +1150,8 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
 
       if ( !ComprobacionEspGen(Patron1Regla(R,V,R.N_rule()-1), Patron1Regla(R_dis,V,R_dis.N_rule()-1)) ){
-	cout << "esp: " << endl << Patron1Regla(R,V,R.N_rule()-1) << endl;
-	cout << Patron1Regla(R_dis,V,R_dis.N_rule()-1) << endl <<":gen" << endl;
+	progreso() << "esp: " << endl << Patron1Regla(R,V,R.N_rule()-1) << endl;
+	progreso() << Patron1Regla(R_dis,V,R_dis.N_rule()-1) << endl <<":gen" << endl;
 	Comparar2patronesPinta(Patron1Regla(R,V,R.N_rule()-1), Patron1Regla(R_dis,V,R_dis.N_rule()-1));
 	Pausa();
       }
@@ -1160,10 +1164,10 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
 
       /*code2=(*R_mix.Get_Code_Rule(R_mix.N_rule()-1));
-      cout << "Patron de la regla obtenida: \n";
+      progreso() << "Patron de la regla obtenida: \n";
       for (int i=0; i<len; i++)
-	cout << code2.GetValueBinary(0,i);
-      cout << endl;
+	progreso() << code2.GetValueBinary(0,i);
+      progreso() << endl;
 
       Pausa();*/
 
@@ -1188,11 +1192,11 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
       //cout << "------------------------>>>>>>> Regla Aniadida\n";
       //G.PintaFitness_Estacionario(0);
       //cout << "------------------------>>>>>>>>>>>>>>>>>>>>>>\n";
-     /* cout << "-------------------------------------------------> Metida la regla\n";
-      cout << "-------------------------------------------------> Descriptiva\n";
-      cout << R.SPrint(R.N_rule()-1) << endl;
-      cout << "\n-------------------------------------------------> Discriminante\n";
-      cout << R_dis.SPrint(R.N_rule()-1) << endl;*/
+     /* progreso() << "-------------------------------------------------> Metida la regla\n";
+      progreso() << "-------------------------------------------------> Descriptiva\n";
+      progreso() << R.SPrint(R.N_rule()-1) << endl;
+      progreso() << "\n-------------------------------------------------> Discriminante\n";
+      progreso() << R_dis.SPrint(R.N_rule()-1) << endl;*/
       z=1;
       // Meter mas reglas
       //G.PutCodigo(0,code2);
@@ -1401,15 +1405,15 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
     //cout << cadena << endl;
     //cout << "Valor antes de Discriminacion:   ";
     if (debug){
-      cout << "Valor antes de Discriminacion:   " << endl;
-      cout << cadena << endl;
-      cout << "Valor de partida\n";
+      progreso() << "Valor antes de Discriminacion:   " << endl;
+      progreso() << cadena << endl;
+      progreso() << "Valor de partida\n";
       G.PintaFitness_Estacionario(elemento_i);
     }
 
     /*for (int i=0; i<r1; i++)
-      cout << "\t" << nr1[i];
-    cout << endl;*/
+      progreso() << "\t" << nr1[i];
+    progreso() << endl;*/
     //cout << "Umbral: " << umbral << endl;
 
     /*if (umbral<=0){
@@ -1477,7 +1481,7 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 		  //cout << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		  if (debug){
 		    //cout << "\t\t\t" << nb1 << endl;
-		    cout << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
+		    progreso() << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		    G.Valoracion(elemento_i,valor2);
 		    G.PintaFitness_Estacionario(elemento_i);
 		  }
@@ -1523,7 +1527,7 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 	      Bondad(G,V,E,R,valor2,N_valor,elemento_i,discriminante, reduccion_reglas, ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F,
 		    basica_para_regla, errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule, tam_rule_not_removed);
 	      if (debug)
-		cout << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
+		progreso() << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
 		  if ( (valor2[0]>valor[0] /*and valor2[0]>0*/) or
 		       (valor2[0]==valor[0] and valor2[1]>valor[1]) or
 		       (valor2[0]==valor[0] and valor2[1]==valor[1] and valor2[2]>=valor[2]) /*or
@@ -1541,8 +1545,8 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 		  //cout << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		  //cout << "\t";
 		  if (debug){
-		    cout << "\t\t\t\t" << cadena << endl;
-		    cout << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
+		    progreso() << "\t\t\t\t" << cadena << endl;
+		    progreso() << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		    G.Valoracion(elemento_i,valor2);
 		    G.PintaFitness_Estacionario(elemento_i);
 		  }
@@ -1571,23 +1575,23 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
     G.Valoracion(elemento_i,valor);
 
     if (debug){
-      cout << "Valor Final\n";
+      progreso() << "Valor Final\n";
       G.PintaFitness_Estacionario(elemento_i);
     }
 
 
     if (debug)
-      cout << cadena << endl;
+      progreso() << cadena << endl;
 
 
-    /*cout << "Valor despues de Discriminacion: ";
+    /*progreso() << "Valor despues de Discriminacion: ";
     G.PintaFitness_Estacionario(elemento_i);
 
 
-    cout << "cota de v[1]= " << nr1[1] << endl;
+    progreso() << "cota de v[1]= " << nr1[1] << endl;
     nb1=G.Subpoblacion_Binaria(0,elemento_i,b1);
     nr1=G.Subpoblacion_Real(0,elemento_i,r1);
-    cout << "cota de v[1]= " << nr1[1] << endl;
+    progreso() << "cota de v[1]= " << nr1[1] << endl;
 
     cadena = nb1;
     tama=0;
@@ -1600,15 +1604,15 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
       }
       tama+=longitud;
     }
-    cout << "Resultado final: " << endl;
+    progreso() << "Resultado final: " << endl;
     //cout << cadena << endl;
     //cout << nb1 << endl;
     G.PintaFitness_Estacionario(elemento_i);*/
 
     /*if (mejora_global)
-      cout << "\t\tMejorada la discriminacion de la regla\n";
+      progreso() << "\t\tMejorada la discriminacion de la regla\n";
     else
-      cout << "\t\tNo hay mejora en la discriminacion de la regla\n";*/
+      progreso() << "\t\tNo hay mejora en la discriminacion de la regla\n";*/
 
 
     //char ch;
@@ -1630,6 +1634,10 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 
 
 string Patron1Regla(ruleset &R_1, const VectorVar &V, int pos){
+  // Sin esa regla, un patrón vacío. En el original leía la regla -1 cuando el genético no
+  // añadía ninguna en la primera vuelta (R_mix vacío) y el programa reventaba (HALLAZGOS).
+  if (pos<0 || pos>=R_1.N_rule())
+    return "";
   genetcode r_1, r_2, *aux1, *aux2;
   aux1=R_1.Get_Code_Rule(pos);
   r_1=*aux1;
@@ -1798,8 +1806,8 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
     }
 
     /*for (int i=0; i<r1; i++)
-      cout << "\t" << nr1[i];
-    cout << endl;*/
+      progreso() << "\t" << nr1[i];
+    progreso() << endl;*/
     //cout << "Umbral: " << umbral << endl;
 
     //Aciertos(R,V,E,F);
@@ -1811,7 +1819,7 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
 
       G.Valoracion(elemento_i,valor);
       if (debug){
-	cout << "Valor al principio\n";
+	progreso() << "Valor al principio\n";
 	G.PintaFitness_Estacionario(elemento_i);
       }
 
@@ -1856,7 +1864,7 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
 		    Bondad(G,V,E,R,valor2,N_valor,elemento_i,discriminante, reduccion_reglas, ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F,
 			  basica_para_regla, errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar,!inGA, initial_rule, tam_rule_not_removed);
 		    if (debug)
-		      cout << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
+		      progreso() << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
 
 		    if ( (valor2[0]>valor[0] /*and valor2[0]>0*/) or
 			(valor2[0]==valor[0] and valor2[1]>valor[1]) or
@@ -1940,11 +1948,11 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
       G.Valoracion(elemento_i,valor);
 
       if (debug){
-	cout << "Valor final\n";
+	progreso() << "Valor final\n";
 	G.PintaFitness_Estacionario(elemento_i);
       }
 
-      /*cout << "Resultado final: " << endl;
+      /*progreso() << "Resultado final: " << endl;
       nb1=G.Subpoblacion_Binaria(0,elemento_i,b1);
       cadena=nb1;
       tama=0;
@@ -1957,15 +1965,15 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
 	}
 	tama+=longitud;
       }
-      cout << cadena << endl;
+      progreso() << cadena << endl;
       G.PintaFitness_Estacionario(elemento_i);    */
 
       //char ch;
       //cin >> ch;
       /*if (mejora_global)
-	cout << "\t\tMejorada la descripcion de la regla\n";
+	progreso() << "\t\tMejorada la descripcion de la regla\n";
       else
-	cout << "\t\tNo hay mejora en la descripcion de la regla\n";*/
+	progreso() << "\t\tNo hay mejora en la descripcion de la regla\n";*/
     //}
 
     delete [] valor;
@@ -2441,22 +2449,22 @@ valida = (variables_irrelevantes < r1-1);
   }
 
   /*if (reglas_eliminables>=2){
-   cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
+   progreso() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
    for (int i=0; i<nrule; i++){
     if ( (basica_esta_regla[i]-basica_para_regla[i])+ (errores_para_regla[i]-errores_esta_regla[i])>=0 ) ){
 
-      cout << "\t\t\t\tRegla: " << i << endl;
-      cout << "\t\t\t\t\tbasica esta regla: "<< basica_esta_regla[i] << endl;
-      cout << "\t\t\t\t\tbasica para regla: "<< basica_para_regla[i] << endl;
-      cout << "\t\t\t\t\terrores para regla: "<< errores_para_regla[i] << endl;
-      cout << "\t\t\t\t\terrores esta regla: "<< errores_esta_regla[i] << endl;
-      cout << "\t\t\t\t\tbasica(esta-para): "<< basica_esta_regla[i]-basica_para_regla[i] << endl;
-      cout << "\t\t\t\t\terrores(para-esta): "<< errores_para_regla[i]-errores_esta_regla[i] << endl;
-      cout << "\t\t\t\t\t\t Aciertos Adicionales: "<< (basica_esta_regla[i]-basica_para_regla[i])+ (errores_para_regla[i]-errores_esta_regla[i]) << endl << endl;
+      progreso() << "\t\t\t\tRegla: " << i << endl;
+      progreso() << "\t\t\t\t\tbasica esta regla: "<< basica_esta_regla[i] << endl;
+      progreso() << "\t\t\t\t\tbasica para regla: "<< basica_para_regla[i] << endl;
+      progreso() << "\t\t\t\t\terrores para regla: "<< errores_para_regla[i] << endl;
+      progreso() << "\t\t\t\t\terrores esta regla: "<< errores_esta_regla[i] << endl;
+      progreso() << "\t\t\t\t\tbasica(esta-para): "<< basica_esta_regla[i]-basica_para_regla[i] << endl;
+      progreso() << "\t\t\t\t\terrores(para-esta): "<< errores_para_regla[i]-errores_esta_regla[i] << endl;
+      progreso() << "\t\t\t\t\t\t Aciertos Adicionales: "<< (basica_esta_regla[i]-basica_para_regla[i])+ (errores_para_regla[i]-errores_esta_regla[i]) << endl << endl;
       //sleep(2);
     }
    }
-   cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
+   progreso() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
   }*/
 
 
@@ -2692,13 +2700,13 @@ double Aciertos(ruleset &R, const VectorVar &V, example_set &E, VectorVar &F)
     E.Mark(marcar,n, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
     //E.UnMark(desmarcar,tama2,gdesmarcar);
 
-    /*cout <<"Aciertos: " << bien << endl;
-    cout <<"Errores:  " << mal << endl;
-    cout <<"No clasificados: " << nosesabe << endl;
+    /*progreso() <<"Aciertos: " << bien << endl;
+    progreso() <<"Errores:  " << mal << endl;
+    progreso() <<"No clasificados: " << nosesabe << endl;
 
     for (int i=0; i<R.N_rule(); i++)
     {
-        cout << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
+        progreso() << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
     }*/
 
 
@@ -2877,13 +2885,13 @@ double Aciertos_Lista_Reglas_Eliminables(ruleset &R, const VectorVar &V, example
     /*E.Mark(marcar,n, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
     E.UnMark(desmarcar,tama2,gdesmarcar);
 
-    cout <<"Aciertos: " << bien << endl;
-    cout <<"Errores:  " << mal << endl;
-    cout <<"No clasificados: " << nosesabe << endl;
+    progreso() <<"Aciertos: " << bien << endl;
+    progreso() <<"Errores:  " << mal << endl;
+    progreso() <<"No clasificados: " << nosesabe << endl;
 
     for (int i=0; i<R.N_rule(); i++)
     {
-        cout << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
+        progreso() << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
     }*/
 
     tama=0;
@@ -2936,7 +2944,7 @@ double Inferencia2BasesReglas(ruleset &R, ruleset &R_Descrip, const VectorVar &V
     int clase, clase1, regla_disparada1, clase2, regla_disparada2, discrepancias=0, discrepancias_reglas=0;
 
     if (R.N_rule()!=R_Descrip.N_rule())
-      cout << "\nError: No coinciden las bases de reglas en el numero de reglas. Descriptivas: " << R_Descrip.N_rule() << " Discriminantes: " << R.N_rule() << endl;
+      progreso() << "\nError: No coinciden las bases de reglas en el numero de reglas. Descriptivas: " << R_Descrip.N_rule() << " Discriminantes: " << R.N_rule() << endl;
 
     for (int i=0; i<R.N_rule(); i++){
       fallosR[i]=0;
@@ -3016,19 +3024,19 @@ double Inferencia2BasesReglas(ruleset &R, ruleset &R_Descrip, const VectorVar &V
 	    mal++;
         }
     }
-    /*cout << "Discrepancias clases= " << discrepancias << endl;
-    cout << "Discrepancias reglas= " << discrepancias_reglas << endl;
+    /*progreso() << "Discrepancias clases= " << discrepancias << endl;
+    progreso() << "Discrepancias reglas= " << discrepancias_reglas << endl;
     if (n1>0)
-      cout << "Fallos R1= " << (1.0*fallos1)/n1 << " ("<< fallos1 << "/" << n1 <<")\n";
+      progreso() << "Fallos R1= " << (1.0*fallos1)/n1 << " ("<< fallos1 << "/" << n1 <<")\n";
 
     if (n2>0)
-      cout << "Fallos R2= " << (1.0*fallos2)/n2 << " ("<< fallos2 << "/" << n2 <<")\n";
+      progreso() << "Fallos R2= " << (1.0*fallos2)/n2 << " ("<< fallos2 << "/" << n2 <<")\n";
 
-    cout << "Acierto = " << bien/n << " ("<< bien << "/" << n <<")\n";
+    progreso() << "Acierto = " << bien/n << " ("<< bien << "/" << n <<")\n";
 
 
     for (int i=0; i<R.N_rule(); i++){
-      cout << "Fallos regla " << i << ": " << fallosR[i] << " | " << fallosR_Descrip[i] << " || DisR: " << disparosR[i] << " | " << disparosR_Descrip[i] << endl;
+      progreso() << "Fallos regla " << i << ": " << fallosR[i] << " | " << fallosR_Descrip[i] << " || DisR: " << disparosR[i] << " | " << disparosR_Descrip[i] << endl;
     }*/
 
     //char ch;
@@ -3100,7 +3108,7 @@ double Filtrar_Reglas_New(ruleset &R, ruleset &R_dis, ruleset &R_mix, int *regla
 // posicion 0 se encuentra la medida general sobre todas las clases.
 double **ReservaParaMedidasDeInformacion(const VectorVar &V)
 {
-cout << "Med " << V.N_Antecedente() << " " << V.SizeDomain(V.Consecuente()) + 1 << endl;
+progreso() << "Med " << V.N_Antecedente() << " " << V.SizeDomain(V.Consecuente()) + 1 << endl;
     int n=V.TotalVariables(), conse=V.Consecuente();
     int tam_dom_conse=V.SizeDomain(conse);
     int nv, m=tam_dom_conse+1;
@@ -3163,7 +3171,7 @@ void CalcularProbabilidadSimpleVariable(const VectorVar &V, const example_set &E
 
     if (ne>0)
     {
-      	      cout << "NE: " << ne << endl;
+      	      progreso() << "NE: " << ne << endl;
 
         for (int j=0; j<n_casos; j++)
             p[j]=p[j]/ne;
@@ -3238,7 +3246,7 @@ double Operacion (double x1, double x2, int op)
     case 7: //Delta+
         /*a = sin(x1);
         if (a<-1 || a >1)
-            cout << "sin(" << x1 << ")=" << a << endl;*/
+            progreso() << "sin(" << x1 << ")=" << a << endl;*/
         return x1;
         break;
     case 8: //Delta-
@@ -3316,7 +3324,7 @@ void CalcularProbabilidadConjunta2Variables(const VectorVar &V, const example_se
 
     /*for (int j=0; j<n_casos1; j++)
       for (int k=0; k<n_casos2; k++)
-        cout << "p(x=" << j <<", y=" << k <<")= " << m[j][k] << endl; */
+        progreso() << "p(x=" << j <<", y=" << k <<")= " << m[j][k] << endl; */
 
 
     for (int j=0; j<n_casos1; j++)
@@ -3358,16 +3366,16 @@ void MedidasDeInformacion(const VectorVar &V, const example_set &E, double **I)
 
     CalcularProbabilidadSimpleVariable(V,E,conse,V.SizeDomain(conse),py);
 
-    cout << "PY" << endl;
+    progreso() << "PY" << endl;
     for (int i = 0; i < V.SizeDomain(conse); i++)
-      cout << py[i] << " ";
-    cout << endl;
+      progreso() << py[i] << " ";
+    progreso() << endl;
 
     int i=0, j=0;
     double I1=0, H1=0, I2=0, H2=0, aux;
     while (i<nv)
     {
-        cout << i+1 <<"/" << nv << endl;
+        progreso() << i+1 <<"/" << nv << endl;
         if (V.IsActiva(j) && V.IsAntecedente(j))
         {
             px = new double [V.SizeDomain(j)];
@@ -3413,10 +3421,10 @@ void MedidasDeInformacion(const VectorVar &V, const example_set &E, double **I)
                 I[i][0]=(I1/H1);
 
             V.PrintVar(j);
-            cout << ": " << I1 << "/" << H1 << ": " << I[i][0] << endl;
+            progreso() << ": " << I1 << "/" << H1 << ": " << I[i][0] << endl;
             for (int k=0; k<V.SizeDomain(conse); k++)
             {
-                cout << "\tEtiqueta "<< k <<": " << I[i][k+1] << endl;
+                progreso() << "\tEtiqueta "<< k <<": " << I[i][k+1] << endl;
             }
 
             i++;
@@ -3427,7 +3435,7 @@ void MedidasDeInformacion(const VectorVar &V, const example_set &E, double **I)
             delete [] pxy;
         }
 	else {
-		cout << "POS: " << i << " " << j << endl;
+		progreso() << "POS: " << i << " " << j << endl;
 	}
         j++;
     }
@@ -3547,12 +3555,10 @@ double ***Crear_Tabla_Adaptaciones(const VectorVar &V, const example_set &E)
               if (Tabla[v][j][e]>0 and Tabla[v][j][e]<=1)
                 valores_distinto_cero++;
             }
-            if (valores_distinto_cero==0){
-              cout << "ERROR!!!\n";
-              V.PrintVar(v);
-              cout << "\nEl ejemplo " << e << " de la variable " << v << " de valor " << valor << " no tiene ninguna adaptacion con su dominio\n";
-              exit(1);
-            }
+            // learn lo comprueba antes de empezar; en el original terminaba el programa.
+            if (valores_distinto_cero==0)
+              throw std::invalid_argument("inslv: el valor " + std::to_string(valor) + " de la variable " + std::to_string(v) +
+                                          " no se adapta a ninguna de sus etiquetas");
 
         }
     }
@@ -3601,12 +3607,10 @@ double ***Crear_Tabla_Adaptaciones_Nuevas(const VectorVar &V, const example_set 
                 if (Tabla[v][j][e]>0 and Tabla[v][j][e]<=1)
                   valores_distinto_cero++;
               }
-              if (valores_distinto_cero==0){
-                cout << "ERROR!!!\n";
-                V.PrintVar(v);
-                cout << "\nEl ejemplo " << e << " de la variable " << v << " de valor " << resultado << " no tiene ninguna adaptacion\n";
-              exit(1);
-            }
+              // En el original terminaba el programa.
+              if (valores_distinto_cero==0)
+                throw std::invalid_argument("inslv: el valor " + std::to_string(resultado) + " de la variable " + std::to_string(v) +
+                                            " no se adapta a ninguna de sus etiquetas");
             }
         }
     }
@@ -3769,7 +3773,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
   }
 
   srand(seed);
-  cout << "SEED " << seed << endl;
+  progreso() << "SEED " << seed << endl;
 
   vectordouble a1, a2(5), a3;
 
@@ -3946,7 +3950,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       V.Encode(tama[0],rango[0]);
       // rango del nivel de valor en funciones
       rango[1]= F.TotalVariables()+1;
-	      cout << "numero de nuevas variables... " << rango[1] << endl;;
+	      progreso() << "numero de nuevas variables... " << rango[1] << endl;;
 
       // Rango del nivel de variable
       rangoi[0]=0.0;
@@ -4074,8 +4078,8 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
       E_Par = Subconjunto.Union(E_Retenidos);
 
-      cout << endl;
-      cout << "=================================================== Episodio de " <<inicio << " a " << fin << " ====================================" << endl;
+      progreso() << endl;
+      progreso() << "=================================================== Episodio de " <<inicio << " a " << fin << " ====================================" << endl;
 
       tiempo1=clock();
 
@@ -4083,22 +4087,22 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       ETA = (step/(it2+1))*(episodios-it2);
 
       if (false){
-        cout << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      Aciertos Test: " << Aciertos(R_prev[par],V,E_Par_Test,F) << endl;
+        progreso() << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      Aciertos Test: " << Aciertos(R_prev[par],V,E_Par_Test,F) << endl;
         ult_it=it;
       }
       else{
-        cout << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      ETA: " << ETA << endl;
+        progreso() << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      ETA: " << ETA << endl;
       }
 
-      cout << "=================================================== Tamano " << E_Par.N_Examples() << " ====================================" << endl << endl;
-      cout << "[Paso: " << paso << "]" << endl;
+      progreso() << "=================================================== Tamano " << E_Par.N_Examples() << " ====================================" << endl << endl;
+      progreso() << "[Paso: " << paso << "]" << endl;
       inicio=fin;
 
-      cout << "Creando la tabla de adaptaciones.....\n";
+      progreso() << "Creando la tabla de adaptaciones.....\n";
       double ***Tabla = Crear_Tabla_Adaptaciones(V,E_Par);
       double ***Tabla_Nuevas = Crear_Tabla_Adaptaciones_Nuevas(F,E_Par);
       double ***Tabla1 = nullptr, ***Tabla_Nuevas1 = nullptr, ***Tabla2 = nullptr, ***Tabla_Nuevas2 = nullptr;
-      cout << "Tabla de adaptaciones creada!\n";
+      progreso() << "Tabla de adaptaciones creada!\n";
 
       char ch;
   	  //cin >> ch;
@@ -4118,9 +4122,9 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       }
 
       if (it2 == 0) {
-        cout << "Calculando medidas de informacion\n";
+        progreso() << "Calculando medidas de informacion\n";
         MedidasDeInformacion(V, E_operadores, Med_Inform);
-        cout << "Terminado el calculo de las medidas de informacion\n";
+        progreso() << "Terminado el calculo de las medidas de informacion\n";
       }
 
       int anterior_n;
@@ -4145,21 +4149,21 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
   	  example_set E_Par_Not_Covered;
 
-      cout << "  Numero de Reglas: " << R_prev[par].N_rule() << "(" << R_prev[par].N_rule(0.5) << ")" << endl;
+      progreso() << "  Numero de Reglas: " << R_prev[par].N_rule() << "(" << R_prev[par].N_rule(0.5) << ")" << endl;
 
       last_accuracy = accuracy_old;
       acumulado+=last_accuracy;
       if (acumulado==0){
         umbral_acierto=1;
       }
-      cout << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy << endl;
+      progreso() << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy << endl;
 
       if (psubi[it2]==1082500){
-        cout << "En este episodiio se da el error\n";
+        progreso() << "En este episodiio se da el error\n";
       }
 
       accuracy_old= Aciertos(R_prev[par],V,E_Par, F);
-      cout << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old << endl;
+      progreso() << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old << endl;
 
       if (it2>=10 and it2%10==0){
         E_Anteriores = E_Par_Completo.SubSet(psubi[it2-10], psubf[it2-10]);
@@ -4185,10 +4189,10 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       evo_num_de_reglas[it2]=0;
 
 
-      cout << "Diferencia de acierto entre los dos últimos episodios: " << acierto_anterior-last_accuracy << endl;
+      progreso() << "Diferencia de acierto entre los dos últimos episodios: " << acierto_anterior-last_accuracy << endl;
       acierto_anterior=last_accuracy;
 
-      cout << "En la iteración " << it << " el umbral se ha fijado a " << umbral_acierto << " (" << umbral_acierto*(1+percent) << ")" << endl;
+      progreso() << "En la iteración " << it << " el umbral se ha fijado a " << umbral_acierto << " (" << umbral_acierto*(1+percent) << ")" << endl;
 
       if (it%50==0){
         reajustar_peso=true;
@@ -4209,7 +4213,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
 
       accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
-      cout << "Aciertos despues de ajustar los pesos de las reglas: " << accuracy_old << endl;
+      progreso() << "Aciertos despues de ajustar los pesos de las reglas: " << accuracy_old << endl;
       double acierto_despuesAjustarPeso = accuracy_old;
 
       if (accuracy_old< (umbral_acierto)){
@@ -4243,8 +4247,8 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
           }
         }
 
-        cout << "Ejemplos eliminados: " << l_tama << endl;
-        cout << "Reglas no filtradas: " << R[par].N_rule() << "(" << R[par].N_rule(0.5) <<")" << endl;
+        progreso() << "Ejemplos eliminados: " << l_tama << endl;
+        progreso() << "Reglas no filtradas: " << R[par].N_rule() << "(" << R[par].N_rule(0.5) <<")" << endl;
 
         if (l_tama>=0 and l_tama<E_Par_Not_Covered.N_Examples() ){
           Tabla1 = Crear_Tabla_Adaptaciones(V,E_Par_Not_Covered);
@@ -4254,12 +4258,12 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         delete [] lista2;
         delete [] l_aciertos;
 
-        cout << "\n-------------------------------------------> Nuevo numero de ejemplos: " << E_Par_Not_Covered.N_Examples() << endl;
+        progreso() << "\n-------------------------------------------> Nuevo numero de ejemplos: " << E_Par_Not_Covered.N_Examples() << endl;
       }
 
       if (accuracy_old< (umbral_acierto)){
         accuracy_old= Aciertos(R[par],V,E_Par_Not_Covered,F);
-        cout << "Aciertos de la descriptiva antes de lanzar el genetico: " <<  accuracy_old << endl;
+        progreso() << "Aciertos de la descriptiva antes de lanzar el genetico: " <<  accuracy_old << endl;
         cambio_en_reglas=true;
 
         umbral_acierto-=0.00;
@@ -4307,7 +4311,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
           n=E_Par_Not_Covered.Not_Covered_Examples();
 
           if (G.ValorFitness(0)>0 and anterior_n==n){
-            cout << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
+            progreso() << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
           }
 
           if (G.ValorFitness(0)!=-2*E_Par_Not_Covered.N_Examples() and!reducir_reglas and !Added_Rule){
@@ -4355,7 +4359,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         R_prev[par].AddRuleset(R[par]);
         R_prev_dis[par].AddRuleset(R_dis[par]);
         R_mix_prev[par].AddRuleset(R_mix[par]);
-        cout << "Aniadidas " << R[par].N_rule()- initial_size_of_rule << " reglas\n";
+        progreso() << "Aniadidas " << R[par].N_rule()- initial_size_of_rule << " reglas\n";
 
         if (R[par].N_rule()- initial_size_of_rule >0){
           evo_insert_rules[it2]=1;
@@ -4363,14 +4367,14 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         }
 
         accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
-        cout << "Acierto antes de analizar patrones: " << accuracy_old << endl;
+        progreso() << "Acierto antes de analizar patrones: " << accuracy_old << endl;
 
         if (acierto_despuesAjustarPeso<accuracy_old){
-          cout << "............................. Analizando patrones entre reglas .......................\n";
+          progreso() << "............................. Analizando patrones entre reglas .......................\n";
           bool cambio = AnalizarConjuntosDeReglas(V, R_prev_dis[par], R_prev[par], R_mix_prev[par], R[par].N_rule());
           if (cambio) ult_it=it-1;
           accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
-  	      cout << "Acierto despues de analizar patrones: " << accuracy_old << endl;
+  	      progreso() << "Acierto despues de analizar patrones: " << accuracy_old << endl;
         }
 
         else {

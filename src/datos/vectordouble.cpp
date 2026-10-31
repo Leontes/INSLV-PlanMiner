@@ -3,6 +3,7 @@ using namespace std;
 #include <iostream>
 #include <iomanip>
 #include "inslv/datos/vectordouble.h"
+#include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
@@ -79,7 +80,7 @@ void vectordouble::Put(double *x, int tamano){
 
 double vectordouble::At(int pos) const {
   if (pos<0 || pos>numero){
-    cout << "No existe esa posicion" << pos << endl;
+    progreso() << "No existe esa posicion" << pos << endl;
     return -999999999; /*devuelve un error*/
   }
   else

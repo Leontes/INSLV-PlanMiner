@@ -104,10 +104,7 @@
       "inherits": "base",
       "configurePreset": "asan",
       "filter": { "exclude": { "label": "oraculo|lento" } },
-      "environment": {
-        "ASAN_OPTIONS": "hard_rss_limit_mb=2048",
-        "LSAN_OPTIONS": "suppressions=${sourceDir}/tests/lsan.supp"
-      }
+      "environment": { "ASAN_OPTIONS": "hard_rss_limit_mb=2048" }
     },
     {
       "name": "cobertura",

@@ -20,6 +20,7 @@ using namespace std;
 #include <iostream>
 #include <fstream>
 #include "inslv/genetico/poblacionreal.h"
+#include "inslv/comun/progreso.hpp"
 #include "inslv/genetico/operaciones.h"
 
 namespace inslv {
@@ -156,11 +157,11 @@ void poblacionreal::PoblacionInicial(double **I, int clases){
   double *max = new double[clases], *min = new double[clases];
 
   double mayor, menor;
-cout << "CL " << tamano[0] - 1 << endl;
+progreso() << "CL " << tamano[0] - 1 << endl;
   for (int i=0; i<clases; i++){
     mayor=I[0][i+1];
     menor=I[0][i+1];
-cout << "I " << I[0][i+1] << endl;
+progreso() << "I " << I[0][i+1] << endl;
     for (int j=1; j<tamano[0]-1; j++){
       if (I[j][i+1]>mayor)
         mayor=I[j][i+1];
@@ -182,6 +183,8 @@ cout << "I " << I[0][i+1] << endl;
     //individuos[i][tamano[i]-1]=(max[i%clases]-min[i%clases])*(1.0*rand())/(RAND_MAX+1.0);
     individuos[i][tamano[i]-1]=0.2;
   }
+  delete [] max;
+  delete [] min;
 }
 
 

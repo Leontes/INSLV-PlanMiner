@@ -40,8 +40,9 @@ for (const inslv::Rule& rule : inslv::learn(data)) {
 ```
 
 Las opciones eligen las reglas descriptivas (las de por defecto, las que usa PlanMiner) o las
-discriminantes, con solo las condiciones mínimas, y el tamaño del episodio. Los conjuntos de datos
-en el formato de NSLV se leen con `inslv/formatos/nslv.hpp`:
+discriminantes, con solo las condiciones mínimas, el tamaño del episodio y adónde va el progreso del
+aprendizaje (`options.progress`, un `std::ostream*`; por defecto, a ninguna parte). Los conjuntos de
+datos en el formato de NSLV se leen con `inslv/formatos/nslv.hpp`:
 
 ```cpp
 #include "inslv/formatos/nslv.hpp"
@@ -71,6 +72,7 @@ La interfaz cambiará cuando el port llegue a ella: nombres en castellano y clas
 | `src/genetico/` | el algoritmo genético: el código genético, las poblaciones y sus operadores |
 | `src/reglas/` | el conjunto de reglas y su inferencia |
 | `src/aprendizaje/` | el aprendizaje incremental de NSLV |
+| `src/comun/` | lo que comparten las sublibrerías: el flujo del progreso |
 | `src/formatos/` | el lector del formato de NSLV, aparte del motor |
 | `tests/` | tests unitarios, de equivalencia y del oráculo; `apoyo/`: lo que comparten |
 | `tests/datos/nslv/` | cinco conjuntos de datos en el formato de NSLV, cada uno con su dominio y 10 particiones de validación cruzada: aut, boxA, irs, ring y wne |

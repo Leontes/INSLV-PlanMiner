@@ -40,7 +40,8 @@ for (const inslv::Rule& rule : inslv::learn(data)) {
 ```
 
 The options choose the descriptive rules (the default, the ones PlanMiner uses) or the
-discriminant ones, with only the minimal conditions, and the episode size. Datasets in the NSLV
+discriminant ones, with only the minimal conditions, the episode size and where the learning
+progress goes (`options.progress`, an `std::ostream*`; by default, nowhere). Datasets in the NSLV
 format are read with `inslv/formatos/nslv.hpp`:
 
 ```cpp
@@ -71,6 +72,7 @@ The interface will change when the port reaches it: names in Spanish and classif
 | `src/genetico/` | the genetic algorithm: the genetic code, the populations and their operators |
 | `src/reglas/` | the rule set and its inference |
 | `src/aprendizaje/` | NSLV's incremental learning |
+| `src/comun/` | what the sub-libraries share: the progress stream |
 | `src/formatos/` | the NSLV format reader, apart from the engine |
 | `tests/` | unit, equivalence and oracle tests; `apoyo/`: what they share |
 | `tests/datos/nslv/` | five datasets in the NSLV format, each with its domain and 10 cross-validation partitions: aut, boxA, irs, ring and wne |
