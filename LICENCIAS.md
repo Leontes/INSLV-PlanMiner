@@ -3,7 +3,7 @@
 [English](LICENSES.md) · **Español**
 
 El código de este repositorio y la documentación se distribuyen con la
-[licencia pública general de GNU, versión 3](LICENSE).
+[licencia pública general de GNU, versión 3](LICENSE), solo esa versión (`GPL-3.0-only`).
 
 ## NSLV
 
@@ -13,8 +13,10 @@ permite distribuirlo con la versión 3.
 
 ## Datos de prueba
 
-- `tests/datos/nslv/`: irs, wne y aut son los conjuntos Iris, Wine y Automobile del repositorio
-  de aprendizaje automático de la UCI. Todos los conjuntos, también ring y boxA, siguen las
+- `tests/datos/nslv/`: conjuntos de datos públicos. irs, wne y aut son Iris, Wine y Automobile,
+  del repositorio de aprendizaje automático de la UCI. Todos, también ring y boxA, siguen las
   condiciones de sus originales.
+- `tests/datos/keel/`: las particiones de Automobile en el formato de KEEL. Siguen las
+  condiciones de su original.
 - `tests/datos/planminer/`: los casos salen de las trazas de prueba de blocksworld y depots del
   PlanMiner original. Siguen las condiciones de sus originales.

@@ -25,6 +25,7 @@ código. Hasta que el port esté listo, la versión en uso es la de PlanMiner (`
 | Ruta | Qué hay |
 |------|---------|
 | `tests/datos/nslv/` | cinco conjuntos de datos en el formato de NSLV, cada uno con su dominio y 10 particiones de validación cruzada: aut, boxA, irs, ring y wne |
+| `tests/datos/keel/` | las particiones de aut en el formato de KEEL, para probar el lector |
 | `tests/datos/planminer/` | 26 casos de equivalencia: la entrada de INSLV en el PlanMiner original y las reglas que devolvió |
 
 `build/` (compilaciones), `old/` (el código original, el oráculo de los tests) y `privado/`
@@ -33,6 +34,6 @@ código. Hasta que el port esté listo, la versión en uso es la de PlanMiner (`
 ## Licencia
 
 El código y la documentación se distribuyen con la
-[licencia pública general de GNU, versión 3](LICENSE). INSLV parte de NSLV, de Raúl Pérez
-(© 2002–2003); el port es © 2026 José Segura. Los conjuntos de datos de prueba siguen las
-condiciones de sus originales. Ver [LICENCIAS.md](LICENCIAS.md).
+[licencia pública general de GNU, versión 3](LICENSE) (`GPL-3.0-only`). INSLV parte de NSLV,
+de Raúl Pérez (© 2002–2003); el port es © 2026 José Segura. Los conjuntos de datos de prueba
+siguen las condiciones de sus originales. Ver [LICENCIAS.md](LICENCIAS.md).
