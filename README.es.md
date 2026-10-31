@@ -62,7 +62,7 @@ clasificación.
 | `tests/datos/nslv/` | cinco conjuntos de datos en el formato de NSLV, cada uno con su dominio y 10 particiones de validación cruzada: aut, boxA, irs, ring y wne |
 | `tests/datos/keel/` | las particiones de aut en el formato de KEEL, para probar el lector |
 | `tests/datos/planminer/` | 26 casos de equivalencia: la entrada de INSLV en el PlanMiner original y las reglas que devolvió |
-| `cmake/` | módulos de CMake: avisos, sanitizers, sublibrerías, dependencias y el oráculo |
+| `cmake/` | módulos de CMake: avisos, sanitizers, cobertura, sublibrerías, dependencias y el oráculo |
 
 `build/` (compilaciones), `old/` (el código original, el oráculo de los tests) y `privado/`
 (documentos internos) no están en git.
@@ -72,6 +72,8 @@ clasificación.
 ```bash
 cmake --workflow --preset debug                     # configurar, compilar y probar
 cmake --workflow --preset asan                      # con AddressSanitizer y UBSan
+cmake --workflow --preset cobertura                 # cobertura (GCC) y después el informe:
+cmake --build --preset cobertura --target informe_cobertura  # build/cobertura/cobertura/
 cmake --preset tidy && cmake --build --preset tidy  # clang-tidy sobre el código nuevo
 git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
 ```
@@ -85,7 +87,7 @@ git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
   formato y sin clang-tidy hasta que se modernice. Todo lo demás se compila con avisos
   estrictos, y la integración continua los trata como errores.
 - **Dependencias de los tests:** GoogleTest 1.14 o posterior (si no está instalado, CMake lo
-  descarga).
+  descarga); para la cobertura, gcovr.
 - **Integración continua:** compila y prueba con GCC y Clang, con los sanitizers y con
   clang-tidy, y comprueba el formato (clang-format 18).
 

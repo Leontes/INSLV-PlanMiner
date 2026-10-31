@@ -6,7 +6,8 @@
 
 # inslv_anadir_sublibreria(<nombre> [HEREDADA] <fuentes>...): la librería estática
 # inslv_<nombre>, con C++20, sin contracción de operaciones en coma flotante (las reglas tienen
-# que salir bit a bit iguales que las del original) y con los sanitizers si se piden.
+# que salir bit a bit iguales que las del original) y con los sanitizers y la cobertura si se
+# piden.
 #
 # HEREDADA: código copiado de old/ que aún no se ha modernizado. Se compila sin los avisos del
 # código nuevo (traía 418 con -Wall -Wextra) y sin clang-tidy, pero con -Werror=return-type: un
@@ -21,6 +22,7 @@ function(inslv_anadir_sublibreria nombre)
   target_compile_features(${target} PUBLIC cxx_std_20)
   target_compile_options(${target} PRIVATE -ffp-contract=off)
   inslv_activar_sanitizers(${target})
+  inslv_activar_cobertura(${target})
 
   if(arg_HEREDADA)
     # Clang da por defecto avisos que GCC no da (arrays de longitud variable, using namespace std

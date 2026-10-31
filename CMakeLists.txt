@@ -18,6 +18,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 option(INSLV_TESTS "Compila los tests" ${PROJECT_IS_TOP_LEVEL})
 option(INSLV_AVISOS_COMO_ERRORES "Trata los avisos del código nuevo como errores" OFF)
 option(INSLV_SANITIZERS "Compila la librería y los tests con AddressSanitizer y UBSan" OFF)
+option(INSLV_COBERTURA "Mide la cobertura de los tests con gcov (solo con GCC)" OFF)
 # old/, la implementación original, solo está en local (no se sube): el oráculo de los tests se
 # compila si está.
 if(INSLV_TESTS AND EXISTS "${PROJECT_SOURCE_DIR}/old/CMakeLists.txt")
@@ -39,6 +40,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(Avisos)
 include(Sanitizers)
 include(Sublibrerias)
+include(Cobertura)
 
 add_subdirectory(src)
 

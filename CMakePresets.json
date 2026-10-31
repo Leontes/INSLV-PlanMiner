@@ -27,6 +27,16 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "INSLV_SANITIZERS": "ON" }
     },
     {
+      "name": "cobertura",
+      "displayName": "Debug con cobertura (GCC y gcovr)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "g++",
+        "INSLV_COBERTURA": "ON"
+      }
+    },
+    {
       "name": "ci",
       "hidden": true,
       "inherits": "base",
@@ -58,6 +68,7 @@
     { "name": "debug", "configurePreset": "debug" },
     { "name": "release", "configurePreset": "release" },
     { "name": "asan", "configurePreset": "asan" },
+    { "name": "cobertura", "configurePreset": "cobertura" },
     { "name": "ci-gcc", "configurePreset": "ci-gcc" },
     { "name": "ci-clang", "configurePreset": "ci-clang" },
     { "name": "tidy", "configurePreset": "tidy" }
@@ -81,6 +92,12 @@
         "LSAN_OPTIONS": "suppressions=${sourceDir}/tests/lsan.supp"
       }
     },
+    {
+      "name": "cobertura",
+      "inherits": "base",
+      "configurePreset": "cobertura",
+      "filter": { "exclude": { "label": "oraculo" } }
+    },
     { "name": "ci-gcc", "inherits": "base", "configurePreset": "ci-gcc" },
     { "name": "ci-clang", "inherits": "base", "configurePreset": "ci-clang" }
   ],
@@ -99,6 +116,14 @@
         { "type": "configure", "name": "asan" },
         { "type": "build", "name": "asan" },
         { "type": "test", "name": "asan" }
+      ]
+    },
+    {
+      "name": "cobertura",
+      "steps": [
+        { "type": "configure", "name": "cobertura" },
+        { "type": "build", "name": "cobertura" },
+        { "type": "test", "name": "cobertura" }
       ]
     }
   ]

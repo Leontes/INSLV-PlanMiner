@@ -62,7 +62,7 @@ classification.
 | `tests/datos/nslv/` | five datasets in the NSLV format, each with its domain and 10 cross-validation partitions: aut, boxA, irs, ring and wne |
 | `tests/datos/keel/` | the aut partitions in the KEEL format, to test the reader |
 | `tests/datos/planminer/` | 26 equivalence cases: the input of INSLV in the original PlanMiner and the rules it returned |
-| `cmake/` | CMake modules: warnings, sanitizers, sub-libraries, dependencies and the oracle |
+| `cmake/` | CMake modules: warnings, sanitizers, coverage, sub-libraries, dependencies and the oracle |
 
 `build/` (builds), `old/` (the original code, the tests' oracle) and `privado/` (private
 documents) are not in git.
@@ -72,6 +72,8 @@ documents) are not in git.
 ```bash
 cmake --workflow --preset debug                     # configure, build and test
 cmake --workflow --preset asan                      # with AddressSanitizer and UBSan
+cmake --workflow --preset cobertura                 # coverage (GCC), then the report:
+cmake --build --preset cobertura --target informe_cobertura  # build/cobertura/cobertura/
 cmake --preset tidy && cmake --build --preset tidy  # clang-tidy on the new code
 git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
 ```
@@ -84,7 +86,8 @@ git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
   (`HEREDADA` in its `CMakeLists.txt`). It is built without the new code's warnings, formatting
   or clang-tidy until it is modernized. Everything else is built with strict warnings, and the
   continuous integration treats them as errors.
-- **Test dependencies:** GoogleTest 1.14 or later (if it is not installed, CMake downloads it).
+- **Test dependencies:** GoogleTest 1.14 or later (if it is not installed, CMake downloads it);
+  for coverage, gcovr.
 - **Continuous integration:** builds and tests with GCC and Clang, with the sanitizers and with
   clang-tidy, and checks the formatting (clang-format 18).
 
