@@ -27,3 +27,6 @@ condicion 0 1
 condicion 1 1 2 3
 condicion 2 0
 condicion 3 1
+# Las clases que da old/ a los ejemplos de la partición 1 con estas reglas (-1: ninguna regla dispara).
+predicciones 15
+2 2 2 2 2 1 1 1 1 1 0 0 0 0 0

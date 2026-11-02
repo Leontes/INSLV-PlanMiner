@@ -28,12 +28,12 @@ class ErrorDeFormato : public std::runtime_error {
 /// Lee un dominio: los atributos, en el orden del fichero, y la clase, que tiene que ser una sola
 /// variable. El conjunto que devuelve no tiene ejemplos. Lanza ErrorDeFormato si el fichero no
 /// sigue el formato o una etiqueta no cumple a <= b <= c <= d.
-Dataset leer_dominio(const std::filesystem::path& dominio);
+Datos leer_dominio(const std::filesystem::path& dominio);
 
 /// Lee un dominio con los ejemplos de varios ficheros, uno tras otro. Los desconocidos quedan como
 /// NaN. Lanza ErrorDeFormato si un fichero no sigue el formato, no tiene las variables del dominio
 /// o tiene una clase que no es el centro de ninguna de sus etiquetas.
-Dataset leer(const std::filesystem::path& dominio,
-             const std::vector<std::filesystem::path>& ejemplos);
+Datos leer(const std::filesystem::path& dominio,
+           const std::vector<std::filesystem::path>& ejemplos);
 
 }  // namespace inslv::nslv

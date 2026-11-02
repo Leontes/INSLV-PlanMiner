@@ -7,51 +7,58 @@ are processed in episodes. INSLV learns the rules that
 [PlanMiner](https://github.com/Leontes/PlanMiner) turns into the preconditions and effects of
 planning actions.
 
-This repository ports INSLV to modern C++ (C++20). **Work in progress:** for now the
-implementation is the original one, copied unchanged as the starting point, behind the same
-interface PlanMiner uses (`inslv::learn`). It is modernized step by step, and every step has to
-give exactly the same rules as the original.
+This repository ports INSLV to modern C++ (C++20). **Work in progress:** the implementation is
+still the original one, without its dead code and with its failures fixed, behind a new interface
+in Spanish (`inslv::aprender` and `inslv::clasificar`). It is modernized step by step, and every
+step has to give exactly the same rules as the original.
 
-## Goals
+## What it adds to the original
 
-- **The same rules as the original**, checked against it at every step.
+- **The same rules**, checked against the original at every step, and the same classes as its
+  inference.
 - **Descriptive and discriminant rules.** INSLV was tuned for descriptive rules, the ones
-  PlanMiner needs; the new version will also give discriminant rules (only the minimal
-  conditions in the antecedent).
-- **Classification**, not only rule learning.
+  PlanMiner needs; it now also gives the discriminant ones (only the minimal conditions in the
+  antecedent).
+- **Classification** (`clasificar`), not only rule learning.
 - **A reader for the NSLV format** (`.dom` domains and `.datos` examples).
-- A library without global state, memory leaks or calls that end the program.
+- **No memory leaks, no calls that end the program, no use of the standard output** unless asked
+  for, with a levelled verbosity. What remains is the global random generator (`rand`).
 
 ## Usage
 
 ```cpp
 #include "inslv/inslv.hpp"
 
-inslv::Dataset data;
-data.attributes = {{"a", {{"False", 0, 0, 0, 0}, {"True", 1, 1, 1, 1}}}};
-data.target = {"Class", {{"Negative", 0, 0, 0, 0}, {"Positive", 1, 1, 1, 1}}};
-data.values = {{0, 1, 1, 0}};  // values[attribute][example]; NaN: unknown
-data.classes = {0, 1, 1, 0};   // index of a target label
+inslv::Datos datos;
+datos.atributos = {{"a", {{"False", 0, 0, 0, 0}, {"True", 1, 1, 1, 1}}}};
+datos.clase = {"Clase", {{"Negativa", 0, 0, 0, 0}, {"Positiva", 1, 1, 1, 1}}};
+datos.valores = {{0, 1, 1, 0}};  // valores[attribute][example]; NaN: unknown
+datos.clases = {0, 1, 1, 0};     // index of a label of the class
 
-for (const inslv::Rule& rule : inslv::learn(data)) {
-  // rule.antecedent: attributes and the labels they accept; rule.consequent: the class;
-  // rule.covered: positive examples covered; rule.weight: its weight when classifying
+std::vector<inslv::Regla> reglas = inslv::aprender(datos);
+for (const inslv::Regla& regla : reglas) {
+  // regla.antecedente: attributes and the labels they accept; regla.consecuente: the class;
+  // regla.cubiertos: positive examples covered; regla.peso: its weight when classifying
 }
+// One class per example, or none if no rule fires.
+std::vector<std::optional<std::size_t>> clases = inslv::clasificar(reglas, datos);
 ```
 
-The options choose the descriptive rules (the default, the ones PlanMiner uses) or the
-discriminant ones, with only the minimal conditions, the episode size and where the learning
-progress goes (`options.progress`, an `std::ostream*`; by default, nowhere). Datasets in the NSLV
-format are read with `inslv/formatos/nslv.hpp`:
+The options (`inslv::Opciones`) choose the descriptive rules (the default, the ones PlanMiner
+uses) or the discriminant ones, with only the minimal conditions; the episode size; and how much
+the learning reports (`verbosidad`, from `ninguna` to `depuracion`) and where
+(`progreso`, an `std::ostream*`; the standard output by default). Datasets in the NSLV format are
+read with `inslv/formatos/nslv.hpp`:
 
 ```cpp
 #include "inslv/formatos/nslv.hpp"
 
-inslv::Dataset data = inslv::nslv::leer("irs.dom", {"irs1.datos", "irs2.datos"});
-inslv::Options options;
-options.rules = inslv::RuleType::discriminant;
-options.episode_size = 50;  // examples per episode (5000 by default)
-std::vector<inslv::Rule> rules = inslv::learn(data, options);
+inslv::Datos datos = inslv::nslv::leer("irs.dom", {"irs1.datos", "irs2.datos"});
+inslv::Opciones opciones;
+opciones.reglas = inslv::TipoDeReglas::discriminantes;
+opciones.tamano_episodio = 50;  // examples per episode (5000 by default)
+opciones.verbosidad = inslv::Verbosidad::episodios;  // a line per episode
+std::vector<inslv::Regla> reglas = inslv::aprender(datos, opciones);
 ```
 
 ```cmake
@@ -59,7 +66,8 @@ add_subdirectory(inslv)  # or FetchContent
 target_link_libraries(my_program PRIVATE inslv::inslv)
 ```
 
-The interface will change when the port reaches it: names in Spanish and classification.
+The interface is in Spanish, like the rest of the code. See
+[How INSLV learns](docs/en/algorithm.md).
 
 ## Structure
 
@@ -87,6 +95,8 @@ documents) are not in git.
 
 ## Documentation
 
+- [How INSLV learns](docs/en/algorithm.md): what it learns, how it classifies, episodes,
+  the genetic algorithm and the verbosity levels.
 - [Tests](docs/en/tests.md): labels, test data, reference rules, the oracle, sanitizers and
   coverage.
 - [Licenses](LICENSES.md): the code's, NSLV's and the test data's.

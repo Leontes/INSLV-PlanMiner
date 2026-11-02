@@ -95,19 +95,19 @@ class Lector {
 // Un dominio leído: las variables, sin ejemplos, y la columna de la clase en los ficheros de
 // ejemplos.
 struct Dominio {
-  Dataset datos;
+  Datos datos;
   std::size_t columna_clase = 0;
   std::size_t variables = 0;
 };
 
 // a <= b <= c <= d. Escrito así, también es falso si alguno es NaN.
-bool es_trapecio(const FuzzySet& etiqueta) {
+bool es_trapecio(const ConjuntoDifuso& etiqueta) {
   return etiqueta.a <= etiqueta.b && etiqueta.b <= etiqueta.c && etiqueta.c <= etiqueta.d;
 }
 
 Variable leer_variable(Lector& lector, const std::string& nombre) {
   Variable variable;
-  variable.name = nombre;
+  variable.nombre = nombre;
   const std::string de = " de " + nombre;
   lector.real("la unidad" + de);
   lector.real("el factor" + de);
@@ -118,17 +118,17 @@ Variable leer_variable(Lector& lector, const std::string& nombre) {
     lector.error(nombre + " no tiene etiquetas");
   }
   for (std::size_t i = 0; i < etiquetas; ++i) {
-    FuzzySet etiqueta;
+    ConjuntoDifuso etiqueta;
     const std::string de_etiqueta = " de la etiqueta " + std::to_string(i) + de;
     etiqueta.a = lector.real("a" + de_etiqueta);
     etiqueta.b = lector.real("b" + de_etiqueta);
     etiqueta.c = lector.real("c" + de_etiqueta);
     etiqueta.d = lector.real("d" + de_etiqueta);
-    etiqueta.label = lector.palabra("el nombre" + de_etiqueta);
+    etiqueta.etiqueta = lector.palabra("el nombre" + de_etiqueta);
     if (!es_trapecio(etiqueta)) {
-      lector.error("la etiqueta " + etiqueta.label + de + " no cumple a <= b <= c <= d");
+      lector.error("la etiqueta " + etiqueta.etiqueta + de + " no cumple a <= b <= c <= d");
     }
-    variable.labels.push_back(std::move(etiqueta));
+    variable.etiquetas.push_back(std::move(etiqueta));
   }
   return variable;
 }
@@ -145,14 +145,14 @@ Dominio leer_dominio_con_clase(const std::filesystem::path& fichero) {
       lector.error("si " + nombre + " es la clase tiene que ser 0 o 1");
     }
     if (es_clase == 1 && clase) {
-      lector.error("hay dos clases: " + dominio.datos.target.name + " y " + nombre);
+      lector.error("hay dos clases: " + dominio.datos.clase.nombre + " y " + nombre);
     }
     Variable variable = leer_variable(lector, nombre);
     if (es_clase == 0) {
-      dominio.datos.attributes.push_back(std::move(variable));
+      dominio.datos.atributos.push_back(std::move(variable));
     } else {
       clase = i;
-      dominio.datos.target = std::move(variable);
+      dominio.datos.clase = std::move(variable);
     }
   }
   lector.final();
@@ -160,14 +160,14 @@ Dominio leer_dominio_con_clase(const std::filesystem::path& fichero) {
     lector.error("ninguna variable es la clase");
   }
   dominio.columna_clase = *clase;
-  dominio.datos.values.resize(dominio.datos.attributes.size());
+  dominio.datos.valores.resize(dominio.datos.atributos.size());
   return dominio;
 }
 
 // La etiqueta de la clase cuyo centro es el valor.
 std::optional<std::size_t> etiqueta_de_clase(const Variable& clase, double valor) {
-  for (std::size_t i = 0; i < clase.labels.size(); ++i) {
-    const FuzzySet& etiqueta = clase.labels[i];
+  for (std::size_t i = 0; i < clase.etiquetas.size(); ++i) {
+    const ConjuntoDifuso& etiqueta = clase.etiquetas[i];
     if ((etiqueta.b + etiqueta.c) / 2.0 == valor) {
       return i;
     }
@@ -175,7 +175,7 @@ std::optional<std::size_t> etiqueta_de_clase(const Variable& clase, double valor
   return std::nullopt;
 }
 
-void leer_ejemplos(const std::filesystem::path& fichero, const Dominio& dominio, Dataset& datos) {
+void leer_ejemplos(const std::filesystem::path& fichero, const Dominio& dominio, Datos& datos) {
   Lector lector(fichero);
   const std::size_t ejemplos = lector.natural("el número de ejemplos");
   const std::size_t variables = lector.natural("el número de variables");
@@ -189,14 +189,14 @@ void leer_ejemplos(const std::filesystem::path& fichero, const Dominio& dominio,
       const double valor =
           lector.real("el valor " + std::to_string(v) + " del ejemplo " + std::to_string(e));
       if (v == dominio.columna_clase) {
-        const std::optional<std::size_t> clase = etiqueta_de_clase(datos.target, valor);
+        const std::optional<std::size_t> clase = etiqueta_de_clase(datos.clase, valor);
         if (!clase) {
           lector.error("la clase del ejemplo " + std::to_string(e) + " (" + std::to_string(valor) +
-                       ") no es el centro de ninguna etiqueta de " + datos.target.name);
+                       ") no es el centro de ninguna etiqueta de " + datos.clase.nombre);
         }
-        datos.classes.push_back(*clase);
+        datos.clases.push_back(*clase);
       } else {
-        datos.values[atributo++].push_back(
+        datos.valores[atributo++].push_back(
             valor == desconocido ? std::numeric_limits<double>::quiet_NaN() : valor);
       }
     }
@@ -206,14 +206,14 @@ void leer_ejemplos(const std::filesystem::path& fichero, const Dominio& dominio,
 
 }  // namespace
 
-Dataset leer_dominio(const std::filesystem::path& dominio) {
+Datos leer_dominio(const std::filesystem::path& dominio) {
   return leer_dominio_con_clase(dominio).datos;
 }
 
-Dataset leer(const std::filesystem::path& dominio,
-             const std::vector<std::filesystem::path>& ejemplos) {
+Datos leer(const std::filesystem::path& dominio,
+           const std::vector<std::filesystem::path>& ejemplos) {
   const Dominio leido = leer_dominio_con_clase(dominio);
-  Dataset datos = leido.datos;
+  Datos datos = leido.datos;
   for (const std::filesystem::path& fichero : ejemplos) {
     leer_ejemplos(fichero, leido, datos);
   }

@@ -13,8 +13,8 @@ ctest --preset lento                    # the slow ones, in Release
 
 | Label | What it checks | Needs |
 |-------|----------------|-------|
-| `unidad` | the interface (`inslv::learn` and its options) and the NSLV format reader | GoogleTest (if it is not installed, CMake downloads it) |
-| `equivalencia` | that `learn` gives the same rules as the original: the PlanMiner cases and the fast reference rules | — |
+| `unidad` | the interface (`aprender`, `clasificar`, the options and the verbosity) and the NSLV format reader | GoogleTest (if it is not installed, CMake downloads it) |
+| `equivalencia` | that `aprender` gives the same rules as the original and `clasificar`, the same classes: the PlanMiner cases and the fast reference rules | — |
 | `lento` | the reference rules of aut, boxA and ring, which take minutes | — |
 | `oraculo` | the library against the original built into the same program | `old/`, only locally |
 
@@ -43,7 +43,7 @@ In `tests/datos`:
 ## Reference rules
 
 Each file in `tests/datos/referencias` holds the rules the original gave in an experiment, named
-by the file:
+by the file, and the classes its inference gives with them to the examples of the test partition:
 
 ```
 <dataset>-test<k>-<descriptivas|discriminantes>[-episodio<n>].reglas
@@ -51,7 +51,8 @@ by the file:
 
 The rules are learned from every partition of the dataset but `k`, with the default seed and
 episodes of `n` examples (5000 if not given). The test learns the same and compares the rules bit
-by bit: the class, the covered examples, the weight and every condition with its labels.
+by bit (the class, the covered examples, the weight and every condition with its labels) and what
+`clasificar` gives with them to partition `k`.
 
 | Group | Experiments |
 |-------|-------------|
@@ -75,7 +76,8 @@ generator and redirects the standard output: each file is generated in its own p
 as `inslv_legacy`, with its namespace changed by a macro (`-Dinslv=inslv_legacy`) so that it can be
 linked into the same program as the library, and registers the tests labelled `oraculo`: for every
 PlanMiner case, the descriptive and the discriminant rules have to be bit by bit those of the
-original. It is turned off with `-DINSLV_ORACULO=OFF`.
+original, and `clasificar` has to give the examples the same classes as its inference
+(`ruleset::InferenceC`). It is turned off with `-DINSLV_ORACULO=OFF`.
 
 ## Sanitizers and coverage
 

@@ -157,11 +157,11 @@ void poblacionreal::PoblacionInicial(double **I, int clases){
   double *max = new double[clases], *min = new double[clases];
 
   double mayor, menor;
-progreso() << "CL " << tamano[0] - 1 << endl;
+progreso(Verbosidad::depuracion) << "CL " << tamano[0] - 1 << endl;
   for (int i=0; i<clases; i++){
     mayor=I[0][i+1];
     menor=I[0][i+1];
-progreso() << "I " << I[0][i+1] << endl;
+progreso(Verbosidad::depuracion) << "I " << I[0][i+1] << endl;
     for (int j=1; j<tamano[0]-1; j++){
       if (I[j][i+1]>mayor)
         mayor=I[j][i+1];

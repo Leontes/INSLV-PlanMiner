@@ -2,9 +2,10 @@
 // Comparación con old/, compilado en el mismo programa (inslv_legacy).
 //
 // La librería tiene que dar exactamente las mismas reglas que el original, descriptivas y
-// discriminantes: antecedente, clase, ejemplos cubiertos y peso, bit a bit. Es más estricto que
-// la equivalencia con los casos de PlanMiner, que solo compara lo que interpretaba PlanMiner.
-// Solo en local: old/ no se sube.
+// discriminantes (antecedente, clase, ejemplos cubiertos y peso, bit a bit), y clasificar con ellas
+// los ejemplos igual que su inferencia (ruleset::InferenceC). Es más estricto que la equivalencia
+// con los casos de PlanMiner, que solo compara lo que interpretaba PlanMiner. Solo en local: old/
+// no se sube.
 
 #include <gtest/gtest.h>
 
@@ -21,16 +22,24 @@ namespace {
 
 class Oraculo : public testing::TestWithParam<std::filesystem::path> {};
 
-TEST_P(Oraculo, MismasReglasQueOld) {
-  const inslv::Dataset datos = inslv::pruebas::leer_caso(GetParam()).datos;
+TEST_P(Oraculo, MismasReglasYClasesQueOld) {
+  const inslv::Datos datos = inslv::pruebas::leer_caso(GetParam()).datos;
 
-  for (const inslv::RuleType tipo : {inslv::RuleType::descriptive, inslv::RuleType::discriminant}) {
-    inslv::Options opciones;
-    opciones.rules = tipo;
-    const std::string original = inslv::pruebas::describir(inslv::pruebas::de_legacy(
-        inslv_legacy::learn(inslv::pruebas::a_legacy(datos), inslv::pruebas::a_legacy(opciones))));
-    EXPECT_EQ(inslv::pruebas::describir(inslv::learn(datos, opciones)), original)
-        << (tipo == inslv::RuleType::descriptive ? "descriptivas" : "discriminantes");
+  for (const inslv::TipoDeReglas tipo :
+       {inslv::TipoDeReglas::descriptivas, inslv::TipoDeReglas::discriminantes}) {
+    const std::string nombre =
+        tipo == inslv::TipoDeReglas::descriptivas ? "descriptivas" : "discriminantes";
+    inslv::Opciones opciones;
+    opciones.reglas = tipo;
+    const inslv::pruebas::ResultadoDeOld original =
+        inslv::pruebas::aprender_con_old(datos, opciones, datos);
+    const std::vector<inslv::Regla> reglas = inslv::aprender(datos, opciones);
+
+    EXPECT_EQ(inslv::pruebas::describir(reglas), inslv::pruebas::describir(original.reglas))
+        << nombre;
+    EXPECT_EQ(inslv::pruebas::describir(inslv::clasificar(reglas, datos)),
+              inslv::pruebas::describir(original.clases))
+        << nombre;
   }
 }
 

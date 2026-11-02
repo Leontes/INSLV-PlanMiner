@@ -97,7 +97,7 @@ bool vectoresIguales(double *v1, double *v2, int tama);
 *   @param options semilla e informe (ver inslv.hpp).
 *   @retval las reglas descriptivas.
 */
-std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options);
+std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &options);
 
 
 }  // namespace inslv

@@ -92,13 +92,13 @@ double fuzzy_t::Adaptacion(double x) const {
 
 // Operador que pone en el dispositivo de salida la definici�n de la etiqueta.
 void fuzzy_t::Pinta() const {
-   progreso() << "Nombre: " << nombre << endl;
+   progreso(Verbosidad::depuracion) << "Nombre: " << nombre << endl;
    if (menosinfinito)
-     progreso() << "[-inf,-inf," << c << "," << d << "]\n";
+     progreso(Verbosidad::depuracion) << "[-inf,-inf," << c << "," << d << "]\n";
    else if (masinfinito)
-          progreso() << "[" << a <<","<< b <<",inf,inf]\n";
+          progreso(Verbosidad::depuracion) << "[" << a <<","<< b <<",inf,inf]\n";
 	else
-          progreso() << "[" << a <<","<< b <<"," << c << "," << d << "]\n";
+          progreso(Verbosidad::depuracion) << "[" << a <<","<< b <<"," << c << "," << d << "]\n";
 }
 
 

@@ -23,23 +23,23 @@ using inslv::pruebas::ReglaPlanMiner;
 // La interpretación de PlanMiner (ruleset::SplitAntecedent y ruleset::toPDDL del original): solo
 // cuentan los atributos de hasta dos etiquetas; el valor es el nombre de la etiqueta si es True o
 // False y, si no, su centro truncado a entero. La clase va en el signo.
-ReglaPlanMiner interpretar(const inslv::Rule& regla, const inslv::Dataset& datos) {
+ReglaPlanMiner interpretar(const inslv::Regla& regla, const inslv::Datos& datos) {
   ReglaPlanMiner resultado;
-  const bool post_state = datos.target.labels[regla.consequent].label == "PostState";
+  const bool post_state = datos.clase.etiquetas[regla.consecuente].etiqueta == "PostState";
   resultado.cubiertos =
-      post_state ? static_cast<int>(regla.covered) : static_cast<int>(0 - regla.covered);
-  for (const inslv::Condition& condicion : regla.antecedent) {
-    const inslv::Variable& atributo = datos.attributes[condicion.attribute];
-    if (atributo.labels.size() > 2) {
+      post_state ? static_cast<int>(regla.cubiertos) : static_cast<int>(0 - regla.cubiertos);
+  for (const inslv::Condicion& condicion : regla.antecedente) {
+    const inslv::Variable& atributo = datos.atributos[condicion.atributo];
+    if (atributo.etiquetas.size() > 2) {
       continue;
     }
-    for (const std::size_t etiqueta : condicion.labels) {
-      const inslv::FuzzySet& conjunto = atributo.labels[etiqueta];
-      if (conjunto.label == "True" || conjunto.label == "False") {
-        resultado.condiciones.emplace_back(atributo.name, conjunto.label);
+    for (const std::size_t etiqueta : condicion.etiquetas) {
+      const inslv::ConjuntoDifuso& conjunto = atributo.etiquetas[etiqueta];
+      if (conjunto.etiqueta == "True" || conjunto.etiqueta == "False") {
+        resultado.condiciones.emplace_back(atributo.nombre, conjunto.etiqueta);
       } else {
         resultado.condiciones.emplace_back(
-            atributo.name, std::to_string(static_cast<int>((conjunto.b + conjunto.c) / 2.0)));
+            atributo.nombre, std::to_string(static_cast<int>((conjunto.b + conjunto.c) / 2.0)));
       }
     }
   }
@@ -52,7 +52,7 @@ TEST_P(Equivalencia, MismasReglasQueElOriginal) {
   const inslv::pruebas::CasoPlanMiner esperado = inslv::pruebas::leer_caso(GetParam());
 
   std::vector<ReglaPlanMiner> aprendidas;
-  for (const inslv::Rule& regla : inslv::learn(esperado.datos)) {
+  for (const inslv::Regla& regla : inslv::aprender(esperado.datos)) {
     aprendidas.push_back(interpretar(regla, esperado.datos));
   }
 

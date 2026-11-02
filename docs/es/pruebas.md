@@ -13,8 +13,8 @@ ctest --preset lento                    # los lentos, en Release
 
 | Etiqueta | Qué comprueba | Necesita |
 |----------|---------------|----------|
-| `unidad` | la interfaz (`inslv::learn` y sus opciones) y el lector del formato de NSLV | GoogleTest (si no está instalado, CMake lo descarga) |
-| `equivalencia` | que `learn` da las mismas reglas que el original: los casos de PlanMiner y las reglas de referencia rápidas | — |
+| `unidad` | la interfaz (`aprender`, `clasificar`, las opciones y la verbosidad) y el lector del formato de NSLV | GoogleTest (si no está instalado, CMake lo descarga) |
+| `equivalencia` | que `aprender` da las mismas reglas que el original y `clasificar`, las mismas clases: los casos de PlanMiner y las reglas de referencia rápidas | — |
 | `lento` | las reglas de referencia de aut, boxA y ring, que tardan minutos | — |
 | `oraculo` | la librería frente al original compilado en el mismo programa | `old/`, solo en local |
 
@@ -43,7 +43,8 @@ En `tests/datos`:
 ## Las reglas de referencia
 
 Cada fichero de `tests/datos/referencias` tiene las reglas que dio el original en un experimento,
-que dice su nombre:
+que dice su nombre, y las clases que da su inferencia con ellas a los ejemplos de la partición de
+test:
 
 ```
 <conjunto>-test<k>-<descriptivas|discriminantes>[-episodio<n>].reglas
@@ -51,7 +52,8 @@ que dice su nombre:
 
 Se aprende con todas las particiones del conjunto salvo la `k`, con la semilla por defecto y
 episodios de `n` ejemplos (5000 si no se dice). El test aprende lo mismo y compara las reglas bit a
-bit: la clase, los ejemplos cubiertos, el peso y cada condición con sus etiquetas.
+bit (la clase, los ejemplos cubiertos, el peso y cada condición con sus etiquetas) y lo que da
+`clasificar` con ellas a la partición `k`.
 
 | Grupo | Experimentos |
 |-------|--------------|
@@ -75,7 +77,8 @@ generador aleatorio global y desvía la salida estándar: cada fichero se genera
 `inslv_legacy`, con el espacio de nombres cambiado por una macro (`-Dinslv=inslv_legacy`) para
 poder enlazarla en el mismo programa que la librería, y registra los tests de la etiqueta
 `oraculo`: con cada caso de PlanMiner, las reglas descriptivas y las discriminantes tienen que ser
-bit a bit las del original. Se desactiva con `-DINSLV_ORACULO=OFF`.
+bit a bit las del original, y `clasificar` tiene que dar a los ejemplos las mismas clases que su
+inferencia (`ruleset::InferenceC`). Se desactiva con `-DINSLV_ORACULO=OFF`.
 
 ## Sanitizers y cobertura
 

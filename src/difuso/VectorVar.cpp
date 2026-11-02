@@ -40,21 +40,21 @@ void Libera_Memoria_Var_aux (double *&va, double *&vb, double *&vc, double *&vd,
 
 // Las variables del conjunto de ejemplos de la API: primero los atributos (antecedentes) y al
 // final la clase (consecuente). Las etiquetas no se extienden hasta el infinito (singleton).
-VectorVar::VectorVar(const Dataset &data){
+VectorVar::VectorVar(const Datos &data){
   double *va,*vb,*vc,*vd,inf,sup;
 
-  numero = data.attributes.size() + 1;
+  numero = data.atributos.size() + 1;
   lista = new variable_t[numero];
   oper = new combinado[numero];
 
   for(int v = 0; v < numero; v++){
-    const inslv::Variable &variable = v + 1 < numero ? data.attributes[v] : data.target;
+    const inslv::Variable &variable = v + 1 < numero ? data.atributos[v] : data.clase;
     // 0: antecedente; 1: consecuente.
     int estado = v + 1 < numero ? 0 : 1;
-    int n = variable.labels.size();
+    int n = variable.etiquetas.size();
 
-    inf = variable.labels.front().a;
-    sup = variable.labels.back().d;
+    inf = variable.etiquetas.front().a;
+    sup = variable.etiquetas.back().d;
 
     va = new double[n];
     vb = new double[n];
@@ -63,15 +63,15 @@ VectorVar::VectorVar(const Dataset &data){
     string *vname = new string[n];
 
     for(int i = 0; i < n; i++){
-      va[i] = variable.labels[i].a;
-      vb[i] = variable.labels[i].b;
-      vc[i] = variable.labels[i].c;
-      vd[i] = variable.labels[i].d;
-      vname[i] = variable.labels[i].label;
+      va[i] = variable.etiquetas[i].a;
+      vb[i] = variable.etiquetas[i].b;
+      vc[i] = variable.etiquetas[i].c;
+      vd[i] = variable.etiquetas[i].d;
+      vname[i] = variable.etiquetas[i].etiqueta;
     }
 
     // unit = 0, c_factor = 0
-    lista[v].Asigna(n, variable.name, estado, 0, 0, inf, sup, va, vb, vc, vd, vname, true);
+    lista[v].Asigna(n, variable.nombre, estado, 0, 0, inf, sup, va, vb, vc, vd, vname, true);
     oper[v].op=0;
     Libera_Memoria_Var_aux(va,vb,vc,vd,vname);
   }
@@ -137,9 +137,9 @@ void VectorVar::Encode(int &tb, int &te) const {
 
 void VectorVar::Pinta() const{
   for (int i=0; i<numero; i++){
-    progreso() << std::endl;
+    progreso(Verbosidad::depuracion) << std::endl;
     lista[i].Pinta();
-    progreso() << "----------" << std::endl;
+    progreso(Verbosidad::depuracion) << "----------" << std::endl;
   }
 }
 
@@ -401,7 +401,7 @@ int VectorVar::Consecuente() const {
   if (i!=numero)
     return i;
   else {
-    progreso() << "No hay variable consecuente\n";
+    progreso(Verbosidad::depuracion) << "No hay variable consecuente\n";
     return -1;
   }
 }

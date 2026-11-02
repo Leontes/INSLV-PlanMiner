@@ -80,7 +80,7 @@ void vectordouble::Put(double *x, int tamano){
 
 double vectordouble::At(int pos) const {
   if (pos<0 || pos>numero){
-    progreso() << "No existe esa posicion" << pos << endl;
+    progreso(Verbosidad::depuracion) << "No existe esa posicion" << pos << endl;
     return -999999999; /*devuelve un error*/
   }
   else

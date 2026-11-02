@@ -20,3 +20,6 @@ regla 1 18.966666666666658 0.5650943396226416 3
 condicion 0 0 1 2 4
 condicion 1 0 2 4
 condicion 2 2 3
+# Las clases que da old/ a los ejemplos de la partición 3 con estas reglas (-1: ninguna regla dispara).
+predicciones 15
+2 2 1 2 2 1 1 1 1 1 0 0 0 0 0

@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "inslv/aprendizaje/RuleCreator.hpp"
+
+#include <chrono>
+#include <format>
 #include "inslv/comun/progreso.hpp"
 
 #include <stdexcept>
@@ -11,7 +14,7 @@ namespace inslv {
 // En el original esperaba una tecla tras los avisos de consistencia del análisis de patrones.
 // Como librería no puede bloquearse esperando la entrada estándar: solo avisa.
 void Pausa(){
-  progreso() << "INSLV: aviso de consistencia en el análisis de patrones (ver la salida anterior)\n";
+  progreso(Verbosidad::detalle) << "INSLV: aviso de consistencia en el análisis de patrones (ver la salida anterior)\n";
 }
 
 
@@ -22,7 +25,7 @@ void Pausa(){
 bool vectoresIguales(double *v1, double *v2, int tama){
   int i=0;
   /*for (int t=0; t<tama; t++){
-    progreso() << v1[t] << " | " << v2[t] << endl;
+    progreso(Verbosidad::depuracion) << v1[t] << " | " << v2[t] << endl;
   }*/
 
   while (i<tama and v1[i]==v2[i] ){
@@ -93,29 +96,29 @@ int Comparar2patronesPinta(const string &cad1, const string &cad2){
   bool compatibles=true;
   for (int s=0; s<cad1.length(); s++)
     if (cad1[s]==cad2[s]){
-      progreso() << "_";
+      progreso(Verbosidad::depuracion) << "_";
     }
     else{
       if ( (cad1[s]=='x' and cad2[s]=='0') or (cad1[s]=='0' and cad2[s]=='x') ){
-        progreso() << "X";
+        progreso(Verbosidad::depuracion) << "X";
 	compatibles=false;
       }
       else if (cad1[s]=='0' and cad2[s]=='1'){
-	progreso() << ">";
+	progreso(Verbosidad::depuracion) << ">";
 	compatibles=false;
       }
       else if (cad1[s]=='1' and cad2[s]=='0'){
-	progreso() << "<";
+	progreso(Verbosidad::depuracion) << "<";
 	compatibles=false;
       }
       else{
-	progreso() << "$";
+	progreso(Verbosidad::depuracion) << "$";
       }
 
       n_cambios++;
     }
 
-  progreso() << endl;
+  progreso(Verbosidad::depuracion) << endl;
 
   if (n_cambios==0)
     return 0; // Son iguales
@@ -356,23 +359,23 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
       delete [] cad;
 
       if (res!=patr){
-	progreso() << "No coinciden los patrones para la regla " << i << endl;
-	progreso() << res << endl;
-	progreso() << patr << endl;
+	progreso(Verbosidad::depuracion) << "No coinciden los patrones para la regla " << i << endl;
+	progreso(Verbosidad::depuracion) << res << endl;
+	progreso(Verbosidad::depuracion) << patr << endl;
 	Pausa();
       }
 
       if (regla_R!=patr and Comparar2patrones(patr,regla_R)!=1){
-	progreso() << "La regla discriminante "<< i << " no coincide con su patron\n";
-	progreso() << regla_R << endl;
-	progreso() << patr << endl;
+	progreso(Verbosidad::depuracion) << "La regla discriminante "<< i << " no coincide con su patron\n";
+	progreso(Verbosidad::depuracion) << regla_R << endl;
+	progreso(Verbosidad::depuracion) << patr << endl;
 	Pausa();
       }
 
       if (regla_R_des!=patr and Comparar2patrones(patr,regla_R_des)!=1){
-	progreso() << "La regla descriptiva "<< i << " no coincide con su patron\n";
-	progreso() << regla_R_des << endl;
-	progreso() << patr << endl;
+	progreso(Verbosidad::depuracion) << "La regla descriptiva "<< i << " no coincide con su patron\n";
+	progreso(Verbosidad::depuracion) << regla_R_des << endl;
+	progreso(Verbosidad::depuracion) << patr << endl;
 	Pausa();
      }
 
@@ -404,13 +407,13 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 
 	    // El caso raro de campatibildades entre patrones
 	    if (iguales>1 and iguales2!=2 and iguales3!=2){
-	      progreso() << "Caso especial de incompatibilidades entre patrones y si entre reglas\n";
-	      progreso() << res3 << endl;
-	      progreso() << res4 << endl;
-	      progreso() << patr << endl << endl;
-	      progreso() << Patron1Regla(R_Descrip,V,j) << endl;
-	      progreso() << Patron1Regla(R,V,j) << endl;
-	      progreso() << res2 << endl << endl;
+	      progreso(Verbosidad::depuracion) << "Caso especial de incompatibilidades entre patrones y si entre reglas\n";
+	      progreso(Verbosidad::depuracion) << res3 << endl;
+	      progreso(Verbosidad::depuracion) << res4 << endl;
+	      progreso(Verbosidad::depuracion) << patr << endl << endl;
+	      progreso(Verbosidad::depuracion) << Patron1Regla(R_Descrip,V,j) << endl;
+	      progreso(Verbosidad::depuracion) << Patron1Regla(R,V,j) << endl;
+	      progreso(Verbosidad::depuracion) << res2 << endl << endl;
 	      Pausa();
 	    }
 
@@ -432,7 +435,7 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 	    // Los dos patrones son compatibles
 	    else if (iguales==1){
 	      cambio=true;
-	      progreso() << "\t\t\t\t\tCombinando Reglas " << i <<" y " << j << " de la clase " << R.Class_of_rule(i) <<endl;
+	      progreso(Verbosidad::detalle) << "\t\t\t\t\tCombinando Reglas " << i <<" y " << j << " de la clase " << R.Class_of_rule(i) <<endl;
 		//cout << patr << endl;
 		//cout << res2 << endl;
 		//Comparar2patronesPinta(patr,res2);
@@ -486,11 +489,11 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 	      //cout << endl;
 	      //cout << cad2 << endl;
 	      string cad4 = Patron2Patrones(cad1,cad3);
-	      progreso() <<  cad4 << endl;
+	      progreso(Verbosidad::depuracion) <<  cad4 << endl;
 	      int iguales4 = Comparar2patrones(cad2,cad4);
 	      if (iguales4!=0){
-		progreso() << cad2 << endl;
-		progreso() <<  cad4 << endl;
+		progreso(Verbosidad::depuracion) << cad2 << endl;
+		progreso(Verbosidad::depuracion) <<  cad4 << endl;
 		Comparar2patronesPinta(cad2,cad4);
 		Pausa();
 	      }
@@ -517,7 +520,7 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 		  aux_R_des->PutValueBinary(0,t,cad4[t]);
 
 	      if (Patron2Reglas(R_Descrip,R,V,j)!=cad4){
-		progreso() << "Error al componer la descrip. y la predic. en la regla " << j << endl;
+		progreso(Verbosidad::depuracion) << "Error al componer la descrip. y la predic. en la regla " << j << endl;
 		Pausa();
 	      }
 
@@ -589,14 +592,14 @@ bool AnalizarConjuntosDeReglas(const VectorVar &V, ruleset &R, ruleset &R_Descri
 	    iguales = Comparar2patrones(res2,patr);
 
 	    if (iguales==0){
-	      progreso() << "las reglas " << i << " y " << j << " son contradictorias\n";
+	      progreso(Verbosidad::detalle) << "las reglas " << i << " y " << j << " son contradictorias\n";
 	      R.Add_N_Menos(i,R.Get_N_Mas(i));
 	      R.Recalculate_Weight(i);
 	      R_Descrip.Add_N_Menos(i,R_Descrip.Get_N_Mas(i));
 	      R_Descrip.Recalculate_Weight(i);
 	    }
 	    else if (iguales==1){
-	      progreso() << "las reglas " << i << " y " << j << " entran en conflicto\n";
+	      progreso(Verbosidad::detalle) << "las reglas " << i << " y " << j << " entran en conflicto\n";
 	    }
 	    else{
 	      //no entra en principio en conflicto con ninguna otra regla
@@ -905,7 +908,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 		/*genetcode code;
 		G.Codigo(0,code);
 		R.Add(code,peso);
-		progreso() << R.SPrint(R.N_rule()-1) << endl;
+		progreso(Verbosidad::depuracion) << R.SPrint(R.N_rule()-1) << endl;
 		R.Remove();*/
                 //cout << endl;
             }
@@ -927,10 +930,10 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
           ind_por_clase[G.ClaseIndividuo(l)]++;
         }
 
-        progreso() << "\t\t\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
+        progreso(Verbosidad::depuracion) << "\t\t\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
         for (int l=1; l<n_clases; l++)
-          progreso() << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
-        progreso() << endl;
+          progreso(Verbosidad::depuracion) << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
+        progreso(Verbosidad::depuracion) << endl;
 
         delete [] ind_por_clase;
         delete [] mejor_de_clase;*/
@@ -1009,10 +1012,10 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
       ind_por_clase[G.ClaseIndividuo(l)]++;
     }
 
-    progreso() << "=====\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
+    progreso(Verbosidad::depuracion) << "=====\t\t " << ind_por_clase[0] << "("<<mejor_de_clase[0]<<")";
     for (int l=1; l<n_clases; l++)
-       progreso() << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
-    progreso() << endl;
+       progreso(Verbosidad::depuracion) << ", " << ind_por_clase[l]<< "("<<mejor_de_clase[l]<<")";
+    progreso(Verbosidad::depuracion) << endl;
     //cin.get();
 
     delete [] ind_por_clase;
@@ -1027,7 +1030,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
     if (  G.ValorFitness(0)<=-1 and G.ValorFitness(0,1)>1 and G.ValorFitness(0,1)>= (-G.ValorFitness(0))+2 ){
 
-      progreso() << "->->->->->-> El nuevo caso especial\n";
+      progreso(Verbosidad::depuracion) << "->->->->->-> El nuevo caso especial\n";
       //sleep(2);
     }
 
@@ -1122,11 +1125,11 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
 
 	/*if ( !ComprobacionEspGen(s_esp,s_gen) ){
-	  progreso() << "esp: " << s_esp << endl;
-	  progreso() << "gen: " << s_gen << endl;
-	  progreso() << "pat: ";
+	  progreso(Verbosidad::depuracion) << "esp: " << s_esp << endl;
+	  progreso(Verbosidad::depuracion) << "gen: " << s_gen << endl;
+	  progreso(Verbosidad::depuracion) << "pat: ";
 	  Comparar2patronesPinta(s_esp,s_gen);
-	  progreso() << endl;
+	  progreso(Verbosidad::depuracion) << endl;
 	}*/
 
 	//Evento1_Generalizar(G, V, E, R, R_dis, R_mix, ponderacion_por_clase, F, Tabla, Tabla_Nuevas,r_obj,gen);
@@ -1150,8 +1153,8 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
 
       if ( !ComprobacionEspGen(Patron1Regla(R,V,R.N_rule()-1), Patron1Regla(R_dis,V,R_dis.N_rule()-1)) ){
-	progreso() << "esp: " << endl << Patron1Regla(R,V,R.N_rule()-1) << endl;
-	progreso() << Patron1Regla(R_dis,V,R_dis.N_rule()-1) << endl <<":gen" << endl;
+	progreso(Verbosidad::depuracion) << "esp: " << endl << Patron1Regla(R,V,R.N_rule()-1) << endl;
+	progreso(Verbosidad::depuracion) << Patron1Regla(R_dis,V,R_dis.N_rule()-1) << endl <<":gen" << endl;
 	Comparar2patronesPinta(Patron1Regla(R,V,R.N_rule()-1), Patron1Regla(R_dis,V,R_dis.N_rule()-1));
 	Pausa();
       }
@@ -1164,10 +1167,10 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
 
       /*code2=(*R_mix.Get_Code_Rule(R_mix.N_rule()-1));
-      progreso() << "Patron de la regla obtenida: \n";
+      progreso(Verbosidad::depuracion) << "Patron de la regla obtenida: \n";
       for (int i=0; i<len; i++)
-	progreso() << code2.GetValueBinary(0,i);
-      progreso() << endl;
+	progreso(Verbosidad::depuracion) << code2.GetValueBinary(0,i);
+      progreso(Verbosidad::depuracion) << endl;
 
       Pausa();*/
 
@@ -1192,11 +1195,11 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
       //cout << "------------------------>>>>>>> Regla Aniadida\n";
       //G.PintaFitness_Estacionario(0);
       //cout << "------------------------>>>>>>>>>>>>>>>>>>>>>>\n";
-     /* progreso() << "-------------------------------------------------> Metida la regla\n";
-      progreso() << "-------------------------------------------------> Descriptiva\n";
-      progreso() << R.SPrint(R.N_rule()-1) << endl;
-      progreso() << "\n-------------------------------------------------> Discriminante\n";
-      progreso() << R_dis.SPrint(R.N_rule()-1) << endl;*/
+     /* progreso(Verbosidad::depuracion) << "-------------------------------------------------> Metida la regla\n";
+      progreso(Verbosidad::depuracion) << "-------------------------------------------------> Descriptiva\n";
+      progreso(Verbosidad::depuracion) << R.SPrint(R.N_rule()-1) << endl;
+      progreso(Verbosidad::depuracion) << "\n-------------------------------------------------> Discriminante\n";
+      progreso(Verbosidad::depuracion) << R_dis.SPrint(R.N_rule()-1) << endl;*/
       z=1;
       // Meter mas reglas
       //G.PutCodigo(0,code2);
@@ -1405,15 +1408,15 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
     //cout << cadena << endl;
     //cout << "Valor antes de Discriminacion:   ";
     if (debug){
-      progreso() << "Valor antes de Discriminacion:   " << endl;
-      progreso() << cadena << endl;
-      progreso() << "Valor de partida\n";
+      progreso(Verbosidad::depuracion) << "Valor antes de Discriminacion:   " << endl;
+      progreso(Verbosidad::depuracion) << cadena << endl;
+      progreso(Verbosidad::depuracion) << "Valor de partida\n";
       G.PintaFitness_Estacionario(elemento_i);
     }
 
     /*for (int i=0; i<r1; i++)
-      progreso() << "\t" << nr1[i];
-    progreso() << endl;*/
+      progreso(Verbosidad::depuracion) << "\t" << nr1[i];
+    progreso(Verbosidad::depuracion) << endl;*/
     //cout << "Umbral: " << umbral << endl;
 
     /*if (umbral<=0){
@@ -1481,7 +1484,7 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 		  //cout << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		  if (debug){
 		    //cout << "\t\t\t" << nb1 << endl;
-		    progreso() << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
+		    progreso(Verbosidad::depuracion) << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		    G.Valoracion(elemento_i,valor2);
 		    G.PintaFitness_Estacionario(elemento_i);
 		  }
@@ -1527,7 +1530,7 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 	      Bondad(G,V,E,R,valor2,N_valor,elemento_i,discriminante, reduccion_reglas, ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F,
 		    basica_para_regla, errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule, tam_rule_not_removed);
 	      if (debug)
-		progreso() << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
+		progreso(Verbosidad::depuracion) << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
 		  if ( (valor2[0]>valor[0] /*and valor2[0]>0*/) or
 		       (valor2[0]==valor[0] and valor2[1]>valor[1]) or
 		       (valor2[0]==valor[0] and valor2[1]==valor[1] and valor2[2]>=valor[2]) /*or
@@ -1545,8 +1548,8 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
 		  //cout << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		  //cout << "\t";
 		  if (debug){
-		    progreso() << "\t\t\t\t" << cadena << endl;
-		    progreso() << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
+		    progreso(Verbosidad::depuracion) << "\t\t\t\t" << cadena << endl;
+		    progreso(Verbosidad::depuracion) << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
 		    G.Valoracion(elemento_i,valor2);
 		    G.PintaFitness_Estacionario(elemento_i);
 		  }
@@ -1575,23 +1578,23 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
     G.Valoracion(elemento_i,valor);
 
     if (debug){
-      progreso() << "Valor Final\n";
+      progreso(Verbosidad::depuracion) << "Valor Final\n";
       G.PintaFitness_Estacionario(elemento_i);
     }
 
 
     if (debug)
-      progreso() << cadena << endl;
+      progreso(Verbosidad::depuracion) << cadena << endl;
 
 
-    /*progreso() << "Valor despues de Discriminacion: ";
+    /*progreso(Verbosidad::depuracion) << "Valor despues de Discriminacion: ";
     G.PintaFitness_Estacionario(elemento_i);
 
 
-    progreso() << "cota de v[1]= " << nr1[1] << endl;
+    progreso(Verbosidad::depuracion) << "cota de v[1]= " << nr1[1] << endl;
     nb1=G.Subpoblacion_Binaria(0,elemento_i,b1);
     nr1=G.Subpoblacion_Real(0,elemento_i,r1);
-    progreso() << "cota de v[1]= " << nr1[1] << endl;
+    progreso(Verbosidad::depuracion) << "cota de v[1]= " << nr1[1] << endl;
 
     cadena = nb1;
     tama=0;
@@ -1604,15 +1607,15 @@ void Obtener_Regla_Discriminante(multipoblacion &G, const VectorVar &V, example_
       }
       tama+=longitud;
     }
-    progreso() << "Resultado final: " << endl;
+    progreso(Verbosidad::depuracion) << "Resultado final: " << endl;
     //cout << cadena << endl;
     //cout << nb1 << endl;
     G.PintaFitness_Estacionario(elemento_i);*/
 
     /*if (mejora_global)
-      progreso() << "\t\tMejorada la discriminacion de la regla\n";
+      progreso(Verbosidad::depuracion) << "\t\tMejorada la discriminacion de la regla\n";
     else
-      progreso() << "\t\tNo hay mejora en la discriminacion de la regla\n";*/
+      progreso(Verbosidad::depuracion) << "\t\tNo hay mejora en la discriminacion de la regla\n";*/
 
 
     //char ch;
@@ -1806,8 +1809,8 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
     }
 
     /*for (int i=0; i<r1; i++)
-      progreso() << "\t" << nr1[i];
-    progreso() << endl;*/
+      progreso(Verbosidad::depuracion) << "\t" << nr1[i];
+    progreso(Verbosidad::depuracion) << endl;*/
     //cout << "Umbral: " << umbral << endl;
 
     //Aciertos(R,V,E,F);
@@ -1819,7 +1822,7 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
 
       G.Valoracion(elemento_i,valor);
       if (debug){
-	progreso() << "Valor al principio\n";
+	progreso(Verbosidad::depuracion) << "Valor al principio\n";
 	G.PintaFitness_Estacionario(elemento_i);
       }
 
@@ -1864,7 +1867,7 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
 		    Bondad(G,V,E,R,valor2,N_valor,elemento_i,discriminante, reduccion_reglas, ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F,
 			  basica_para_regla, errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar,!inGA, initial_rule, tam_rule_not_removed);
 		    if (debug)
-		      progreso() << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
+		      progreso(Verbosidad::depuracion) << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1] << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] <<  endl;
 
 		    if ( (valor2[0]>valor[0] /*and valor2[0]>0*/) or
 			(valor2[0]==valor[0] and valor2[1]>valor[1]) or
@@ -1948,11 +1951,11 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
       G.Valoracion(elemento_i,valor);
 
       if (debug){
-	progreso() << "Valor final\n";
+	progreso(Verbosidad::depuracion) << "Valor final\n";
 	G.PintaFitness_Estacionario(elemento_i);
       }
 
-      /*progreso() << "Resultado final: " << endl;
+      /*progreso(Verbosidad::depuracion) << "Resultado final: " << endl;
       nb1=G.Subpoblacion_Binaria(0,elemento_i,b1);
       cadena=nb1;
       tama=0;
@@ -1965,15 +1968,15 @@ void Obtener_Regla_Descriptiva(multipoblacion &G, const VectorVar &V, example_se
 	}
 	tama+=longitud;
       }
-      progreso() << cadena << endl;
+      progreso(Verbosidad::depuracion) << cadena << endl;
       G.PintaFitness_Estacionario(elemento_i);    */
 
       //char ch;
       //cin >> ch;
       /*if (mejora_global)
-	progreso() << "\t\tMejorada la descripcion de la regla\n";
+	progreso(Verbosidad::depuracion) << "\t\tMejorada la descripcion de la regla\n";
       else
-	progreso() << "\t\tNo hay mejora en la descripcion de la regla\n";*/
+	progreso(Verbosidad::depuracion) << "\t\tNo hay mejora en la descripcion de la regla\n";*/
     //}
 
     delete [] valor;
@@ -2449,22 +2452,22 @@ valida = (variables_irrelevantes < r1-1);
   }
 
   /*if (reglas_eliminables>=2){
-   progreso() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
+   progreso(Verbosidad::depuracion) << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
    for (int i=0; i<nrule; i++){
     if ( (basica_esta_regla[i]-basica_para_regla[i])+ (errores_para_regla[i]-errores_esta_regla[i])>=0 ) ){
 
-      progreso() << "\t\t\t\tRegla: " << i << endl;
-      progreso() << "\t\t\t\t\tbasica esta regla: "<< basica_esta_regla[i] << endl;
-      progreso() << "\t\t\t\t\tbasica para regla: "<< basica_para_regla[i] << endl;
-      progreso() << "\t\t\t\t\terrores para regla: "<< errores_para_regla[i] << endl;
-      progreso() << "\t\t\t\t\terrores esta regla: "<< errores_esta_regla[i] << endl;
-      progreso() << "\t\t\t\t\tbasica(esta-para): "<< basica_esta_regla[i]-basica_para_regla[i] << endl;
-      progreso() << "\t\t\t\t\terrores(para-esta): "<< errores_para_regla[i]-errores_esta_regla[i] << endl;
-      progreso() << "\t\t\t\t\t\t Aciertos Adicionales: "<< (basica_esta_regla[i]-basica_para_regla[i])+ (errores_para_regla[i]-errores_esta_regla[i]) << endl << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\tRegla: " << i << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\tbasica esta regla: "<< basica_esta_regla[i] << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\tbasica para regla: "<< basica_para_regla[i] << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\terrores para regla: "<< errores_para_regla[i] << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\terrores esta regla: "<< errores_esta_regla[i] << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\tbasica(esta-para): "<< basica_esta_regla[i]-basica_para_regla[i] << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\terrores(para-esta): "<< errores_para_regla[i]-errores_esta_regla[i] << endl;
+      progreso(Verbosidad::depuracion) << "\t\t\t\t\t\t Aciertos Adicionales: "<< (basica_esta_regla[i]-basica_para_regla[i])+ (errores_para_regla[i]-errores_esta_regla[i]) << endl << endl;
       //sleep(2);
     }
    }
-   progreso() << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
+   progreso(Verbosidad::depuracion) << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n" << endl;
   }*/
 
 
@@ -2700,13 +2703,13 @@ double Aciertos(ruleset &R, const VectorVar &V, example_set &E, VectorVar &F)
     E.Mark(marcar,n, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
     //E.UnMark(desmarcar,tama2,gdesmarcar);
 
-    /*progreso() <<"Aciertos: " << bien << endl;
-    progreso() <<"Errores:  " << mal << endl;
-    progreso() <<"No clasificados: " << nosesabe << endl;
+    /*progreso(Verbosidad::depuracion) <<"Aciertos: " << bien << endl;
+    progreso(Verbosidad::depuracion) <<"Errores:  " << mal << endl;
+    progreso(Verbosidad::depuracion) <<"No clasificados: " << nosesabe << endl;
 
     for (int i=0; i<R.N_rule(); i++)
     {
-        progreso() << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
+        progreso(Verbosidad::depuracion) << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
     }*/
 
 
@@ -2885,13 +2888,13 @@ double Aciertos_Lista_Reglas_Eliminables(ruleset &R, const VectorVar &V, example
     /*E.Mark(marcar,n, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
     E.UnMark(desmarcar,tama2,gdesmarcar);
 
-    progreso() <<"Aciertos: " << bien << endl;
-    progreso() <<"Errores:  " << mal << endl;
-    progreso() <<"No clasificados: " << nosesabe << endl;
+    progreso(Verbosidad::depuracion) <<"Aciertos: " << bien << endl;
+    progreso(Verbosidad::depuracion) <<"Errores:  " << mal << endl;
+    progreso(Verbosidad::depuracion) <<"No clasificados: " << nosesabe << endl;
 
     for (int i=0; i<R.N_rule(); i++)
     {
-        progreso() << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
+        progreso(Verbosidad::depuracion) << "\tRule "<<i <<"("<<R.SPrint_Consequent(i) <<"): " << bien_clas[i] << " / " << mal_clas[i] << " (basico: " << unico_rule[i] <<")" << endl;
     }*/
 
     tama=0;
@@ -2944,7 +2947,7 @@ double Inferencia2BasesReglas(ruleset &R, ruleset &R_Descrip, const VectorVar &V
     int clase, clase1, regla_disparada1, clase2, regla_disparada2, discrepancias=0, discrepancias_reglas=0;
 
     if (R.N_rule()!=R_Descrip.N_rule())
-      progreso() << "\nError: No coinciden las bases de reglas en el numero de reglas. Descriptivas: " << R_Descrip.N_rule() << " Discriminantes: " << R.N_rule() << endl;
+      progreso(Verbosidad::depuracion) << "\nError: No coinciden las bases de reglas en el numero de reglas. Descriptivas: " << R_Descrip.N_rule() << " Discriminantes: " << R.N_rule() << endl;
 
     for (int i=0; i<R.N_rule(); i++){
       fallosR[i]=0;
@@ -3024,19 +3027,19 @@ double Inferencia2BasesReglas(ruleset &R, ruleset &R_Descrip, const VectorVar &V
 	    mal++;
         }
     }
-    /*progreso() << "Discrepancias clases= " << discrepancias << endl;
-    progreso() << "Discrepancias reglas= " << discrepancias_reglas << endl;
+    /*progreso(Verbosidad::depuracion) << "Discrepancias clases= " << discrepancias << endl;
+    progreso(Verbosidad::depuracion) << "Discrepancias reglas= " << discrepancias_reglas << endl;
     if (n1>0)
-      progreso() << "Fallos R1= " << (1.0*fallos1)/n1 << " ("<< fallos1 << "/" << n1 <<")\n";
+      progreso(Verbosidad::depuracion) << "Fallos R1= " << (1.0*fallos1)/n1 << " ("<< fallos1 << "/" << n1 <<")\n";
 
     if (n2>0)
-      progreso() << "Fallos R2= " << (1.0*fallos2)/n2 << " ("<< fallos2 << "/" << n2 <<")\n";
+      progreso(Verbosidad::depuracion) << "Fallos R2= " << (1.0*fallos2)/n2 << " ("<< fallos2 << "/" << n2 <<")\n";
 
-    progreso() << "Acierto = " << bien/n << " ("<< bien << "/" << n <<")\n";
+    progreso(Verbosidad::depuracion) << "Acierto = " << bien/n << " ("<< bien << "/" << n <<")\n";
 
 
     for (int i=0; i<R.N_rule(); i++){
-      progreso() << "Fallos regla " << i << ": " << fallosR[i] << " | " << fallosR_Descrip[i] << " || DisR: " << disparosR[i] << " | " << disparosR_Descrip[i] << endl;
+      progreso(Verbosidad::depuracion) << "Fallos regla " << i << ": " << fallosR[i] << " | " << fallosR_Descrip[i] << " || DisR: " << disparosR[i] << " | " << disparosR_Descrip[i] << endl;
     }*/
 
     //char ch;
@@ -3108,7 +3111,7 @@ double Filtrar_Reglas_New(ruleset &R, ruleset &R_dis, ruleset &R_mix, int *regla
 // posicion 0 se encuentra la medida general sobre todas las clases.
 double **ReservaParaMedidasDeInformacion(const VectorVar &V)
 {
-progreso() << "Med " << V.N_Antecedente() << " " << V.SizeDomain(V.Consecuente()) + 1 << endl;
+progreso(Verbosidad::depuracion) << "Med " << V.N_Antecedente() << " " << V.SizeDomain(V.Consecuente()) + 1 << endl;
     int n=V.TotalVariables(), conse=V.Consecuente();
     int tam_dom_conse=V.SizeDomain(conse);
     int nv, m=tam_dom_conse+1;
@@ -3171,7 +3174,7 @@ void CalcularProbabilidadSimpleVariable(const VectorVar &V, const example_set &E
 
     if (ne>0)
     {
-      	      progreso() << "NE: " << ne << endl;
+      	      progreso(Verbosidad::depuracion) << "NE: " << ne << endl;
 
         for (int j=0; j<n_casos; j++)
             p[j]=p[j]/ne;
@@ -3246,7 +3249,7 @@ double Operacion (double x1, double x2, int op)
     case 7: //Delta+
         /*a = sin(x1);
         if (a<-1 || a >1)
-            progreso() << "sin(" << x1 << ")=" << a << endl;*/
+            progreso(Verbosidad::depuracion) << "sin(" << x1 << ")=" << a << endl;*/
         return x1;
         break;
     case 8: //Delta-
@@ -3324,7 +3327,7 @@ void CalcularProbabilidadConjunta2Variables(const VectorVar &V, const example_se
 
     /*for (int j=0; j<n_casos1; j++)
       for (int k=0; k<n_casos2; k++)
-        progreso() << "p(x=" << j <<", y=" << k <<")= " << m[j][k] << endl; */
+        progreso(Verbosidad::depuracion) << "p(x=" << j <<", y=" << k <<")= " << m[j][k] << endl; */
 
 
     for (int j=0; j<n_casos1; j++)
@@ -3366,16 +3369,16 @@ void MedidasDeInformacion(const VectorVar &V, const example_set &E, double **I)
 
     CalcularProbabilidadSimpleVariable(V,E,conse,V.SizeDomain(conse),py);
 
-    progreso() << "PY" << endl;
+    progreso(Verbosidad::depuracion) << "PY" << endl;
     for (int i = 0; i < V.SizeDomain(conse); i++)
-      progreso() << py[i] << " ";
-    progreso() << endl;
+      progreso(Verbosidad::depuracion) << py[i] << " ";
+    progreso(Verbosidad::depuracion) << endl;
 
     int i=0, j=0;
     double I1=0, H1=0, I2=0, H2=0, aux;
     while (i<nv)
     {
-        progreso() << i+1 <<"/" << nv << endl;
+        progreso(Verbosidad::depuracion) << i+1 <<"/" << nv << endl;
         if (V.IsActiva(j) && V.IsAntecedente(j))
         {
             px = new double [V.SizeDomain(j)];
@@ -3421,10 +3424,10 @@ void MedidasDeInformacion(const VectorVar &V, const example_set &E, double **I)
                 I[i][0]=(I1/H1);
 
             V.PrintVar(j);
-            progreso() << ": " << I1 << "/" << H1 << ": " << I[i][0] << endl;
+            progreso(Verbosidad::depuracion) << ": " << I1 << "/" << H1 << ": " << I[i][0] << endl;
             for (int k=0; k<V.SizeDomain(conse); k++)
             {
-                progreso() << "\tEtiqueta "<< k <<": " << I[i][k+1] << endl;
+                progreso(Verbosidad::depuracion) << "\tEtiqueta "<< k <<": " << I[i][k+1] << endl;
             }
 
             i++;
@@ -3435,7 +3438,7 @@ void MedidasDeInformacion(const VectorVar &V, const example_set &E, double **I)
             delete [] pxy;
         }
 	else {
-		progreso() << "POS: " << i << " " << j << endl;
+		progreso(Verbosidad::depuracion) << "POS: " << i << " " << j << endl;
 	}
         j++;
     }
@@ -3752,15 +3755,15 @@ int BetterEtiqueta(const VectorVar &V,double ***Tabla, int variable, int ejemplo
 
 
 
-std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options){
+std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &options){
   // El informe (el antiguo <tarea>.res) solo se escribe si se pide.
-  const bool informe = !options.report.empty();
-  const std::string task_res = options.report.string();
+  const bool informe = !options.informe.empty();
+  const std::string task_res = options.informe.string();
   // Numero de particiones
   int num_par=1;
 
   V.Pinta();
-  int seed = options.seed;
+  int seed = options.semilla;
 
   ofstream out;
   if (informe){
@@ -3773,7 +3776,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
   }
 
   srand(seed);
-  progreso() << "SEED " << seed << endl;
+  progreso(Verbosidad::depuracion) << "SEED " << seed << endl;
 
   vectordouble a1, a2(5), a3;
 
@@ -3950,7 +3953,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       V.Encode(tama[0],rango[0]);
       // rango del nivel de valor en funciones
       rango[1]= F.TotalVariables()+1;
-	      progreso() << "numero de nuevas variables... " << rango[1] << endl;;
+	      progreso(Verbosidad::depuracion) << "numero de nuevas variables... " << rango[1] << endl;;
 
       // Rango del nivel de variable
       rangoi[0]=0.0;
@@ -3997,7 +4000,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
      bool primera_vez=true;
 
      int limite=E_Par_Completo.N_Examples();
-     int paso=static_cast<int>(options.episode_size), pasoANT=0, trozo=0, inicio=0;
+     int paso=static_cast<int>(options.tamano_episodio), pasoANT=0, trozo=0, inicio=0;
 
      Indiv = rango[0]*10;
      multipoblacion G(NPobBin,NPobEnt,NPobRea,rango,rangoi,rangos,mut,cruce,Elite,Indiv,tama,NFitness);
@@ -4061,6 +4064,8 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
      psubi[it2] = 0;
      psubf[it2] = paso - 1;
+     // Para la línea de cada episodio (Verbosidad::episodios).
+     const int total_episodios = (limite + paso - 1) / paso;
 
      while (!salir){ //while de los episodios
       if (it2 > 0) {
@@ -4078,8 +4083,11 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
       E_Par = Subconjunto.Union(E_Retenidos);
 
-      progreso() << endl;
-      progreso() << "=================================================== Episodio de " <<inicio << " a " << fin << " ====================================" << endl;
+      progreso(Verbosidad::detalle) << endl;
+      progreso(Verbosidad::detalle) << "=================================================== Episodio de " <<inicio << " a " << fin << " ====================================" << endl;
+      const int episodio = it2 + 1, primer_ejemplo = inicio, ultimo_ejemplo = fin - 1;
+      const int reglas_al_empezar = R_prev[par].N_rule();
+      const auto empieza_el_episodio = std::chrono::steady_clock::now();
 
       tiempo1=clock();
 
@@ -4087,22 +4095,22 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       ETA = (step/(it2+1))*(episodios-it2);
 
       if (false){
-        progreso() << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      Aciertos Test: " << Aciertos(R_prev[par],V,E_Par_Test,F) << endl;
+        progreso(Verbosidad::depuracion) << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      Aciertos Test: " << Aciertos(R_prev[par],V,E_Par_Test,F) << endl;
         ult_it=it;
       }
       else{
-        progreso() << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      ETA: " << ETA << endl;
+        progreso(Verbosidad::detalle) << "===================== Tiempo Consumido: "<< 1.0*(tiempo1-tiempo0)/CLOCKS_PER_SEC << "      ETA: " << ETA << endl;
       }
 
-      progreso() << "=================================================== Tamano " << E_Par.N_Examples() << " ====================================" << endl << endl;
-      progreso() << "[Paso: " << paso << "]" << endl;
+      progreso(Verbosidad::detalle) << "=================================================== Tamano " << E_Par.N_Examples() << " ====================================" << endl << endl;
+      progreso(Verbosidad::depuracion) << "[Paso: " << paso << "]" << endl;
       inicio=fin;
 
-      progreso() << "Creando la tabla de adaptaciones.....\n";
+      progreso(Verbosidad::depuracion) << "Creando la tabla de adaptaciones.....\n";
       double ***Tabla = Crear_Tabla_Adaptaciones(V,E_Par);
       double ***Tabla_Nuevas = Crear_Tabla_Adaptaciones_Nuevas(F,E_Par);
       double ***Tabla1 = nullptr, ***Tabla_Nuevas1 = nullptr, ***Tabla2 = nullptr, ***Tabla_Nuevas2 = nullptr;
-      progreso() << "Tabla de adaptaciones creada!\n";
+      progreso(Verbosidad::depuracion) << "Tabla de adaptaciones creada!\n";
 
       char ch;
   	  //cin >> ch;
@@ -4122,9 +4130,9 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       }
 
       if (it2 == 0) {
-        progreso() << "Calculando medidas de informacion\n";
+        progreso(Verbosidad::detalle) << "Calculando medidas de informacion\n";
         MedidasDeInformacion(V, E_operadores, Med_Inform);
-        progreso() << "Terminado el calculo de las medidas de informacion\n";
+        progreso(Verbosidad::detalle) << "Terminado el calculo de las medidas de informacion\n";
       }
 
       int anterior_n;
@@ -4149,21 +4157,22 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
   	  example_set E_Par_Not_Covered;
 
-      progreso() << "  Numero de Reglas: " << R_prev[par].N_rule() << "(" << R_prev[par].N_rule(0.5) << ")" << endl;
+      progreso(Verbosidad::detalle) << "  Numero de Reglas: " << R_prev[par].N_rule() << "(" << R_prev[par].N_rule(0.5) << ")" << endl;
 
       last_accuracy = accuracy_old;
       acumulado+=last_accuracy;
       if (acumulado==0){
         umbral_acierto=1;
       }
-      progreso() << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy << endl;
+      progreso(Verbosidad::detalle) << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy << endl;
 
       if (psubi[it2]==1082500){
-        progreso() << "En este episodiio se da el error\n";
+        progreso(Verbosidad::detalle) << "En este episodiio se da el error\n";
       }
 
       accuracy_old= Aciertos(R_prev[par],V,E_Par, F);
-      progreso() << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old << endl;
+      progreso(Verbosidad::detalle) << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old << endl;
+      const double acierto_al_empezar = accuracy_old;
 
       if (it2>=10 and it2%10==0){
         E_Anteriores = E_Par_Completo.SubSet(psubi[it2-10], psubf[it2-10]);
@@ -4189,10 +4198,10 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
       evo_num_de_reglas[it2]=0;
 
 
-      progreso() << "Diferencia de acierto entre los dos últimos episodios: " << acierto_anterior-last_accuracy << endl;
+      progreso(Verbosidad::detalle) << "Diferencia de acierto entre los dos últimos episodios: " << acierto_anterior-last_accuracy << endl;
       acierto_anterior=last_accuracy;
 
-      progreso() << "En la iteración " << it << " el umbral se ha fijado a " << umbral_acierto << " (" << umbral_acierto*(1+percent) << ")" << endl;
+      progreso(Verbosidad::detalle) << "En la iteración " << it << " el umbral se ha fijado a " << umbral_acierto << " (" << umbral_acierto*(1+percent) << ")" << endl;
 
       if (it%50==0){
         reajustar_peso=true;
@@ -4213,7 +4222,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
 
       accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
-      progreso() << "Aciertos despues de ajustar los pesos de las reglas: " << accuracy_old << endl;
+      progreso(Verbosidad::detalle) << "Aciertos despues de ajustar los pesos de las reglas: " << accuracy_old << endl;
       double acierto_despuesAjustarPeso = accuracy_old;
 
       if (accuracy_old< (umbral_acierto)){
@@ -4247,8 +4256,8 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
           }
         }
 
-        progreso() << "Ejemplos eliminados: " << l_tama << endl;
-        progreso() << "Reglas no filtradas: " << R[par].N_rule() << "(" << R[par].N_rule(0.5) <<")" << endl;
+        progreso(Verbosidad::detalle) << "Ejemplos eliminados: " << l_tama << endl;
+        progreso(Verbosidad::detalle) << "Reglas no filtradas: " << R[par].N_rule() << "(" << R[par].N_rule(0.5) <<")" << endl;
 
         if (l_tama>=0 and l_tama<E_Par_Not_Covered.N_Examples() ){
           Tabla1 = Crear_Tabla_Adaptaciones(V,E_Par_Not_Covered);
@@ -4258,12 +4267,12 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         delete [] lista2;
         delete [] l_aciertos;
 
-        progreso() << "\n-------------------------------------------> Nuevo numero de ejemplos: " << E_Par_Not_Covered.N_Examples() << endl;
+        progreso(Verbosidad::detalle) << "\n-------------------------------------------> Nuevo numero de ejemplos: " << E_Par_Not_Covered.N_Examples() << endl;
       }
 
       if (accuracy_old< (umbral_acierto)){
         accuracy_old= Aciertos(R[par],V,E_Par_Not_Covered,F);
-        progreso() << "Aciertos de la descriptiva antes de lanzar el genetico: " <<  accuracy_old << endl;
+        progreso(Verbosidad::detalle) << "Aciertos de la descriptiva antes de lanzar el genetico: " <<  accuracy_old << endl;
         cambio_en_reglas=true;
 
         umbral_acierto-=0.00;
@@ -4311,7 +4320,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
           n=E_Par_Not_Covered.Not_Covered_Examples();
 
           if (G.ValorFitness(0)>0 and anterior_n==n){
-            progreso() << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
+            progreso(Verbosidad::detalle) << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
           }
 
           if (G.ValorFitness(0)!=-2*E_Par_Not_Covered.N_Examples() and!reducir_reglas and !Added_Rule){
@@ -4359,7 +4368,7 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         R_prev[par].AddRuleset(R[par]);
         R_prev_dis[par].AddRuleset(R_dis[par]);
         R_mix_prev[par].AddRuleset(R_mix[par]);
-        progreso() << "Aniadidas " << R[par].N_rule()- initial_size_of_rule << " reglas\n";
+        progreso(Verbosidad::detalle) << "Aniadidas " << R[par].N_rule()- initial_size_of_rule << " reglas\n";
 
         if (R[par].N_rule()- initial_size_of_rule >0){
           evo_insert_rules[it2]=1;
@@ -4367,14 +4376,14 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         }
 
         accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
-        progreso() << "Acierto antes de analizar patrones: " << accuracy_old << endl;
+        progreso(Verbosidad::detalle) << "Acierto antes de analizar patrones: " << accuracy_old << endl;
 
         if (acierto_despuesAjustarPeso<accuracy_old){
-          progreso() << "............................. Analizando patrones entre reglas .......................\n";
+          progreso(Verbosidad::detalle) << "............................. Analizando patrones entre reglas .......................\n";
           bool cambio = AnalizarConjuntosDeReglas(V, R_prev_dis[par], R_prev[par], R_mix_prev[par], R[par].N_rule());
           if (cambio) ult_it=it-1;
           accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
-  	      progreso() << "Acierto despues de analizar patrones: " << accuracy_old << endl;
+  	      progreso(Verbosidad::detalle) << "Acierto despues de analizar patrones: " << accuracy_old << endl;
         }
 
         else {
@@ -4399,6 +4408,15 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
         }
       }
 
+      // Una línea por episodio. Solo con lo que ya se ha calculado: Aciertos marca los ejemplos y
+      // llamarlo aquí cambiaría las reglas.
+      if (se_escribe(Verbosidad::episodios)){
+        const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - empieza_el_episodio;
+        progreso(Verbosidad::episodios) << std::format(
+            "INSLV: episodio {} de {} (ejemplos {} a {}): reglas {} -> {}, acierto {:.3f} -> {:.3f}, {:.2f} s\n",
+            episodio, total_episodios, primer_ejemplo, ultimo_ejemplo, reglas_al_empezar, R_prev[par].N_rule(),
+            acierto_al_empezar, accuracy_old, segundos.count());
+      }
       if (informe){
         ofstream salida(task_res,std::ofstream::out | std::ofstream::app);
         salida << "*****************************************************************\n";
@@ -4510,14 +4528,14 @@ std::vector<Rule> Aprender(VectorVar &V, example_set &E, const Options &options)
 
   // Las descriptivas (R_prev) o sus versiones discriminantes (R_prev_dis), emparejadas regla a
   // regla.
-  const ruleset &elegidas = options.rules == RuleType::discriminant ? R_prev_dis[0] : R_prev[0];
-  std::vector<Rule> reglas;
+  const ruleset &elegidas = options.reglas == TipoDeReglas::discriminantes ? R_prev_dis[0] : R_prev[0];
+  std::vector<Regla> reglas;
   for (int i=0; i<elegidas.N_rule(); i++){
-    Rule regla;
-    regla.antecedent = elegidas.Antecedente(i);
-    regla.consequent = elegidas.Class_of_rule(i);
-    regla.covered = elegidas.Get_N_Mas(i);
-    regla.weight = elegidas.Get_Weight(i);
+    Regla regla;
+    regla.antecedente = elegidas.Antecedente(i);
+    regla.consecuente = elegidas.Class_of_rule(i);
+    regla.cubiertos = elegidas.Get_N_Mas(i);
+    regla.peso = elegidas.Get_Weight(i);
     reglas.push_back(regla);
   }
 

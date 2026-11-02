@@ -38,3 +38,6 @@ regla 1 4.362857142857145 0.7990634312473393 3
 condicion 5 2 3 4
 condicion 10 2 3 4
 condicion 11 0 1
+# Las clases que da old/ a los ejemplos de la partición 0 con estas reglas (-1: ninguna regla dispara).
+predicciones 17
+0 0 0 0 0 1 1 1 1 1 1 1 1 2 2 2 0

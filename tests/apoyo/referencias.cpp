@@ -40,8 +40,8 @@ double leer_numero(const std::string& texto) {
   return valor;
 }
 
-std::string nombre_del_tipo(RuleType tipo) {
-  return tipo == RuleType::descriptive ? "descriptivas" : "discriminantes";
+std::string nombre_del_tipo(TipoDeReglas tipo) {
+  return tipo == TipoDeReglas::descriptivas ? "descriptivas" : "discriminantes";
 }
 
 // La siguiente línea que no es un comentario, que tiene que empezar por la palabra clave.
@@ -65,7 +65,7 @@ std::istringstream siguiente_linea(std::ifstream& entrada, const std::string& cl
 
 }  // namespace
 
-Dataset Experimento::entrenamiento() const {
+Datos Experimento::entrenamiento() const {
   const fs::path directorio = datos / "nslv" / conjunto;
   std::vector<fs::path> particiones;
   for (int i = 0; i < 10; ++i) {
@@ -76,10 +76,16 @@ Dataset Experimento::entrenamiento() const {
   return nslv::leer(directorio / (conjunto + ".dom"), particiones);
 }
 
-Options Experimento::opciones() const {
-  Options resultado;
-  resultado.rules = tipo;
-  resultado.episode_size = episodio;
+Datos Experimento::prueba() const {
+  const fs::path directorio = datos / "nslv" / conjunto;
+  return nslv::leer(directorio / (conjunto + ".dom"),
+                    {directorio / (conjunto + std::to_string(test) + ".datos")});
+}
+
+Opciones Experimento::opciones() const {
+  Opciones resultado;
+  resultado.reglas = tipo;
+  resultado.tamano_episodio = episodio;
   return resultado;
 }
 
@@ -94,22 +100,23 @@ Experimento experimento_de(const fs::path& fichero) {
   Experimento experimento;
   experimento.conjunto = partes[1];
   experimento.test = std::stoi(partes[2]);
-  experimento.tipo = partes[3] == "descriptivas" ? RuleType::descriptive : RuleType::discriminant;
+  experimento.tipo =
+      partes[3] == "descriptivas" ? TipoDeReglas::descriptivas : TipoDeReglas::discriminantes;
   if (partes[5].matched) {
     experimento.episodio = std::stoul(partes[5]);
   }
   return experimento;
 }
 
-std::string describir(const std::vector<Rule>& reglas) {
+std::string describir(const std::vector<Regla>& reglas) {
   std::ostringstream salida;
   salida << "reglas " << reglas.size() << '\n';
-  for (const Rule& regla : reglas) {
-    salida << "regla " << regla.consequent << ' ' << exacto(regla.covered) << ' '
-           << exacto(regla.weight) << ' ' << regla.antecedent.size() << '\n';
-    for (const Condition& condicion : regla.antecedent) {
-      salida << "condicion " << condicion.attribute;
-      for (const std::size_t etiqueta : condicion.labels) {
+  for (const Regla& regla : reglas) {
+    salida << "regla " << regla.consecuente << ' ' << exacto(regla.cubiertos) << ' '
+           << exacto(regla.peso) << ' ' << regla.antecedente.size() << '\n';
+    for (const Condicion& condicion : regla.antecedente) {
+      salida << "condicion " << condicion.atributo;
+      for (const std::size_t etiqueta : condicion.etiquetas) {
         salida << ' ' << etiqueta;
       }
       salida << '\n';
@@ -118,7 +125,24 @@ std::string describir(const std::vector<Rule>& reglas) {
   return salida.str();
 }
 
-void escribir_reglas(const fs::path& fichero, const std::vector<Rule>& reglas) {
+std::string describir(const std::vector<std::optional<std::size_t>>& clases) {
+  std::ostringstream salida;
+  salida << "predicciones " << clases.size() << '\n';
+  for (std::size_t e = 0; e < clases.size(); ++e) {
+    salida << (e == 0 ? "" : " ");
+    const std::optional<std::size_t>& clase = clases[e];
+    if (clase.has_value()) {
+      salida << *clase;
+    } else {
+      salida << -1;
+    }
+  }
+  salida << '\n';
+  return salida.str();
+}
+
+void escribir_reglas(const fs::path& fichero, const std::vector<Regla>& reglas,
+                     const std::vector<std::optional<std::size_t>>& clases) {
   const Experimento experimento = experimento_de(fichero);
   std::ofstream salida(fichero);
   if (!salida) {
@@ -129,36 +153,62 @@ void escribir_reglas(const fs::path& fichero, const std::vector<Rule>& reglas) {
          << nombre_del_tipo(experimento.tipo) << ", episodios de " << experimento.episodio
          << " ejemplos y la semilla por defecto.\n"
          << "# Generado por inslv_generar_referencias (tests/oraculo): no editar a mano.\n"
-         << describir(reglas);
+         << describir(reglas) << "# Las clases que da old/ a los ejemplos de la partición "
+         << experimento.test << " con estas reglas (-1: ninguna regla dispara).\n"
+         << describir(clases);
 }
 
-std::vector<Rule> leer_reglas(const fs::path& fichero) {
+std::vector<Regla> leer_reglas(const fs::path& fichero) {
   std::ifstream entrada(fichero);
   if (!entrada) {
     throw std::runtime_error("no se puede abrir " + fichero.string());
   }
   std::size_t n_reglas = 0;
   siguiente_linea(entrada, "reglas", fichero) >> n_reglas;
-  std::vector<Rule> reglas(n_reglas);
-  for (Rule& regla : reglas) {
+  std::vector<Regla> reglas(n_reglas);
+  for (Regla& regla : reglas) {
     std::istringstream linea = siguiente_linea(entrada, "regla", fichero);
     std::string cubiertos;
     std::string peso;
     std::size_t condiciones = 0;
-    linea >> regla.consequent >> cubiertos >> peso >> condiciones;
-    regla.covered = leer_numero(cubiertos);
-    regla.weight = leer_numero(peso);
-    regla.antecedent.resize(condiciones);
-    for (Condition& condicion : regla.antecedent) {
+    linea >> regla.consecuente >> cubiertos >> peso >> condiciones;
+    regla.cubiertos = leer_numero(cubiertos);
+    regla.peso = leer_numero(peso);
+    regla.antecedente.resize(condiciones);
+    for (Condicion& condicion : regla.antecedente) {
       std::istringstream linea_condicion = siguiente_linea(entrada, "condicion", fichero);
-      linea_condicion >> condicion.attribute;
+      linea_condicion >> condicion.atributo;
       std::size_t etiqueta = 0;
       while (linea_condicion >> etiqueta) {
-        condicion.labels.push_back(etiqueta);
+        condicion.etiquetas.push_back(etiqueta);
       }
     }
   }
   return reglas;
+}
+
+std::vector<std::optional<std::size_t>> leer_predicciones(const fs::path& fichero) {
+  std::ifstream entrada(fichero);
+  std::string linea;
+  while (std::getline(entrada, linea) && !linea.starts_with("predicciones ")) {
+  }
+  if (!entrada) {
+    throw std::runtime_error(fichero.string() + ": no tiene predicciones");
+  }
+  std::istringstream cabecera(linea);
+  std::string palabra;
+  std::size_t n = 0;
+  cabecera >> palabra >> n;
+  std::vector<std::optional<std::size_t>> clases;
+  long clase = 0;
+  while (clases.size() < n && entrada >> clase) {
+    clases.push_back(clase < 0 ? std::nullopt
+                               : std::optional<std::size_t>(static_cast<std::size_t>(clase)));
+  }
+  if (clases.size() != n) {
+    throw std::runtime_error(fichero.string() + ": faltan predicciones");
+  }
+  return clases;
 }
 
 std::vector<fs::path> ficheros_de_referencia(const std::string& grupo) {

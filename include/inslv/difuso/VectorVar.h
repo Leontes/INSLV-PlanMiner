@@ -29,7 +29,7 @@ class VectorVar {
 
   public:
     VectorVar();
-    explicit VectorVar(const Dataset &data);
+    explicit VectorVar(const Datos &data);
     ~VectorVar();
     VectorVar &operator=(const VectorVar &x);
     int N_Antecedente() const;

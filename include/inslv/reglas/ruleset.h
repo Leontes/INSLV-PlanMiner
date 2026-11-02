@@ -266,7 +266,7 @@ class ruleset {
 
 
 
-    std::vector<Condition> Antecedente(int i) const;
+    std::vector<Condicion> Antecedente(int i) const;
 
 };
 }  // namespace inslv

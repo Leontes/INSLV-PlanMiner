@@ -128,8 +128,8 @@ double variable_t::Adaptacion(double x, string etiquetas) const {
 void variable_t::Pinta() const{
   if (dominio==0)
     throw std::logic_error("inslv: la variable " + nombre + " no tiene dominio");
-  progreso() << "Variable: " << nombre << endl;
-  progreso() << "========================\n";
+  progreso(Verbosidad::depuracion) << "Variable: " << nombre << endl;
+  progreso(Verbosidad::depuracion) << "========================\n";
   (*dominio).Pinta();
 }
 
@@ -138,7 +138,7 @@ void variable_t::Pinta() const{
 
 // Operador que pone en el dispositivo de salida el nombre de la variable
 void variable_t::PrintVar() const{
-  progreso() << nombre;
+  progreso(Verbosidad::depuracion) << nombre;
 }
 
 // Operador que devuelve en un string el nombre de la variable.

@@ -288,10 +288,10 @@ double multipoblacion::Sort_4L(example_set &E, int n_clases, int *n_examples_per
     ind_clase[cl[0]][ind_clase[cl[0]][0]]=i;
   }
 
-  /*progreso() << "\t(" << ind_clase[0][0];
+  /*progreso(Verbosidad::depuracion) << "\t(" << ind_clase[0][0];
   for (int i=1; i<n_clases; i++)
-    progreso() << ", " << ind_clase[i][0];
-  progreso() << ")\n";*/
+    progreso(Verbosidad::depuracion) << ", " << ind_clase[i][0];
+  progreso(Verbosidad::depuracion) << ")\n";*/
 
 
 
@@ -373,13 +373,13 @@ double multipoblacion::Sort_4L(example_set &E, int n_clases, int *n_examples_per
 
 void multipoblacion::PintaFitness_Estacionario(int i) const{
   double minf0,minf1,minf2,maxf0,maxf1,maxf2;
-  progreso() << "Fitnes: ";
+  progreso(Verbosidad::depuracion) << "Fitnes: ";
   for (int j=0; j<n_valoracion; j++)
-    progreso() << valoracion[i][j] << "   ";
+    progreso(Verbosidad::depuracion) << valoracion[i][j] << "   ";
   //cout << "[" << MediaFitness_Estacionario(minf0,maxf0,minf1,maxf1,minf2,maxf2) << "]";
   //cout << "(" << minf0 << "," << maxf0 <<") , ("<<minf1 <<","<<maxf1<<") , ("<<minf2 << "," << maxf2 <<") ";
-  progreso() << "Clase => " << ClaseIndividuo(i);
-  progreso() << endl;
+  progreso(Verbosidad::depuracion) << "Clase => " << ClaseIndividuo(i);
+  progreso(Verbosidad::depuracion) << endl;
 }
 
 
@@ -390,10 +390,10 @@ void multipoblacion::PintaFitness_Estacionario(int i) const{
     Pe[j][0].Pinta(i);
   for (int j=0; j<poblacionesB; j++)
     Pb[j][0].Pinta(i);
-  progreso() << "Fitnes: ";
+  progreso(Verbosidad::depuracion) << "Fitnes: ";
   for (int j=0; j<n_valoracion; j++)
-    progreso() << valoracion[i][j] << " ";
-  progreso() << endl <<endl;
+    progreso(Verbosidad::depuracion) << valoracion[i][j] << " ";
+  progreso(Verbosidad::depuracion) << endl <<endl;
 
 }*/
 

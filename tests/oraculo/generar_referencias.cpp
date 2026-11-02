@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Genera ficheros de referencia (tests/datos/referencias) con old/: aprende el experimento que
-// dice el nombre de cada fichero y escribe las reglas. Solo en local, como el oráculo.
+// dice el nombre de cada fichero y escribe las reglas y las clases que da su inferencia a la
+// partición de test. Solo en local, como el oráculo.
 //
 //   inslv_generar_referencias <fichero.reglas>...
 //
@@ -27,12 +28,11 @@ int main(int argc, char** argv) {
       const std::filesystem::path fichero = ruta;
       const inslv::pruebas::Experimento experimento = inslv::pruebas::experimento_de(fichero);
       const auto inicio = std::chrono::steady_clock::now();
-      const std::vector<inslv::Rule> reglas = inslv::pruebas::de_legacy(
-          inslv_legacy::learn(inslv::pruebas::a_legacy(experimento.entrenamiento()),
-                              inslv::pruebas::a_legacy(experimento.opciones())));
+      const inslv::pruebas::ResultadoDeOld resultado = inslv::pruebas::aprender_con_old(
+          experimento.entrenamiento(), experimento.opciones(), experimento.prueba());
       const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - inicio;
-      inslv::pruebas::escribir_reglas(fichero, reglas);
-      std::cout << fichero.filename().string() << ": " << reglas.size() << " reglas en "
+      inslv::pruebas::escribir_reglas(fichero, resultado.reglas, resultado.clases);
+      std::cout << fichero.filename().string() << ": " << resultado.reglas.size() << " reglas en "
                 << segundos.count() << " s\n";
     }
   } catch (const std::exception& error) {

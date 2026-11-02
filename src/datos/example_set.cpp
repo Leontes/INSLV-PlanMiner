@@ -194,7 +194,7 @@ void example_set::OrderByClass(int order, int VarClase) { // order=0 -> as it is
 
   switch (order) {
     case 1: { // Ordered by class (in order)
-     progreso() << "Total 1: " << n_example << endl;
+     progreso(Verbosidad::depuracion) << "Total 1: " << n_example << endl;
      for (int i = 0; i < n_example; i++) {
        vector<double> aux(n_variable);
        for (int j = 0; j < n_variable; j++) {
@@ -222,19 +222,19 @@ void example_set::OrderByClass(int order, int VarClase) { // order=0 -> as it is
        }
      }
 
-     progreso() << "Clases" << endl;
+     progreso(Verbosidad::depuracion) << "Clases" << endl;
      for (int i = 0; i < n_clase.size(); i++)
-       progreso() << n_clase[i] << endl;
-     /*progreso() << "CARGA: " << VarClase << endl;
+       progreso(Verbosidad::depuracion) << n_clase[i] << endl;
+     /*progreso(Verbosidad::depuracion) << "CARGA: " << VarClase << endl;
      for (int i = 0; i < n_example; i++) {
        for (int j = 0; j < n_variable; j++)
-	 progreso() << data[i][j] << " ";
-       progreso() << endl;
+	 progreso(Verbosidad::depuracion) << data[i][j] << " ";
+       progreso(Verbosidad::depuracion) << endl;
      }*/
      }
      break;
     case 2: { // Ordered by class (one at a time... 1 2 3)
-      progreso() << "Total 2: " << n_example << endl;
+      progreso(Verbosidad::depuracion) << "Total 2: " << n_example << endl;
       for (int i = 0; i < n_example; i++) {
 	vector<double> aux(n_variable);
 	for (int j = 0; j < n_variable; j++) {
@@ -280,14 +280,14 @@ void example_set::OrderByClass(int order, int VarClase) { // order=0 -> as it is
 	} while ((index[k] == n_clase[k]) && (i + 1 < n_example));
       }
 
-      progreso() << "Clases" << endl;
+      progreso(Verbosidad::depuracion) << "Clases" << endl;
       for (int i = 0; i < n_clase.size(); i++)
-	progreso() << n_clase[i] << endl;
-      /*progreso() << "CARGA: " << VarClase << endl;
+	progreso(Verbosidad::depuracion) << n_clase[i] << endl;
+      /*progreso(Verbosidad::depuracion) << "CARGA: " << VarClase << endl;
       for (int i = 0; i < n_example; i++) {
 	for (int j = 0; j < n_variable; j++)
-	  progreso() << data[i][j] << " ";
-	progreso() << endl;
+	  progreso(Verbosidad::depuracion) << data[i][j] << " ";
+	progreso(Verbosidad::depuracion) << endl;
       }*/
     }
     break;
@@ -482,7 +482,7 @@ int example_set::Rule_Aislada(int i) const{
     if (partition[i]!=particion)
      sum++;
 
-  progreso() << "ejemplos: " << sum << "  variables: " << n_variable << endl;
+  progreso(Verbosidad::depuracion) << "ejemplos: " << sum << "  variables: " << n_variable << endl;
   example_set E1(sum,  n_variable);
 
 
@@ -504,10 +504,10 @@ example_set example_set::Extract_Training_Set(int particion, int VarClase, int o
     if (partition[i]!=particion)
       sum++;
 
-  progreso() << "ejemplos: " << sum << "  variables: " << n_variable << endl;
+  progreso(Verbosidad::depuracion) << "ejemplos: " << sum << "  variables: " << n_variable << endl;
   example_set E1 = example_set(sum,  n_variable);
 
-  progreso() << "Training E" << endl;
+  progreso(Verbosidad::depuracion) << "Training E" << endl;
 
   int l=0;
   for (int i=0; i<n_example; i++){
@@ -528,13 +528,13 @@ example_set example_set::Extract_Training_Set(int particion, int VarClase, int o
   }
 
 
-  /*progreso() << "Training E ordered" << endl;
+  /*progreso(Verbosidad::depuracion) << "Training E ordered" << endl;
   for (int i=0; i< E1.N_Examples(); i++) {
     for (int j=0; j<n_variable; j++)
-      progreso() << E1.data[i][j] << " ";
-    progreso() << endl;
+      progreso(Verbosidad::depuracion) << E1.data[i][j] << " ";
+    progreso(Verbosidad::depuracion) << endl;
   }
-  progreso() << "end" << endl;*/
+  progreso(Verbosidad::depuracion) << "end" << endl;*/
 
   return E1;
 }
@@ -545,7 +545,7 @@ example_set example_set::Extract_Test_Set(int particion, int VarClase) const{
     if (partition[i]==particion)
       sum++;
 
-  progreso() << "ejemplos: " << sum << "  variables: " << n_variable << endl;
+  progreso(Verbosidad::depuracion) << "ejemplos: " << sum << "  variables: " << n_variable << endl;
   example_set E1 = example_set(sum,  n_variable);
 
   int l=0;

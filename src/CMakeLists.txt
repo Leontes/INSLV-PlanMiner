@@ -15,7 +15,7 @@ add_subdirectory(reglas)
 add_subdirectory(aprendizaje)
 add_subdirectory(formatos)
 
-add_library(inslv STATIC inslv.cpp)
+add_library(inslv STATIC inslv.cpp clasificar.cpp)
 add_library(inslv::inslv ALIAS inslv)
 
 target_include_directories(inslv PUBLIC "${PROJECT_SOURCE_DIR}/include")

@@ -318,7 +318,7 @@ genetcode *ruleset::Get_Code_Rule(int i) const {
   if (i<n_rule)
    aux=rule[i];
   else
-    progreso() << "Error en Get_Code_Rule: Indice " << i << " de regla fuera de rango\n";
+    progreso(Verbosidad::depuracion) << "Error en Get_Code_Rule: Indice " << i << " de regla fuera de rango\n";
 
   return aux;
 }
@@ -693,10 +693,10 @@ int ruleset::InferenceC(const vectordouble &v, int clase, double &grado_p, doubl
         (adaptacion_particular[i]==grado_n and peso[i]==peso_n and i<indice_neg)) )
        de_clase++;
    if (de_clase==0){
-      progreso() << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p << " Grado Neg: "<< grado_n << "  Regla: " << re <<endl;
+      progreso(Verbosidad::depuracion) << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p << " Grado Neg: "<< grado_n << "  Regla: " << re <<endl;
       for (int t=0; t<n_rule; t++)
-        progreso() <<"\t"<<adaptacion_particular[t];
-      progreso() << endl;
+        progreso(Verbosidad::depuracion) <<"\t"<<adaptacion_particular[t];
+      progreso(Verbosidad::depuracion) << endl;
    }
 
    aislada=de_clase;
@@ -913,7 +913,7 @@ string ruleset::SPrint(int i) const{
 void ruleset::SaveRuleInterpreted_append(const char *nomfich) const {
   ofstream f(nomfich,ios::app);
   string regla;
-  progreso() << "Numero de reglas =" << n_rule << endl;
+  progreso(Verbosidad::depuracion) << "Numero de reglas =" << n_rule << endl;
   for (int i=0; i<n_rule; i++){
     regla=SPrint(i);
     f << regla.c_str() << endl;
@@ -931,8 +931,8 @@ void ruleset::SaveRuleInterpreted_append(const char *nomfich) const {
 //
 // Es la parte general de SplitAntecedent, que estaba en Old/: la interpretación de PlanMiner
 // (solo atributos de hasta dos etiquetas, con el nombre de la etiqueta o su centro) se hace fuera.
-std::vector<Condition> ruleset::Antecedente(int i) const{
-  std::vector<Condition> condiciones;
+std::vector<Condicion> ruleset::Antecedente(int i) const{
+  std::vector<Condicion> condiciones;
 
   int b,*nb,n,*nn,**nnn,r,*nr;
   char **mb;
@@ -962,11 +962,11 @@ std::vector<Condition> ruleset::Antecedente(int i) const{
       n_casos=domain[0].SizeDomain(j);
       for(z=0; z<n_casos && regla[donde+z]=='1';z++);
       if (mr[0][j]>=mr[0][nr[0]-1] && z!=n_casos){
-        Condition condicion;
-        condicion.attribute = j;
+        Condicion condicion;
+        condicion.atributo = j;
         for(int t=donde; t<donde+n_casos;t++){
           if (regla[t]=='1'){
-            condicion.labels.push_back(t-donde);
+            condicion.etiquetas.push_back(t-donde);
           }
         }
         condiciones.push_back(condicion);

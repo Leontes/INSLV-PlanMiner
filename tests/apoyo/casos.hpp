@@ -28,7 +28,7 @@ struct ReglaPlanMiner {
 std::ostream& operator<<(std::ostream& salida, const ReglaPlanMiner& regla);
 
 struct CasoPlanMiner {
-  Dataset datos;
+  Datos datos;
   std::vector<ReglaPlanMiner> reglas;
 };
 

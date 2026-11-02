@@ -46,20 +46,20 @@ Variable leer_variable(std::ifstream& fichero, const std::string& clave) {
   std::size_t etiquetas = 0;
   linea >> etiquetas;
   Variable variable;
-  variable.name = resto_de_linea(linea);
+  variable.nombre = resto_de_linea(linea);
   for (std::size_t i = 0; i < etiquetas; ++i) {
     std::istringstream linea_etiqueta = siguiente_linea(fichero, "label");
     std::string a;
     std::string b;
     std::string c;
     std::string d;
-    FuzzySet etiqueta;
-    linea_etiqueta >> a >> b >> c >> d >> etiqueta.label;
+    ConjuntoDifuso etiqueta;
+    linea_etiqueta >> a >> b >> c >> d >> etiqueta.etiqueta;
     etiqueta.a = leer_valor(a);
     etiqueta.b = leer_valor(b);
     etiqueta.c = leer_valor(c);
     etiqueta.d = leer_valor(d);
-    variable.labels.push_back(etiqueta);
+    variable.etiquetas.push_back(etiqueta);
   }
   return variable;
 }
@@ -84,14 +84,14 @@ CasoPlanMiner leer_caso(const std::filesystem::path& fichero) {
   std::size_t atributos = 0;
   siguiente_linea(entrada, "attributes") >> atributos;
   for (std::size_t i = 0; i < atributos; ++i) {
-    caso.datos.attributes.push_back(leer_variable(entrada, "attribute"));
+    caso.datos.atributos.push_back(leer_variable(entrada, "attribute"));
   }
-  caso.datos.target = leer_variable(entrada, "target");
+  caso.datos.clase = leer_variable(entrada, "target");
 
   std::size_t ejemplos = 0;
   siguiente_linea(entrada, "examples") >> ejemplos;
-  caso.datos.values.assign(atributos, std::vector<double>(ejemplos));
-  caso.datos.classes.resize(ejemplos);
+  caso.datos.valores.assign(atributos, std::vector<double>(ejemplos));
+  caso.datos.clases.resize(ejemplos);
   for (std::size_t e = 0; e < ejemplos; ++e) {
     std::string texto;
     std::getline(entrada, texto);
@@ -99,9 +99,9 @@ CasoPlanMiner leer_caso(const std::filesystem::path& fichero) {
     for (std::size_t i = 0; i < atributos; ++i) {
       std::string valor;
       linea >> valor;
-      caso.datos.values[i][e] = leer_valor(valor);
+      caso.datos.valores[i][e] = leer_valor(valor);
     }
-    linea >> caso.datos.classes[e];
+    linea >> caso.datos.clases[e];
   }
 
   std::size_t reglas = 0;

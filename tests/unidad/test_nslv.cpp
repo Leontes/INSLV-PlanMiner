@@ -36,20 +36,20 @@ std::vector<fs::path> particiones(const std::string& nombre) {
   return ficheros;
 }
 
-inslv::Dataset leer_conjunto(const std::string& nombre, const std::vector<fs::path>& ejemplos) {
+inslv::Datos leer_conjunto(const std::string& nombre, const std::vector<fs::path>& ejemplos) {
   return inslv::nslv::leer(datos_nslv / nombre / (nombre + ".dom"), ejemplos);
 }
 
 // Los ejemplos como filas (atributos y la clase al final), ordenadas, para comparar conjuntos sin
 // tener en cuenta el orden. Los desconocidos pasan a -infinito para poder compararlos.
-std::vector<std::vector<double>> filas(const inslv::Dataset& datos) {
-  std::vector<std::vector<double>> resultado(datos.classes.size());
-  for (std::size_t e = 0; e < datos.classes.size(); ++e) {
-    for (const std::vector<double>& columna : datos.values) {
+std::vector<std::vector<double>> filas(const inslv::Datos& datos) {
+  std::vector<std::vector<double>> resultado(datos.clases.size());
+  for (std::size_t e = 0; e < datos.clases.size(); ++e) {
+    for (const std::vector<double>& columna : datos.valores) {
       resultado[e].push_back(std::isnan(columna[e]) ? -std::numeric_limits<double>::infinity()
                                                     : columna[e]);
     }
-    resultado[e].push_back(static_cast<double>(datos.classes[e]));
+    resultado[e].push_back(static_cast<double>(datos.clases[e]));
   }
   std::sort(resultado.begin(), resultado.end());
   return resultado;
@@ -66,37 +66,37 @@ fs::path escribir(const std::string& nombre, const std::string& contenido) {
 }
 
 TEST(Nslv, LeeElDominio) {
-  const inslv::Dataset datos = inslv::nslv::leer_dominio(datos_nslv / "irs" / "irs.dom");
+  const inslv::Datos datos = inslv::nslv::leer_dominio(datos_nslv / "irs" / "irs.dom");
 
-  ASSERT_EQ(datos.attributes.size(), 4U);
-  EXPECT_EQ(datos.attributes[0].name, "Variable0");
-  ASSERT_EQ(datos.attributes[0].labels.size(), 5U);
-  const inslv::FuzzySet& primera = datos.attributes[0].labels[0];
-  EXPECT_EQ(primera.label, "MuyBaja");
+  ASSERT_EQ(datos.atributos.size(), 4U);
+  EXPECT_EQ(datos.atributos[0].nombre, "Variable0");
+  ASSERT_EQ(datos.atributos[0].etiquetas.size(), 5U);
+  const inslv::ConjuntoDifuso& primera = datos.atributos[0].etiquetas[0];
+  EXPECT_EQ(primera.etiqueta, "MuyBaja");
   EXPECT_EQ(primera.a, 4.0);
   EXPECT_EQ(primera.b, 4.0);
   EXPECT_EQ(primera.c, 4.0);
   EXPECT_EQ(primera.d, 5.0);
 
-  EXPECT_EQ(datos.target.name, "Clase");
-  ASSERT_EQ(datos.target.labels.size(), 3U);
-  EXPECT_EQ(datos.target.labels[2].label, "Iris-virginica");
+  EXPECT_EQ(datos.clase.nombre, "Clase");
+  ASSERT_EQ(datos.clase.etiquetas.size(), 3U);
+  EXPECT_EQ(datos.clase.etiquetas[2].etiqueta, "Iris-virginica");
 
-  EXPECT_EQ(datos.values.size(), 4U);
-  EXPECT_TRUE(datos.values[0].empty());
-  EXPECT_TRUE(datos.classes.empty());
+  EXPECT_EQ(datos.valores.size(), 4U);
+  EXPECT_TRUE(datos.valores[0].empty());
+  EXPECT_TRUE(datos.clases.empty());
 }
 
 TEST(Nslv, LeeLosEjemplos) {
-  const inslv::Dataset datos = leer_conjunto("irs", {datos_nslv / "irs" / "irs0.datos"});
+  const inslv::Datos datos = leer_conjunto("irs", {datos_nslv / "irs" / "irs0.datos"});
 
-  ASSERT_EQ(datos.classes.size(), 15U);
+  ASSERT_EQ(datos.clases.size(), 15U);
   // La primera fila de irs0.datos: 5.8 2.8 5.1 2.4 2.
-  EXPECT_EQ(datos.values[0][0], 5.8);
-  EXPECT_EQ(datos.values[1][0], 2.8);
-  EXPECT_EQ(datos.values[2][0], 5.1);
-  EXPECT_EQ(datos.values[3][0], 2.4);
-  EXPECT_EQ(datos.classes[0], 2U);
+  EXPECT_EQ(datos.valores[0][0], 5.8);
+  EXPECT_EQ(datos.valores[1][0], 2.8);
+  EXPECT_EQ(datos.valores[2][0], 5.1);
+  EXPECT_EQ(datos.valores[3][0], 2.4);
+  EXPECT_EQ(datos.clases[0], 2U);
 }
 
 struct Tamano {
@@ -110,12 +110,12 @@ class Tamanos : public testing::TestWithParam<Tamano> {};
 
 TEST_P(Tamanos, LasDiezParticiones) {
   const Tamano& esperado = GetParam();
-  const inslv::Dataset datos = leer_conjunto(esperado.nombre, particiones(esperado.nombre));
+  const inslv::Datos datos = leer_conjunto(esperado.nombre, particiones(esperado.nombre));
 
-  EXPECT_EQ(datos.attributes.size(), esperado.atributos);
-  EXPECT_EQ(datos.target.labels.size(), esperado.clases);
-  EXPECT_EQ(datos.classes.size(), esperado.ejemplos);
-  for (const std::vector<double>& columna : datos.values) {
+  EXPECT_EQ(datos.atributos.size(), esperado.atributos);
+  EXPECT_EQ(datos.clase.etiquetas.size(), esperado.clases);
+  EXPECT_EQ(datos.clases.size(), esperado.ejemplos);
+  for (const std::vector<double>& columna : datos.valores) {
     EXPECT_EQ(columna.size(), esperado.ejemplos);
   }
 }
@@ -129,14 +129,14 @@ INSTANTIATE_TEST_SUITE_P(Conjuntos, Tamanos,
                          });
 
 TEST(Nslv, LosDesconocidosSonNaN) {
-  const inslv::Dataset datos = leer_conjunto("aut", {datos_nslv / "aut" / "aut.datos"});
+  const inslv::Datos datos = leer_conjunto("aut", {datos_nslv / "aut" / "aut.datos"});
 
   // La primera fila de aut.datos empieza por -999999999 (normalized-loses).
-  EXPECT_TRUE(std::isnan(datos.values[0][0]));
-  const auto desconocidos = std::count_if(datos.values[0].begin(), datos.values[0].end(),
+  EXPECT_TRUE(std::isnan(datos.valores[0][0]));
+  const auto desconocidos = std::count_if(datos.valores[0].begin(), datos.valores[0].end(),
                                           [](double valor) { return std::isnan(valor); });
   EXPECT_GT(desconocidos, 0);
-  EXPECT_LT(desconocidos, static_cast<std::ptrdiff_t>(datos.values[0].size()));
+  EXPECT_LT(desconocidos, static_cast<std::ptrdiff_t>(datos.valores[0].size()));
 }
 
 TEST(Nslv, LasParticionesDeAutSonElConjuntoCompleto) {
@@ -167,52 +167,53 @@ TEST(Nslv, MismosEjemplosQueKeel) {
                             ("aut-10-" + std::to_string(i) + "tst.dat"));
   }
   const inslv::pruebas::DatosKeel keel = inslv::pruebas::leer_keel(ficheros_keel);
-  const inslv::Dataset nslv = leer_conjunto("aut", particiones("aut"));
-  ASSERT_EQ(keel.atributos.size(), nslv.attributes.size() + 1);
-  ASSERT_EQ(keel.atributos.back().nombre, nslv.target.name);
+  const inslv::Datos nslv = leer_conjunto("aut", particiones("aut"));
+  ASSERT_EQ(keel.atributos.size(), nslv.atributos.size() + 1);
+  ASSERT_EQ(keel.atributos.back().nombre, nslv.clase.nombre);
 
   // La columna de KEEL de cada atributo de NSLV.
   std::vector<std::size_t> columna;
-  for (const inslv::Variable& atributo : nslv.attributes) {
+  for (const inslv::Variable& atributo : nslv.atributos) {
     const auto encontrado = std::find_if(
         keel.atributos.begin(), keel.atributos.end(),
-        [&](const auto& otro) { return normalizar(otro.nombre) == normalizar(atributo.name); });
-    ASSERT_NE(encontrado, keel.atributos.end()) << atributo.name;
+        [&](const auto& otro) { return normalizar(otro.nombre) == normalizar(atributo.nombre); });
+    ASSERT_NE(encontrado, keel.atributos.end()) << atributo.nombre;
     columna.push_back(static_cast<std::size_t>(std::distance(keel.atributos.begin(), encontrado)));
   }
 
-  inslv::Dataset traducido = nslv;
-  traducido.values.assign(nslv.attributes.size(), {});
-  traducido.classes.clear();
+  inslv::Datos traducido = nslv;
+  traducido.valores.assign(nslv.atributos.size(), {});
+  traducido.clases.clear();
   const std::vector<std::string>& clases_keel = keel.atributos.back().valores;
   for (const std::vector<std::string>& ejemplo : keel.ejemplos) {
-    for (std::size_t i = 0; i < nslv.attributes.size(); ++i) {
+    for (std::size_t i = 0; i < nslv.atributos.size(); ++i) {
       const std::string& valor = ejemplo[columna[i]];
       double traduccion = numero(valor);
       if (valor == "?") {
         traduccion = std::numeric_limits<double>::quiet_NaN();
       } else if (!keel.atributos[columna[i]].valores.empty()) {
         // Nominal: el centro de la etiqueta de NSLV que se llama como el valor.
-        const std::vector<inslv::FuzzySet>& etiquetas = nslv.attributes[i].labels;
-        const auto etiqueta = std::find_if(etiquetas.begin(), etiquetas.end(),
-                                           [&](const auto& otra) { return otra.label == valor; });
-        ASSERT_NE(etiqueta, etiquetas.end()) << nslv.attributes[i].name << " = " << valor;
+        const std::vector<inslv::ConjuntoDifuso>& etiquetas = nslv.atributos[i].etiquetas;
+        const auto etiqueta =
+            std::find_if(etiquetas.begin(), etiquetas.end(),
+                         [&](const auto& otra) { return otra.etiqueta == valor; });
+        ASSERT_NE(etiqueta, etiquetas.end()) << nslv.atributos[i].nombre << " = " << valor;
         traduccion = (etiqueta->b + etiqueta->c) / 2.0;
       }
-      traducido.values[i].push_back(traduccion);
+      traducido.valores[i].push_back(traduccion);
     }
     // La clase: value<i> en NSLV es el i-ésimo valor que declara KEEL.
     const auto clase = std::find(clases_keel.begin(), clases_keel.end(), ejemplo.back());
     ASSERT_NE(clase, clases_keel.end()) << ejemplo.back();
-    traducido.classes.push_back(
-        static_cast<std::size_t>(std::distance(clases_keel.begin(), clase)));
+    traducido.clases.push_back(static_cast<std::size_t>(std::distance(clases_keel.begin(), clase)));
   }
 
   EXPECT_EQ(filas(traducido), filas(nslv));
 }
 
 TEST(Nslv, LosDatosSirvenParaAprender) {
-  const std::vector<inslv::Rule> reglas = inslv::learn(leer_conjunto("irs", particiones("irs")));
+  const std::vector<inslv::Regla> reglas =
+      inslv::aprender(leer_conjunto("irs", particiones("irs")));
   EXPECT_FALSE(reglas.empty());
 }
 
