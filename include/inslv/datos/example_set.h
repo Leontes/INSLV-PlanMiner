@@ -1,66 +1,79 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#ifndef _EXAMPLE_SETH_
-#define _EXAMPLE_SETH_
-#include "inslv/datos/vectordouble.h"
+// Los ejemplos con los que se aprende.
+#pragma once
+
 #include <vector>
-#include <algorithm>
+
+#include "inslv/datos/vectordouble.h"
 
 namespace inslv {
 
+/// Un conjunto de ejemplos: los valores de cada uno (la clase, en la columna de la variable
+/// consecuente, como el centro de su etiqueta; un desconocido, como -999999999) y lo que anota el
+/// aprendizaje de cada uno al clasificarlo con las reglas (Mark): si está bien clasificado, con
+/// qué grado y peso lo cubren la mejor regla de su clase y la de otra, qué regla lo clasifica y si
+/// es la única que lo hace.
 class example_set {
-  private:
-    static constexpr double MISSING = -999999999;
-    int n_example;
-    int n_variable;
-    double **data;
-    bool *covered;
-    double *g_positive_covered;
-    double *peso_positive;
-    double *g_negative_covered;
-    double *peso_negative;
-    int *rule_used;
-    int *rule_aislada;
-    int n_partition;
-    int *partition;
-    std::vector<int> n_clase;
-  public:
-    example_set();
-    example_set(int ejemplos, int variables);
-    example_set(std::vector < std::vector < double > > * dataset);
-    example_set &operator=(const example_set &x);
-    ~example_set();
-    double Data(int ejemplo, int variable) const;
-    vectordouble Data(int ejemplo) const;
-    int N_Examples() const;
-    void Generate_Partitions(int num_partition);
-    int Not_Covered_Examples() const;
-    void Examples_per_Class(int VarClass,int particion, int nclasses, int *n_example_in_class) const;
-    void Mark(int *v, int tama, double *grado_p, double *peso_p, double *grado_n, double *peso_n, int *rule, int *r_aislada);
+ public:
+  example_set() = default;
+  /// ejemplos ejemplos de variables valores, a 0. Lanza std::logic_error si ejemplos < 0 o
+  /// variables <= 0.
+  example_set(int ejemplos, int variables);
+  /// Por columnas: columnas[variable][ejemplo].
+  explicit example_set(const std::vector<std::vector<double>>& columnas);
 
+  [[nodiscard]] double Data(int ejemplo, int variable) const;
+  [[nodiscard]] vectordouble Data(int ejemplo) const;
+  [[nodiscard]] int N_Examples() const;
 
-    void UnMarkAll();
-    bool Is_Covered(int i) const;
-    double Grade_Is_Positive_Covered(int i) const;
-    double Grade_Is_Negative_Covered(int i) const;
-    double Peso_Is_Positive_Covered(int i) const;
-    double Peso_Is_Negative_Covered(int i) const;
-    int Class_of_example(int VarClase, int i) const;
+  /// Reparte los ejemplos en num_partition particiones: con una, todos en la 1; con más, al azar
+  /// (con rand()). Lanza std::logic_error si num_partition < 1.
+  void Generate_Partitions(int num_partition);
 
-    int Rule_Used(int i) const;
-    int Rule_Aislada(int i) const;
+  /// Cuántos ejemplos no están bien clasificados (Mark).
+  [[nodiscard]] int Not_Covered_Examples() const;
+  /// Cuántos ejemplos de cada clase no están bien clasificados, en n_examples_in_class[clase].
+  void Examples_per_Class(int VarClass, int nclasses, int* n_examples_in_class) const;
 
-    example_set Extract_Training_Set(int particion, int VarClase, int order = 0) const;
-    example_set Extract_Test_Set(int particion, int VarClase) const;
+  /// Anota lo que da clasificar los tama primeros ejemplos (ver la clase).
+  void Mark(const int* v, int tama, const double* grado_p, const double* peso_p,
+            const double* grado_n, const double* peso_n, const int* rule, const int* r_aislada);
+  void UnMarkAll();
+  [[nodiscard]] bool Is_Covered(int i) const;
+  [[nodiscard]] double Grade_Is_Positive_Covered(int i) const;
+  [[nodiscard]] double Grade_Is_Negative_Covered(int i) const;
+  [[nodiscard]] double Peso_Is_Positive_Covered(int i) const;
+  [[nodiscard]] double Peso_Is_Negative_Covered(int i) const;
+  [[nodiscard]] int Class_of_example(int VarClase, int i) const;
+  [[nodiscard]] int Rule_Used(int i) const;
+  [[nodiscard]] int Rule_Aislada(int i) const;
 
-    example_set SubSet(int tama) const;
-    example_set SubSet(int ini,int fin) const;
+  /// Los ejemplos que no son de la partición, o los que sí.
+  [[nodiscard]] example_set Extract_Training_Set(int particion) const;
+  [[nodiscard]] example_set Extract_Test_Set(int particion) const;
+  /// Los tama primeros ejemplos, o los de ini a fin (incluido).
+  [[nodiscard]] example_set SubSet(int tama) const;
+  [[nodiscard]] example_set SubSet(int ini, int fin) const;
+  /// Estos ejemplos y, detrás, los de A (con las variables de estos).
+  [[nodiscard]] example_set Union(const example_set& A) const;
 
-    example_set Union(const example_set &A);
+ private:
+  // Los que cumplen la condición, sin las anotaciones.
+  template <typename Condicion>
+  [[nodiscard]] example_set Seleccionar(Condicion condicion) const;
 
-    void OrderByClass(int order, int VarClase = 0);
+  int n_example = 0;
+  int n_variable = 0;
+  std::vector<std::vector<double>> data;  // data[ejemplo][variable]
+  std::vector<bool> covered;
+  std::vector<double> g_positive_covered;
+  std::vector<double> peso_positive;
+  std::vector<double> g_negative_covered;
+  std::vector<double> peso_negative;
+  std::vector<int> rule_used;
+  std::vector<int> rule_aislada;
+  int n_partition = 0;
+  std::vector<int> partition;
 };
 
-
 }  // namespace inslv
-
-#endif

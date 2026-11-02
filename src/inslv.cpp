@@ -141,7 +141,7 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
 
   const auto inicio = std::chrono::steady_clock::now();
   VectorVar variables(datos);
-  example_set ejemplos(&columnas);
+  example_set ejemplos(columnas);
   std::vector<Regla> reglas = Aprender(variables, ejemplos, opciones);
   const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - inicio;
 

@@ -772,7 +772,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
     double aciertos;
 
 
-  E.Examples_per_Class(V.Consecuente(),0,n_clases, n_ejemplos_por_clase);
+  E.Examples_per_Class(V.Consecuente(),n_clases, n_ejemplos_por_clase);
   int **individuos_por_clase = new int*[n_clases];
   for (int i=0; i<n_clases; i++){
     individuos_por_clase[i] = new int[n+1];
@@ -3912,7 +3912,7 @@ std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &option
         out.close();
       }
 
-      E_Par_Completo=E.Extract_Training_Set(par, V.Consecuente(), 0);
+      E_Par_Completo=E.Extract_Training_Set(par);
 
         //E_Par_Completo=E.Extract_Test_Set( (par+1)%10 );
       if (E_Par_Completo.N_Examples()>1000) {
@@ -3923,7 +3923,7 @@ std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &option
       }
 
       E_Par.UnMarkAll();
-      E_Par_Test=E.Extract_Test_Set(par, V.Consecuente());
+      E_Par_Test=E.Extract_Test_Set(par);
       E_Par_Test.UnMarkAll();
       //=========== Definiendo nuevos atributos en base a funciones =========
       //Redefiniendo_Particiones_Variables(V,E_Par);
@@ -4139,7 +4139,7 @@ std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &option
 
       E_Par.UnMarkAll();
 
-      E_Par.Examples_per_Class(V.Consecuente(),par,rango[0],ponderacion_por_clase);
+      E_Par.Examples_per_Class(V.Consecuente(),rango[0],ponderacion_por_clase);
 
   	  bool reducir_reglas;
   	  reducir_reglas=false;
@@ -4283,7 +4283,7 @@ std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &option
         do{
 
           anterior_n=E_Par_Not_Covered.Not_Covered_Examples();
-          E_Par_Not_Covered.Examples_per_Class(V.Consecuente(),par,rango[0],ejemplos_por_clase);
+          E_Par_Not_Covered.Examples_per_Class(V.Consecuente(),rango[0],ejemplos_por_clase);
 
           if (R[par].N_rule()>=0){
             activada_reserva_memoria=true;
