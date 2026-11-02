@@ -85,7 +85,7 @@ TEST(Arreglos, Patron1ReglaSinEsaRegla) {
 TEST(Arreglos, LosErroresInternosSonExcepciones) {
   // En el original, exit(1).
   const inslv::domain_t vacio;
-  EXPECT_THROW(vacio.Adaptacion(0.5, 0), std::logic_error);
+  EXPECT_THROW(static_cast<void>(vacio.Adaptacion(0.5, 0)), std::logic_error);
   EXPECT_THROW(const inslv::example_set conjunto(-1, 3), std::logic_error);
 }
 

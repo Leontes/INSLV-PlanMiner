@@ -1,431 +1,254 @@
 // SPDX-License-Identifier: GPL-3.0-only
-using namespace std;
+#include "inslv/difuso/VectorVar.h"
+
+#include <cstddef>
 #include <stdexcept>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <cstdlib>
-#include <cmath>
-#include <limits>
-#include "inslv/difuso/VectorVar.h"
+#include <vector>
+
 #include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
+namespace {
 
+constexpr double desconocido = -999999999;
 
+std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
-
-VectorVar::VectorVar(){
-  numero=0;
-  lista=0;
-  oper=0;
-}
-
-
-
-
-void Libera_Memoria_Var_aux (double *&va, double *&vb, double *&vc, double *&vd,
-                             string *&vname){
-   delete []va;
-   delete []vb;
-   delete []vc;
-   delete []vd;
-   delete []vname;
-}
-
-
-
-
-
-// Las variables del conjunto de ejemplos de la API: primero los atributos (antecedentes) y al
-// final la clase (consecuente). Las etiquetas no se extienden hasta el infinito (singleton).
-VectorVar::VectorVar(const Datos &data){
-  double *va,*vb,*vc,*vd,inf,sup;
-
-  numero = data.atributos.size() + 1;
-  lista = new variable_t[numero];
-  oper = new combinado[numero];
-
-  for(int v = 0; v < numero; v++){
-    const inslv::Variable &variable = v + 1 < numero ? data.atributos[v] : data.clase;
-    // 0: antecedente; 1: consecuente.
-    int estado = v + 1 < numero ? 0 : 1;
-    int n = variable.etiquetas.size();
-
-    inf = variable.etiquetas.front().a;
-    sup = variable.etiquetas.back().d;
-
-    va = new double[n];
-    vb = new double[n];
-    vc = new double[n];
-    vd = new double[n];
-    string *vname = new string[n];
-
-    for(int i = 0; i < n; i++){
-      va[i] = variable.etiquetas[i].a;
-      vb[i] = variable.etiquetas[i].b;
-      vc[i] = variable.etiquetas[i].c;
-      vd[i] = variable.etiquetas[i].d;
-      vname[i] = variable.etiquetas[i].etiqueta;
+// Cuántas etiquetas admite (los 1 de la cadena).
+int NumeroEtiquetasActivas(const std::string& sub) {
+  int n = 0;
+  for (const char etiqueta : sub) {
+    if (etiqueta == '1') {
+      ++n;
     }
-
-    // unit = 0, c_factor = 0
-    lista[v].Asigna(n, variable.nombre, estado, 0, 0, inf, sup, va, vb, vc, vd, vname, true);
-    oper[v].op=0;
-    Libera_Memoria_Var_aux(va,vb,vc,vd,vname);
   }
-}
-
-
-VectorVar::~VectorVar(){
-  if (lista!=0){
-    delete []lista;
-    delete []oper;
-  }
-  numero=0;
-  lista=0;
-  oper=0;
-}
-
-
-
-
-VectorVar & VectorVar::operator=(const VectorVar &x){
- if (this!=&x){
-  if (lista!=0)
-    delete [] lista;
-
-  numero=x.numero;
-  lista = new variable_t[numero];
-  oper = new combinado[numero];
-  for (int i=0; i<numero; i++){
-    lista[i]=x.lista[i];
-    oper[i]=x.oper[i];
-  }
- }
-
-  return *this;
-}
-
-
-
-
-
-int VectorVar::N_Antecedente() const {
-  int s=0;
-  for (int i=0; i<numero; i++)
-    if (lista[i].Activa() && lista[i].Antecedente())
-      s++;
-
-  return s;
-}
-
-
-void VectorVar::Encode(int &tb, int &te) const {
-  tb=0;
-  for (int i=0; i<numero; i++)
-    if (lista[i].Activa() && lista[i].Antecedente())
-      tb+=lista[i].N_etiquetas();
-    else  if (lista[i].Activa() && !lista[i].Antecedente())
-            te=lista[i].N_etiquetas();
-}
-
-
-
-
-
-void VectorVar::Pinta() const{
-  for (int i=0; i<numero; i++){
-    progreso(Verbosidad::depuracion) << std::endl;
-    lista[i].Pinta();
-    progreso(Verbosidad::depuracion) << "----------" << std::endl;
-  }
-}
-
-
-
-
-
-
-
-void VectorVar::PrintVar(int variable) const{
-  lista[variable].PrintVar();
-}
-
-string VectorVar::SPrintVar(int variable) const{
-  return lista[variable].SPrintVar();
-}
-
-
-string VectorVar::SPrintDomain(int variable, int value) const{
-  return lista[variable].SPrintDomain(value);
-}
-
-bool VectorVar::IsActiva(int variable) const{
-  return lista[variable].Activa();
-}
-
-
-bool VectorVar::IsAntecedente(int variable) const{
-  return lista[variable].Antecedente();
-}
-
-
-int VectorVar::TotalVariables() const{
- return numero;
-}
-
-int VectorVar::SizeDomain(int variable) const{
-  return lista[variable].SizeDomain();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-double VectorVar::Adaptacion(double x, int variable, int dominio) const {
-  if (variable >=0 && variable < numero)
-    return lista[variable].Adaptacion(x,dominio);
-  else
-    throw std::logic_error("inslv: no existe la variable " + std::to_string(variable));
-}
-
-
-
-
-
-
-
-double VectorVar::Adaptacion_funcion(vectordouble x, string regla, int *lista_funcion, int tama, double adaptacion_previa) const{
-  double max=adaptacion_previa,aux;
-  string sub;
-  int trozo=0,tam,x1,x2,op;
-  double resultado;
-  for (int i=0; i<tama && max>0; i++){
-    if (lista_funcion[i]!=0){
-       tam=lista[lista_funcion[i]-1].N_etiquetas();
-       sub=regla.substr(trozo,tam);
-       x1 = oper[lista_funcion[i]-1].operando[0];
-       x2 = oper[lista_funcion[i]-1].operando[1];
-       op = oper[lista_funcion[i]-1].op;
-       if (x.At(x1)==-999999999 or x.At(x2)==-999999999)
-        resultado= -999999999;
-       else if (op==1){
-              if (x.At(x1)>=x.At(x2))
-                resultado=1;
-              else
-                resultado=0;
-            } else if (op==2)
-                      resultado=(x.At(x1))+(x.At(x2));
-                   else if (op==3)
-                          resultado=x.At(x1)*x.At(x2);
-                        else if (op==4)
-                               resultado=(x.At(x1))-(x.At(x2));
-                             else if (op==5 and x.At(x2)!=0)
-                                    resultado = (x.At(x1))/(x.At(x2));
-                                  else if (op==5)
-                                         return -999999999;
-                                       else if (op==19){
-					      if ((x.At(x1))==(x.At(x2)))
-						resultado=1;
-					      else
-						resultado=0;
-					   }
-                                       else if (op==7 or op==8)
-                                              resultado=x.At(x1);
-                                           else
-                                              max=0;
-
-       if (max>0)
-         aux=lista[lista_funcion[i]-1].Adaptacion(resultado,sub);
-
-       if (aux<max)
-         max=aux;
-    }
-    //else
-        tam=2;
-
-    trozo+=tam;
-  }
-
-  return max;
-}
-
-
-
-
-
-
-int NumeroEtiquetasActivas(string sub, int tam){
-  int n=0;
-  for (int i=0; i<tam; i++)
-    if (sub[i]=='1')
-      n++;
   return n;
 }
 
-void VectorVar::SecuenciasDeEtiquetasActivas(string sub, int tam, int &unos, int &ceros, int &n_unos) const{
-  unos=0;
-  ceros=0;
-  n_unos=0;
-  bool last_uno;
-  int i=1;
-  if (sub[0]=='0'){
-    ceros++;
-    last_uno=false;
+// Las secuencias de 1 y de 0 seguidos de la cadena.
+void SecuenciasDeEtiquetasActivas(const std::string& sub, int& unos, int& ceros) {
+  unos = 0;
+  ceros = 0;
+  bool anterior_uno = sub[0] == '1';
+  if (anterior_uno) {
+    ++unos;
+  } else {
+    ++ceros;
   }
-  else{
-    unos++;
-    last_uno=true;
-    n_unos++;
-  }
-  while (i<tam){
-    if (sub[i]=='1')
-      n_unos++;
-    if (last_uno && sub[i]=='0'){
-      last_uno=false;
-      ceros++;
+  for (std::size_t i = 1; i < sub.size(); ++i) {
+    if (anterior_uno && sub[i] == '0') {
+      anterior_uno = false;
+      ++ceros;
+    } else if (!anterior_uno && sub[i] == '1') {
+      anterior_uno = true;
+      ++unos;
     }
-    else if (!last_uno && sub[i]=='1'){
-           last_uno=true;
-           unos++;
-    }
-    i++;
   }
 }
 
-bool VectorVar::Es_Valida(string regla, double *var, double umbral, double &simplicidad) const{
-  string sub;
-  int trozo=0,tam, unos, ceros, n_unos;
-  int i=0;
-  simplicidad=0;
-  bool valida=true;
-  while (i<numero && valida){
-    if (lista[i].Activa() && lista[i].Antecedente()){
-      tam=lista[i].N_etiquetas();
-      if (var[i]>=umbral){
-        sub=regla.substr(trozo,tam);
-        //unos = NumeroEtiquetasActivas(sub,tam);
-        SecuenciasDeEtiquetasActivas(sub,tam,unos,ceros, n_unos);
-        valida=(unos!=0);
-        if (valida){
-          if (unos==1 || ceros==1)
-            simplicidad=simplicidad+1;
+}  // namespace
+
+VectorVar::VectorVar(const Datos& data) {
+  const std::size_t numero = data.atributos.size() + 1;
+  lista_.reserve(numero);
+  for (std::size_t v = 0; v < numero; ++v) {
+    const bool es_clase = v + 1 == numero;
+    const inslv::Variable& variable = es_clase ? data.clase : data.atributos[v];
+    std::vector<fuzzy_t> etiquetas;
+    etiquetas.reserve(variable.etiquetas.size());
+    for (const ConjuntoDifuso& etiqueta : variable.etiquetas) {
+      etiquetas.emplace_back(etiqueta.a, etiqueta.b, etiqueta.c, etiqueta.d, etiqueta.etiqueta);
+    }
+    lista_.emplace_back(variable.nombre, es_clase ? 1 : 0, std::move(etiquetas));
+  }
+  oper_.resize(numero);
+}
+
+int VectorVar::N_Antecedente() const {
+  int s = 0;
+  for (const variable_t& variable : lista_) {
+    if (variable.Activa() && variable.Antecedente()) {
+      ++s;
+    }
+  }
+  return s;
+}
+
+void VectorVar::Encode(int& tb, int& te) const {
+  tb = 0;
+  for (const variable_t& variable : lista_) {
+    if (variable.Activa() && variable.Antecedente()) {
+      tb += variable.N_etiquetas();
+    } else if (variable.Activa() && !variable.Antecedente()) {
+      te = variable.N_etiquetas();
+    }
+  }
+}
+
+void VectorVar::Pinta() const {
+  for (const variable_t& variable : lista_) {
+    progreso(Verbosidad::depuracion) << '\n';
+    variable.Pinta();
+    progreso(Verbosidad::depuracion) << "----------\n";
+  }
+}
+
+void VectorVar::PrintVar(int variable) const { lista_[indice(variable)].PrintVar(); }
+
+std::string VectorVar::SPrintVar(int variable) const {
+  return lista_[indice(variable)].SPrintVar();
+}
+
+std::string VectorVar::SPrintDomain(int variable, int value) const {
+  return lista_[indice(variable)].SPrintDomain(value);
+}
+
+bool VectorVar::IsActiva(int variable) const { return lista_[indice(variable)].Activa(); }
+
+bool VectorVar::IsAntecedente(int variable) const { return lista_[indice(variable)].Antecedente(); }
+
+int VectorVar::TotalVariables() const { return static_cast<int>(lista_.size()); }
+
+int VectorVar::SizeDomain(int variable) const { return lista_[indice(variable)].SizeDomain(); }
+
+double VectorVar::Adaptacion(double x, int variable, int dominio) const {
+  if (variable < 0 || indice(variable) >= lista_.size()) {
+    throw std::logic_error("inslv: no existe la variable " + std::to_string(variable));
+  }
+  return lista_[indice(variable)].Adaptacion(x, dominio);
+}
+
+bool VectorVar::Es_Valida(const std::string& regla, const double* var, double umbral,
+                          double& simplicidad) const {
+  simplicidad = 0;
+  std::size_t trozo = 0;
+  for (std::size_t i = 0; i < lista_.size(); ++i) {
+    const variable_t& variable = lista_[i];
+    if (!variable.Activa() || !variable.Antecedente()) {
+      continue;
+    }
+    const auto tam = indice(variable.N_etiquetas());
+    if (var[i] >= umbral) {
+      int unos = 0;
+      int ceros = 0;
+      SecuenciasDeEtiquetasActivas(regla.substr(trozo, tam), unos, ceros);
+      if (unos == 0) {
+        return false;
+      }
+      if (unos == 1 || ceros == 1) {
+        simplicidad = simplicidad + 1;
+      }
+    }
+    trozo += tam;
+  }
+  return true;
+}
+
+double VectorVar::Adaptacion(const vectordouble& x, const std::string& regla, const double* var,
+                             double umbral) const {
+  double max = 1;
+  std::size_t trozo = 0;
+  for (std::size_t i = 0; i < lista_.size() && max > 0; ++i) {
+    const variable_t& variable = lista_[i];
+    if (!variable.Activa() || !variable.Antecedente()) {
+      continue;
+    }
+    const int tam = variable.N_etiquetas();
+    if (var[i] >= umbral) {
+      const std::string sub = regla.substr(trozo, indice(tam));
+      const int unos = NumeroEtiquetasActivas(sub);
+      if (unos == 0) {
+        max = 0;
+      } else if (unos < tam) {
+        const double aux = variable.Adaptacion(x.At(static_cast<int>(i)), sub);
+        if (aux < max) {
+          max = aux;
         }
       }
-      trozo+=tam;
     }
-    i++;
+    trozo += indice(tam);
   }
-
-  return valida;
-}
-
-double VectorVar::Adaptacion(vectordouble x, string regla, double *var, double umbral) const{
-  double max=1,aux;
-  string sub;
-  int trozo=0,tam, unos;
-  //cout << "Numero de variables: " << numero << endl;
-  for (int i=0; i<numero && max>0; i++){
-    if (lista[i].Activa() && lista[i].Antecedente()){
-      tam=lista[i].N_etiquetas();
-      if (var[i]>=umbral){
-        sub=regla.substr(trozo,tam);
-        unos = NumeroEtiquetasActivas(sub,tam);
-        if (unos==0)
-          max=0;
-        else if (unos<tam){
-               aux=lista[i].Adaptacion(x.At(i),sub);
-               if (aux<max)
-                 max=aux;
-             }
-      }
-      trozo+=tam;
-    }
-  }
-
   return max;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-domain_t VectorVar::Domain(int var) const{
-  domain_t aux;
-  aux = lista[var].Domain();
-  return aux;
+double VectorVar::Adaptacion_funcion(const vectordouble& x, const std::string& regla,
+                                     const int* lista_funcion, int tama,
+                                     double adaptacion_previa) const {
+  double max = adaptacion_previa;
+  std::size_t trozo = 0;
+  for (int i = 0; i < tama && max > 0; ++i) {
+    if (lista_funcion[i] != 0) {
+      const std::size_t f = indice(lista_funcion[i] - 1);
+      const std::string sub = regla.substr(trozo, indice(lista_[f].N_etiquetas()));
+      const double x1 = x.At(oper_[f].operando[0]);
+      const double x2 = x.At(oper_[f].operando[1]);
+      double resultado = 0;
+      if (x1 == desconocido || x2 == desconocido) {
+        resultado = desconocido;
+      } else {
+        switch (oper_[f].op) {
+          case 1:
+            resultado = x1 >= x2 ? 1 : 0;
+            break;
+          case 2:
+            resultado = x1 + x2;
+            break;
+          case 3:
+            resultado = x1 * x2;
+            break;
+          case 4:
+            resultado = x1 - x2;
+            break;
+          case 5:
+            if (x2 == 0) {
+              return desconocido;
+            }
+            resultado = x1 / x2;
+            break;
+          case 19:
+            resultado = x1 == x2 ? 1 : 0;
+            break;
+          case 7:
+          case 8:
+            resultado = x1;
+            break;
+          default:
+            max = 0;
+            break;
+        }
+      }
+      // En el original, aux quedaba sin inicializar si max ya era 0.
+      const double aux = max > 0 ? lista_[f].Adaptacion(resultado, sub) : max;
+      if (aux < max) {
+        max = aux;
+      }
+    }
+    trozo += 2;
+  }
+  return max;
 }
 
-variable_t VectorVar::Variable(int var) const{
-  variable_t aux;
-  aux = lista[var].Variable();
-  return aux;
-}
+const domain_t& VectorVar::Domain(int var) const { return lista_[indice(var)].Domain(); }
 
-
-
-
+const variable_t& VectorVar::Variable(int var) const { return lista_[indice(var)]; }
 
 int VectorVar::Consecuente() const {
-  int i=0;
-  while ((lista[i].Antecedente() || !lista[i].Activa()) && i<numero)
-    i++;
-
-  if (i!=numero)
-    return i;
-  else {
-    progreso(Verbosidad::depuracion) << "No hay variable consecuente\n";
-    return -1;
+  for (std::size_t i = 0; i < lista_.size(); ++i) {
+    if (lista_[i].Activa() && !lista_[i].Antecedente()) {
+      return static_cast<int>(i);
+    }
   }
+  progreso(Verbosidad::depuracion) << "No hay variable consecuente\n";
+  return -1;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void VectorVar::Funcion(int pos, int &x1, int &x2, int &op) const{
-    x1 = oper[pos].operando[0];
-    x2 = oper[pos].operando[1];
-    op = oper[pos].op;
+void VectorVar::Funcion(int pos, int& x1, int& x2, int& op) const {
+  const combinado& funcion = oper_[indice(pos)];
+  x1 = funcion.operando[0];
+  x2 = funcion.operando[1];
+  op = funcion.op;
 }
 
 }  // namespace inslv
