@@ -1,45 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#ifndef _POBLACIONBINARIAH_
-#define _POBLACIONBINARIAH_
+// Una población de individuos binarios: cadenas de '0' y '1'.
+#pragma once
+
+#include "inslv/genetico/poblacion.h"
 
 namespace inslv {
 
-class poblacionbinaria{
-  private:
-    double prob_mutacion;
-    double prob_cruce;
-    int elitismo;
-    int n_individuos;
-    int *tamano;
-    bool *modificado;
-    double *valoracion;
-    char **individuos;
-  public:
-    poblacionbinaria(double mut, double cruce, int eli, int n, int tama);
-    ~poblacionbinaria();
-    // Operaciones en la estructura
-    char * Individuo(int i, int &tama) const;
-    void Pasar(int i,const poblacionbinaria &x, int j);
-    void Swap(int i, int j);
-    void Codigo(int i, char *&v, int &tama) const;
-    void PutValue(int indiv, int bit, char value);
-    void PoblacionInicialAleatoria();
+class poblacionbinaria : public poblacion<char> {
+ public:
+  /// n individuos de tama bits, que mutan con probabilidad mut.
+  poblacionbinaria(double mut, int n, int tama);
 
-    void PoblacionInicial(int **sujeto, int tama, int* tama_dom);
+  /// Cada bit, a 1 con probabilidad 0,9.
+  void PoblacionInicialAleatoria();
+  /// Cada individuo i, por trozos: el k, de tama_dom[k] bits, todos a 0 salvo el sujeto[i][k] o,
+  /// si sujeto[i][k] es -1, a 1 cada uno con probabilidad 0,9.
+  void PoblacionInicial(const int* const* sujeto, int tama, const int* tama_dom);
 
+  /// Cambia cada bit de los dos últimos individuos con la probabilidad de mutación.
+  void MutacionUniforme_Estacionario();
 
-
-    void MutacionUniforme_Estacionario();
-    void Cruce2puntos_Estacionario(int indiv1, int indiv2);
-    void CruceAND_OR_Estacionario(int indiv1, int indiv2);
-    void CruceNAND_NOR_Estacionario(int indiv1, int indiv2);
-    //void And();
-    //void Or();
-    //void Not();
+ private:
+  double prob_mutacion_;
 };
 
-
-
 }  // namespace inslv
-
-#endif

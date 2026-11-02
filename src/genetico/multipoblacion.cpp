@@ -1,732 +1,320 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include <iostream>
-#include <stdlib.h>
-#include <fstream>
-#include <cmath>
 #include "inslv/genetico/multipoblacion.h"
+
+#include <cstddef>
+#include <ostream>
+#include <span>
+#include <utility>
+#include <vector>
+
 #include "inslv/comun/progreso.hpp"
 #include "inslv/genetico/operaciones.h"
-#include "inslv/datos/example_set.h"
 
 namespace inslv {
 
-using namespace std;
+namespace {
 
+std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
-
-
-multipoblacion::multipoblacion(int pbin, int pent, int preal, int *rangoe,
-                               double *rangori, double *rangors, double *mut, double *cruce,
-                               int eli, int n, int *tama, int n_val){
-
-  elitismo=eli;
-  n_individuos=n;
-  poblacionesB=pbin;
-  poblacionesE=pent;
-  poblacionesR=preal;
-  if (pbin>0){
-    Pb= new poblacionbinaria*[pbin];
-    for (int j=0; j<pbin; j++)
-      Pb[j]= new poblacionbinaria(mut[j], cruce[j], eli, n, tama[j]);
+// Si la valoración v1 es mejor que la v2: en el primer valor en el que no son iguales, el de v1
+// es mayor.
+bool Mayor(const std::vector<double>& v1, const std::vector<double>& v2) {
+  std::size_t k = 0;
+  while (k < v1.size() && v1[k] == v2[k]) {
+    ++k;
   }
+  return k < v1.size() && v1[k] > v2[k];
+}
 
-  if (pent>0){
-    Pe= new poblacionentera*[pent];
-    for (int j=0; j<pent; j++)
-      Pe[j]= new poblacionentera(rangoe[j], mut[j+pbin], cruce[j+pbin], eli, n, tama[j+pbin]);
+// Las partes de un individuo en unas poblaciones, para un genetcode.
+template <typename Poblacion>
+auto Partes(const std::vector<Poblacion>& poblaciones, int i) {
+  using T = typename decltype(poblaciones[0].Individuo(i))::value_type;
+  std::vector<std::vector<T>> partes;
+  partes.reserve(poblaciones.size());
+  for (const Poblacion& p : poblaciones) {
+    const std::span<const T> parte = p.Individuo(i);
+    partes.emplace_back(parte.begin(), parte.end());
   }
+  return partes;
+}
 
-  if (preal>0){
-    Pr= new poblacionreal*[preal];
-    for (int j=0; j<preal; j++)
-      Pr[j]= new poblacionreal(rangori[j], rangors[j], mut[j+pbin+pent], cruce[j+pbin+pent], eli, n, tama[j+pbin+pent]);
+// La parte de un individuo en una población, para el código heredado.
+template <typename Poblacion>
+auto Parte(std::vector<Poblacion>& poblaciones, int subpoblacion, int individuo, int& tama) {
+  const auto parte = poblaciones[indice(subpoblacion)].Individuo(individuo);
+  tama = static_cast<int>(parte.size());
+  return parte.data();
+}
+
+}  // namespace
+
+multipoblacion::multipoblacion(int pbin, int pent, int preal, const int* rangoe, const double* mut,
+                               int n, const int* tama, int n_val)
+    : n_individuos_(n),
+      n_valoracion_(n_val),
+      modificado_(indice(n), true),
+      valoracion_(indice(n), std::vector<double>(indice(n_val))) {
+  for (int j = 0; j < pbin; ++j) {
+    Pb_.emplace_back(mut[j], n, tama[j]);
   }
-
-
-  modificado= new bool[n_individuos];
-  for (int i=0; i<n_individuos; i++)
-    modificado[i]=true;
-
-  n_valoracion=n_val;
-  valoracion = new double *[n_individuos];
-  for (int i=0; i<n_individuos; i++){
-     valoracion[i]= new double[n_valoracion];
-     for (int j=0; j<n_valoracion; j++)
-       valoracion[i][j]=0;
+  for (int j = 0; j < pent; ++j) {
+    Pe_.emplace_back(rangoe[j], mut[j + pbin], n, tama[j + pbin]);
+  }
+  for (int j = 0; j < preal; ++j) {
+    Pr_.emplace_back(mut[j + pbin + pent], n, tama[j + pbin + pent]);
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-multipoblacion::~multipoblacion(){
-  if (n_individuos>0){
-    if (modificado!=0)
-      delete [] modificado;
-    if (valoracion!=0){
-      // El constructor reserva una fila por individuo (en el original se liberaban n_valoracion).
-      for (int i=0; i<n_individuos; i++)
-        delete [] valoracion[i];
-      delete [] valoracion;
-    }
+void multipoblacion::Swap(int i, int j) {
+  for (poblacionbinaria& p : Pb_) {
+    p.Swap(i, j);
   }
-
-  if (poblacionesB>0){
-    for (int i=0; i<poblacionesB; i++)
-      delete Pb[i];
-    delete [] Pb;
+  for (poblacionentera& p : Pe_) {
+    p.Swap(i, j);
   }
-
-  if (poblacionesE>0){
-    for (int i=0; i<poblacionesE; i++)
-      delete Pe[i];
-    delete []Pe;
+  for (poblacionreal& p : Pr_) {
+    p.Swap(i, j);
   }
+  std::vector<bool>::swap(modificado_[indice(i)], modificado_[indice(j)]);
+  std::swap(valoracion_[indice(i)], valoracion_[indice(j)]);
+}
 
-  if (poblacionesR>0){
-    for (int i=0; i<poblacionesR; i++)
-      delete Pr[i];
-    delete [] Pr;
+void multipoblacion::Pasar(int i, int j) {
+  for (poblacionbinaria& p : Pb_) {
+    p.Pasar(i, j);
   }
-
-  elitismo=0;
-  poblacionesB=0;
-  poblacionesE=0;
-  n_individuos=0;
-  modificado=0;
-  n_valoracion=0;
-  valoracion=0;
-  Pb=0;
-  Pe=0;
+  for (poblacionentera& p : Pe_) {
+    p.Pasar(i, j);
+  }
+  for (poblacionreal& p : Pr_) {
+    p.Pasar(i, j);
+  }
 }
 
+int multipoblacion::ClaseIndividuo(int ind) const { return Pe_[0].GetValue(ind, 0); }
 
-void multipoblacion::Swap(int i, int j){
-
-  for (int k=0; k<poblacionesB; k++)
-     Pb[k][0].Swap(i,j);
-
-  for (int k=0; k<poblacionesE; k++)
-     Pe[k][0].Swap(i,j);
-
-  for (int k=0; k<poblacionesR; k++)
-     Pr[k][0].Swap(i,j);
-
-  Swap_bool(modificado[i],modificado[j]);
-
-  double *p=valoracion[i];
-  valoracion[i]=valoracion[j];
-  valoracion[j]=p;
+char* multipoblacion::Subpoblacion_Binaria(int subpoblacion, int individuo, int& tama) {
+  return Parte(Pb_, subpoblacion, individuo, tama);
 }
 
-
-void multipoblacion::Pasar(int i, int j){
-    for (int k=0; k<poblacionesB; k++){
-       Pb[k][0].Pasar(i,this->Pb[k][0],j);
-    }
-
-    for (int k=0; k<poblacionesE; k++)
-       Pe[k][0].Pasar(i,this->Pe[k][0],j);
-
-    for (int k=0; k<poblacionesR; k++)
-       Pr[k][0].Pasar(i,this->Pr[k][0],j);
-
+int* multipoblacion::Subpoblacion_Entera(int subpoblacion, int individuo, int& tama) {
+  return Parte(Pe_, subpoblacion, individuo, tama);
 }
 
-
-
-void multipoblacion::Sort(){
-  int k;
-  for (int i=0; i<n_individuos-1; i++)
-    for (int j=n_individuos-1; j>i; j--){
-      k=0;
-      while (k<n_valoracion && valoracion[j][k]==valoracion[j-1][k])
-        k++;
-      if (k<n_valoracion && valoracion[j][k]>valoracion[j-1][k])
-        Swap(j,j-1);
-    }
+double* multipoblacion::Subpoblacion_Real(int subpoblacion, int individuo, int& tama) {
+  return Parte(Pr_, subpoblacion, individuo, tama);
 }
 
-
-int multipoblacion::ClaseIndividuo(int ind) const{
-  return Pe[0][0].GetValue(ind,0);
-}
-
-
-char* multipoblacion::Subpoblacion_Binaria(int subpoblacion, int individuo, int &tama) const{
-  char *puntero;
-  puntero=Pb[subpoblacion][0].Individuo(individuo,tama);
-  return puntero;
-}
-
-int* multipoblacion::Subpoblacion_Entera(int subpoblacion, int individuo, int &tama) const{
-  int *puntero;
-  puntero=Pe[subpoblacion][0].Individuo(individuo,tama);
-  return puntero;
-}
-
-
-double* multipoblacion::Subpoblacion_Real(int subpoblacion, int individuo, int &tama) const{
-  double *puntero;
-  puntero=Pr[subpoblacion][0].Individuo(individuo,tama);
-  return puntero;
-}
-
-
-
-
-
-
-
-
-void multipoblacion::Better(int nclases, int *better, int &nbetter, int **ind_clase) const{
-
-  nbetter=1;
-  better[0]=0;
-  /*for (int i=0; i<nclases; i++){
-    if ( ind_clase[i][0]>1 && ind_clase[i][1]!=0 && valoracion[ind_clase[i][1]][0]>0) {
-       //if (ValorIndividuo(1,i)>1) {
-         better[nbetter]=ind_clase[i][1];
-         nbetter++;
-       //}
-    }
-  }*/
-}
-
-
-
-bool Mayor (double *v1, double *v2, int n){
-  int k=0;
-  while (k<n && v1[k]==v2[k])
-        k++;
-
-  if (k==n)
-    return false;
-  else
-    return v1[k]>v2[k];
-}
-
-void multipoblacion::Sort_menos2ultimos(){
-  int k;
-  bool cambio=true;
-  for (int i=0; cambio and i<n_individuos-3; i++){
-    cambio=false;
-    for (int j=n_individuos-3; j>i; j--){
-      k=0;
-      while (k<n_valoracion && valoracion[j][k]==valoracion[j-1][k])
-        k++;
-      if (k<n_valoracion && valoracion[j][k]>valoracion[j-1][k]){
-        Swap(j,j-1);
-        cambio=true;
+void multipoblacion::Sort() {
+  for (int i = 0; i < n_individuos_ - 1; ++i) {
+    for (int j = n_individuos_ - 1; j > i; --j) {
+      if (Mayor(valoracion_[indice(j)], valoracion_[indice(j - 1)])) {
+        Swap(j, j - 1);
       }
     }
   }
 }
 
+void multipoblacion::Sort_menos2ultimos() {
+  bool cambio = true;
+  for (int i = 0; cambio && i < n_individuos_ - 3; ++i) {
+    cambio = false;
+    for (int j = n_individuos_ - 3; j > i; --j) {
+      if (Mayor(valoracion_[indice(j)], valoracion_[indice(j - 1)])) {
+        Swap(j, j - 1);
+        cambio = true;
+      }
+    }
+  }
+}
 
-
-double multipoblacion::Sort_4L(example_set &E, int n_clases, int *n_examples_per_class, int **ind_clase, double *adap_reglas, double *peso_reglas, int n_examples){
-  int k;
-  int *cl,ncl;
-  double acierto=0, acierto_old=0, fallo=0, fallo_old=0;
-
-  // Reservo espacio para guardar infomacion sobre los valores de fitness
-  int numero_ejemplos;
-  //double vaux[3];
-
-  // Comprobar si los individuos encontrados mejoran al lider de su subpoblacion
-  // Si alguno mejora al lider, entonces reordenar la poblacion.
-  // Si no mejora, entonces no es necesario reordenar y basta con aplicar el cubrimiento
-  // sobre las subpoblaciones.
-
-//  double *adaptacion, *agregacion, *disparada, *peso_agregacion, *mejor_valoracion;
-//  agregacion= new double[n_examples];
-//  disparada = new double[n_examples];
-//  peso_agregacion= new double[n_examples];
-//  mejor_valoracion= new double[n_individuos];
-//  for (int l=0; l<n_examples; l++){
-//    agregacion[l]=adap_reglas[l];
-//    peso_agregacion[l]=peso_reglas[l];
-//    disparada[l]=-1;
-//  }
-
-
-  // Ordeno la poblacion asumiendo que solo se han modificado los 2 ultimos individuos.
-  // Ordenacion por insercion
-  for (int i=n_individuos-2; i<n_individuos; i++){
-    k=i;
-    while (k>0 && Mayor(valoracion[k],valoracion[k-1],n_valoracion)){
-       Swap(k,k-1);
-       k--;
+void multipoblacion::Sort_4L(int n_clases, int** ind_clase) {
+  // Por inserción: el resto ya está ordenado.
+  for (int i = n_individuos_ - 2; i < n_individuos_; ++i) {
+    for (int k = i; k > 0 && Mayor(valoracion_[indice(k)], valoracion_[indice(k - 1)]); --k) {
+      Swap(k, k - 1);
     }
   }
 
-  // Calculo el numero de ejemplos total
-  numero_ejemplos=0;
-  for (int i=0; i<n_clases; i++){
-    numero_ejemplos+=n_examples_per_class[i];
+  for (int c = 0; c < n_clases; ++c) {
+    ind_clase[c][0] = 0;
+  }
+  for (int i = 0; i < n_individuos_ - 2; ++i) {
+    int* individuos = ind_clase[ClaseIndividuo(i)];
+    ++individuos[0];
+    individuos[individuos[0]] = i;
   }
 
-
-
-// ------------------------------------------------------------------------------- */
-  // Recalculo de nuevo las supoblaciones despues de la ultima ordenacion
-  for (int i=0; i<n_clases; i++)
-    ind_clase[i][0]=0;
-
-  for (int i=0; i<n_individuos-2; i++){
-    cl=Subpoblacion_Entera(0,i,ncl);
-    ind_clase[cl[0]][0]++;
-    ind_clase[cl[0]][ind_clase[cl[0]][0]]=i;
-  }
-
-  /*progreso(Verbosidad::depuracion) << "\t(" << ind_clase[0][0];
-  for (int i=1; i<n_clases; i++)
-    progreso(Verbosidad::depuracion) << ", " << ind_clase[i][0];
-  progreso(Verbosidad::depuracion) << ")\n";*/
-
-
-
-  int num_medio_individuos_por_clase = (n_individuos-2)/(1.0*n_clases)-1;
-
-  int num_min_individuos_por_clase = num_medio_individuos_por_clase ;
-  //if (num_min_individuos_por_clase >= num_medio_individuos_por_clase || num_min_individuos_por_clase<0)
-    //num_min_individuos_por_clase = 0;
-
-  /* Reglas del tamaño minimo de las poblaciones */
-  int *PobMinClase = new int[n_clases];
-   for (int k=0;k<n_clases;k++){
-     if (n_examples_per_class[k]/(1.0*numero_ejemplos)<0.05)
-       PobMinClase[k]=num_min_individuos_por_clase;
-     else if (ind_clase[k][0]>0 && fabs(valoracion[ind_clase[k][1]][0]-valoracion[ind_clase[k][ind_clase[k][0]]][0] )<0.1)
-            PobMinClase[k]=num_min_individuos_por_clase;
-          else
-            PobMinClase[k]=num_min_individuos_por_clase;
-   }
-
-//  for (int i=0; i<n_clases; i++)
-//    PobMinClase[i]=n_individuos/(1+n_clases);
-
-  bool usados_2_ultimos=true;
-
-  /* Fijar los individuos que seran reemplazados */
-  for (int i=n_individuos-2; i<n_individuos; i++){
-    k = ClaseIndividuo(i);
-    if (ind_clase[k][0]<=PobMinClase[k] ){
-      usados_2_ultimos=false;
-      int j=n_individuos-3;
-      while (ind_clase[ClaseIndividuo(j)][0]<=PobMinClase[ClaseIndividuo(j)])
-        j--;
-
-      ind_clase[ClaseIndividuo(i)][ind_clase[ClaseIndividuo(i)][0]+1]=ind_clase[ClaseIndividuo(j)][ind_clase[ClaseIndividuo(j)][0]];
-      ind_clase[ClaseIndividuo(i)][0]++;
-      ind_clase[ClaseIndividuo(j)][0]--;
-      Swap(i,j);
+  // Pocos individuos: los de la media por clase menos uno, o menos. (El original calculaba un
+  // mínimo para cada clase, pero con tres casos que daban el mismo.)
+  const int minimo = static_cast<int>((n_individuos_ - 2) / (1.0 * n_clases) - 1);
+  bool usados_2_ultimos = true;
+  for (int i = n_individuos_ - 2; i < n_individuos_; ++i) {
+    int* individuos = ind_clase[ClaseIndividuo(i)];
+    if (individuos[0] <= minimo) {
+      usados_2_ultimos = false;
+      int j = n_individuos_ - 3;
+      while (ind_clase[ClaseIndividuo(j)][0] <= minimo) {
+        --j;
+      }
+      int* otros = ind_clase[ClaseIndividuo(j)];
+      individuos[individuos[0] + 1] = otros[otros[0]];
+      ++individuos[0];
+      --otros[0];
+      Swap(i, j);
     }
   }
-
-  if (!usados_2_ultimos)
+  if (!usados_2_ultimos) {
     Sort_menos2ultimos();
-
-  delete [] PobMinClase;
-
-  return 0.0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void multipoblacion::PintaFitness_Estacionario(int i) const{
-  double minf0,minf1,minf2,maxf0,maxf1,maxf2;
-  progreso(Verbosidad::depuracion) << "Fitnes: ";
-  for (int j=0; j<n_valoracion; j++)
-    progreso(Verbosidad::depuracion) << valoracion[i][j] << "   ";
-  //cout << "[" << MediaFitness_Estacionario(minf0,maxf0,minf1,maxf1,minf2,maxf2) << "]";
-  //cout << "(" << minf0 << "," << maxf0 <<") , ("<<minf1 <<","<<maxf1<<") , ("<<minf2 << "," << maxf2 <<") ";
-  progreso(Verbosidad::depuracion) << "Clase => " << ClaseIndividuo(i);
-  progreso(Verbosidad::depuracion) << endl;
-}
-
-
-/*void multipoblacion::PintaIndividuo(int i) const{
-  for (int j=0; j<poblacionesR; j++)
-    Pr[j][0].PintaBin(i);
-  for (int j=0; j<poblacionesE; j++)
-    Pe[j][0].Pinta(i);
-  for (int j=0; j<poblacionesB; j++)
-    Pb[j][0].Pinta(i);
-  progreso(Verbosidad::depuracion) << "Fitnes: ";
-  for (int j=0; j<n_valoracion; j++)
-    progreso(Verbosidad::depuracion) << valoracion[i][j] << " ";
-  progreso(Verbosidad::depuracion) << endl <<endl;
-
-}*/
-
-
-
-
-
-int multipoblacion::N_individuos() const {
-  return n_individuos;
-}
-
-
-int multipoblacion::N_Valoracion() const{
-  return n_valoracion;
-}
-
-void multipoblacion::Codigo(int i, genetcode &code) const{
- // Paso a code la parte binaria
-  char **bin=new char*[poblacionesB];
-  for (int j=0; j<poblacionesB; j++)
-     bin[j]=0;
-  int *tb=new int[poblacionesB];
-  for (int j=0;j<poblacionesB; j++)
-    Pb[j][0].Codigo(i,bin[j],tb[j]);
-
-  code.PutBinary(poblacionesB,tb,bin);
-
-  delete [] tb;
-  for (int j=0; j<poblacionesB; j++)
-    delete [] bin[j];
-  delete [] bin;
-
-  // Paso a code la parte entera
-  int **ent=new int*[poblacionesE];
-  for (int j=0; j<poblacionesE; j++)
-   ent[j]=0;
-  int *te=new int[poblacionesE];
-  for (int j=0;j<poblacionesE; j++)
-    Pe[j][0].Codigo(i,ent[j],te[j]);
-
-  code.PutInteger(poblacionesE,te,ent);
-
-  delete [] te;
-  for (int j=0; j<poblacionesE; j++)
-    delete [] ent[j];
-  delete [] ent;
-
-  // Paso a code la parte real
-  double **rea=new double*[poblacionesR];
-  for (int j=0; j<poblacionesR; j++)
-    rea[j]=0;
-  int *tr=new int[poblacionesR];
-  for (int j=0;j<poblacionesR; j++)
-    Pr[j][0].Codigo(i,rea[j],tr[j]);
-
-  code.PutReal(poblacionesR,tr,rea);
-
-  delete [] tr;
-  for (int j=0; j<poblacionesR; j++)
-    delete [] rea[j];
-  delete [] rea;
-
-}
-
-
-
-void multipoblacion::PutCodigo(int i, const genetcode &code){
- // Paso a code la parte binaria
-  for (int j=0; j<poblacionesB; j++)
-    for (int k=0; k<code.TamaBinary(j); k++)
-       Pb[j][0].PutValue(i,k,code.GetValueBinary(j,k));
-
-
-  // Paso a code la parte entera
-  for (int j=0; j<poblacionesE; j++)
-    for (int k=0; k<code.TamaInteger(j); k++)
-       Pe[j][0].PutValue(i,k,code.GetValueInteger(j,k));
-
-
-  // Paso a code la parte real
-  for (int j=0; j<poblacionesR; j++)
-    for (int k=0; k<code.TamaReal(j); k++)
-       Pr[j][0].PutValue(i,k,code.GetValueReal(j,k));
-
-}
-
-
-
-
-bool multipoblacion::Modificado(int i) const {
-  return modificado[i];
-}
-
-void multipoblacion::PutModificado(int i){
-  modificado[i]=true;
-}
-
-void multipoblacion::Valoracion(int i, double *valor){
-  for (int j=0; j<n_valoracion; j++)
-    valoracion[i][j]=valor[j];
-  modificado[i]=false;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void multipoblacion::PoblacionInicial(double **I, int rango, int n_items, int **sujetos, int n_var, int *n_etiquetas_variable){
-  // Nivel de Valor
-  Pb[0][0].PoblacionInicial(sujetos, n_var, n_etiquetas_variable);
-  Pb[1][0].PoblacionInicialAleatoria();
-
-  // Consecuente
-  Pe[0][0].PoblacionInicialAleatoria();
-  // Dominancia
-  Pe[1][0].PoblacionInicialAleatoria(0);
-
-  // Nivel de Variable
-  Pr[0][0].PoblacionInicial(I,rango);
-  //Conjunto de ejemplos cubiertos
-  Pr[1][0].PoblacionInicialAleatoria(n_items);
-
-  for (int j=0; j<n_individuos; j++)
-    modificado[j]=true;
-
-  for (int j=0; j<n_individuos; j++)
-    for (int k=0; k<n_valoracion; k++)
-      valoracion[j][k]=0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void multipoblacion::MutacionUniforme_Estacionario_Especial(){
-  if (Probabilidad(0.5)){
-    Pe[1][0].MutacionUniformeMod_Estacionario_Especial();
   }
-  else if (Probabilidad(0.5)){
-          Pr[0][0].MutacionUniforme_Estacionario();
-       }
 }
 
+void multipoblacion::Better(int* better, int& nbetter) {
+  nbetter = 1;
+  better[0] = 0;
+}
 
+void multipoblacion::PintaFitness_Estacionario(int i) const {
+  std::ostream& salida = progreso(Verbosidad::depuracion);
+  salida << "Fitnes: ";
+  for (const double valor : valoracion_[indice(i)]) {
+    salida << valor << "   ";
+  }
+  salida << "Clase => " << ClaseIndividuo(i) << '\n';
+}
 
+int multipoblacion::N_individuos() const { return n_individuos_; }
 
+int multipoblacion::N_Valoracion() const { return n_valoracion_; }
 
+void multipoblacion::Codigo(int i, genetcode& code) const {
+  code.PutBinary(Partes(Pb_, i));
+  code.PutInteger(Partes(Pe_, i));
+  code.PutReal(Partes(Pr_, i));
+}
 
-void multipoblacion::MutacionUniforme_Estacionario(){
+void multipoblacion::PutCodigo(int i, const genetcode& code) {
+  for (std::size_t j = 0; j < Pb_.size(); ++j) {
+    const int fila = static_cast<int>(j);
+    for (int k = 0; k < code.TamaBinary(fila); ++k) {
+      Pb_[j].PutValue(i, k, code.GetValueBinary(fila, k));
+    }
+  }
+  for (std::size_t j = 0; j < Pe_.size(); ++j) {
+    const int fila = static_cast<int>(j);
+    for (int k = 0; k < code.TamaInteger(fila); ++k) {
+      Pe_[j].PutValue(i, k, code.GetValueInteger(fila, k));
+    }
+  }
+  for (std::size_t j = 0; j < Pr_.size(); ++j) {
+    const int fila = static_cast<int>(j);
+    for (int k = 0; k < code.TamaReal(fila); ++k) {
+      Pr_[j].PutValue(i, k, code.GetValueReal(fila, k));
+    }
+  }
+}
 
-bool modificado_alguno=false;
+bool multipoblacion::Modificado(int i) const { return modificado_[indice(i)]; }
 
- while (!modificado_alguno){
+void multipoblacion::PutModificado(int i) { modificado_[indice(i)] = true; }
 
+void multipoblacion::Valoracion(int i, const double* dato) {
+  std::vector<double>& valoracion = valoracion_[indice(i)];
+  valoracion.assign(dato, dato + n_valoracion_);
+  modificado_[indice(i)] = false;
+}
+
+double multipoblacion::ValorFitness(int i) const { return valoracion_[indice(i)][0]; }
+
+double multipoblacion::ValorFitness(int i, int j) const {
+  return valoracion_[indice(i)][indice(j)];
+}
+
+void multipoblacion::PoblacionInicial(const double* const* I, int rango, int n_items,
+                                      const int* const* sujetos, int n_var,
+                                      const int* n_etiquetas_variable) {
+  Pb_[0].PoblacionInicial(sujetos, n_var, n_etiquetas_variable);
+  Pb_[1].PoblacionInicialAleatoria();
+  Pe_[0].PoblacionInicialAleatoria();
+  Pe_[1].PoblacionInicialAleatoria(0);
+  Pr_[0].PoblacionInicial(I, rango);
+  Pr_[1].PoblacionInicialAleatoria(n_items);
+  modificado_.assign(modificado_.size(), true);
+  for (std::vector<double>& valoracion : valoracion_) {
+    valoracion.assign(valoracion.size(), 0);
+  }
+}
+
+void multipoblacion::MutacionUniforme_Estacionario_Especial() {
   if (Probabilidad(0.5)) {
-    Pb[0][0].MutacionUniforme_Estacionario();
-    modificado_alguno=true;
+    Pe_[1].MutacionUniformeMod_Estacionario_Especial();
+  } else if (Probabilidad(0.5)) {
+    Pr_[0].MutacionUniforme_Estacionario();
   }
-
-  if (Probabilidad(0.5)){
-    Pb[1][0].MutacionUniforme_Estacionario();
-    modificado_alguno=true;
-  }
-
-  if (Probabilidad(0.5)){
-    Pe[0][0].MutacionUniforme_Estacionario();
-    modificado_alguno=true;
-  }
-
-  if (Probabilidad(0.8)){
-    Pe[1][0].MutacionUniformeMod_Estacionario(0.2);
-    modificado_alguno=true;
-  }
-
-
-  if (Probabilidad(0.8)){
-    Pr[0][0].MutacionUniforme_Estacionario();
-    modificado_alguno=true;
-  }
-
-  //Pr[2][0].MutacionUniforme_Estacionario_Normal();
- }
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void multipoblacion::CruceBasedLogical_Estacionario(double it){
-int a,b;
-  if (Probabilidad(1-it)){
-    a=Select_Random_Individuo(n_individuos-2,-1,0);
-    b=Select_Random_Individuo(n_individuos-2,a,0);
-  } else {
-    a=0;
-    b=Select_Random_Individuo(n_individuos-2,a,0);
+void multipoblacion::MutacionUniforme_Estacionario() {
+  bool mutado = false;
+  while (!mutado) {
+    if (Probabilidad(0.5)) {
+      Pb_[0].MutacionUniforme_Estacionario();
+      mutado = true;
+    }
+    if (Probabilidad(0.5)) {
+      Pb_[1].MutacionUniforme_Estacionario();
+      mutado = true;
+    }
+    if (Probabilidad(0.5)) {
+      Pe_[0].MutacionUniforme_Estacionario();
+      mutado = true;
+    }
+    if (Probabilidad(0.8)) {
+      Pe_[1].MutacionUniformeMod_Estacionario(0.2);
+      mutado = true;
+    }
+    if (Probabilidad(0.8)) {
+      Pr_[0].MutacionUniforme_Estacionario();
+      mutado = true;
+    }
   }
+}
 
-  Pasar(n_individuos-2,a);
-  Pasar(n_individuos-1,b);
-
-//cout <<"Cruce de : " << a << " y b: " << b << endl;
-
-  if (Probabilidad(1.0)){
-  // Con 0.5 se aplica un cruce sobre 2 puntos.
-   modificado[n_individuos-2]=false;
-   while (!modificado[n_individuos-2]){
-    if (Probabilidad(0.25)){
-      Pb[0][0].Cruce2puntos_Estacionario(n_individuos-2,n_individuos-1);
-      modificado[n_individuos-2]=true;
-      modificado[n_individuos-1]=true;
-    }
-    if (Probabilidad(0.25)){
-      Pb[1][0].Cruce2puntos_Estacionario(n_individuos-2,n_individuos-1);
-      modificado[n_individuos-2]=true;
-      modificado[n_individuos-1]=true;
-    }
-    if (Probabilidad(0.25)){
-      Pe[1][0].Cruce2puntos_Estacionario(n_individuos-2,n_individuos-1);
-      modificado[n_individuos-2]=true;
-      modificado[n_individuos-1]=true;
-    }
-    if (Probabilidad(0.25)){
-      Pr[0][0].Cruce2puntos_Estacionario(n_individuos-2,n_individuos-1);
-      modificado[n_individuos-2]=true;
-      modificado[n_individuos-1]=true;
-    }
-   }
+void multipoblacion::CruceBasedLogical_Estacionario(double it) {
+  const int penultimo = n_individuos_ - 2;
+  const int ultimo = n_individuos_ - 1;
+  int a = 0;
+  if (Probabilidad(1 - it)) {
+    a = Select_Random_Individuo(penultimo, -1, 0);
   }
-  else if (ClaseIndividuo(a)==ClaseIndividuo(b)){
-      // Si son de la misma clase se aplica el operador AND_OR
-        Pb[0][0].CruceAND_OR_Estacionario(a,b);
+  const int b = Select_Random_Individuo(penultimo, a, 0);
+  Pasar(penultimo, a);
+  Pasar(ultimo, b);
 
-        Pe[0][0].Cruce2puntos_Estacionario(a,b);
-
-        Pr[0][0].CruceAND_OR_Estacionario(a,b);
-
-      }
-       else {
-       // Si son de clases distintas se aplica el operador NAND_NOR
-          Pb[0][0].CruceNAND_NOR_Estacionario(a,b);
-
-          Pe[0][0].Cruce2puntos_Estacionario(a,b);
-
-          Pr[0][0].CruceNAND_NOR_Estacionario(a,b);
-
-       }
-
-  modificado[n_individuos-2]=true;
-  modificado[n_individuos-1]=true;
+  // En el original, con probabilidad 1 este cruce y si no, otros (AND/OR y NAND/NOR) que nunca
+  // se aplicaban. Se mantiene por el número que pide.
+  static_cast<void>(Probabilidad(1.0));
+  bool cruzado = false;
+  while (!cruzado) {
+    if (Probabilidad(0.25)) {
+      Pb_[0].Cruce2puntos_Estacionario(penultimo, ultimo);
+      cruzado = true;
+    }
+    if (Probabilidad(0.25)) {
+      Pb_[1].Cruce2puntos_Estacionario(penultimo, ultimo);
+      cruzado = true;
+    }
+    if (Probabilidad(0.25)) {
+      Pe_[1].Cruce2puntos_Estacionario(penultimo, ultimo);
+      cruzado = true;
+    }
+    if (Probabilidad(0.25)) {
+      Pr_[0].Cruce2puntos_Estacionario(penultimo, ultimo);
+      cruzado = true;
+    }
+  }
+  modificado_[indice(penultimo)] = true;
+  modificado_[indice(ultimo)] = true;
 }
-
-
-
-
-
-
-
-
-
-
-double multipoblacion::ValorFitness(int i) const{
-  return valoracion[i][0];
-}
-
-double multipoblacion::ValorFitness(int i, int j) const{
-  return valoracion[i][j];
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }  // namespace inslv

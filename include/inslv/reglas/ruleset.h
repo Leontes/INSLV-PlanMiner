@@ -20,6 +20,7 @@
 
 #include <fstream>
 #include <list>
+#include <string>
 #include <utility>
 
 #include "inslv/genetico/genetcode.h"
@@ -27,6 +28,9 @@
 #include "inslv/datos/vectordouble.h"
 
 namespace inslv {
+
+// Código heredado: usa string, cout... sin std:: (hasta que se modernice reglas).
+using namespace std;
 class ruleset {
   private:
     int reservado;

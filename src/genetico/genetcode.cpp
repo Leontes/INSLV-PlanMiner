@@ -3,7 +3,7 @@
                           genetcode.cpp  -  description
                              -------------------
     begin                : Tue Apr 30 2002
-    copyright            : (C) 2002 by Ral P�ez
+    copyright            : (C) 2002 by Raúl Pérez
     email                : fgr@decsai.ugr.es
  ***************************************************************************/
 
@@ -18,173 +18,103 @@
 
 #include "inslv/genetico/genetcode.h"
 
+#include <cstddef>
+#include <utility>
+#include <vector>
+
 namespace inslv {
 
-genetcode::genetcode(){
-  binary=integer=real=0;
-  nbinary=ninteger=nreal=0;
-  mbinary=0;
-  minteger=0;
-  mreal=0;
+namespace {
+
+std::size_t indice(int i) { return static_cast<std::size_t>(i); }
+
+}  // namespace
+
+template <typename T>
+void genetcode::Matriz<T>::Asignar(std::vector<std::vector<T>> nuevas) {
+  filas = std::move(nuevas);
+  tamanos.clear();
+  for (const std::vector<T>& fila : filas) {
+    tamanos.push_back(static_cast<int>(fila.size()));
+  }
+  RehacerPunteros();
 }
 
-
-
-genetcode::~genetcode(){
-  if (binary>0){
-    for (int i=0; i<binary; i++)
-      delete [] mbinary[i];
-    delete [] mbinary;
-    delete [] nbinary;
+template <typename T>
+void genetcode::Matriz<T>::RehacerPunteros() {
+  punteros.clear();
+  for (std::vector<T>& fila : filas) {
+    punteros.push_back(fila.data());
   }
-
-  if (integer>0){
-    for (int i=0; i<integer; i++)
-      delete [] minteger[i];
-    delete [] minteger;
-    delete [] ninteger;
-  }
-
-  if (real>0){
-    for (int i=0; i<real; i++)
-      delete [] mreal[i];
-    delete [] mreal;
-    delete [] nreal;
-  }
-
 }
 
+genetcode::genetcode(const genetcode& x)
+    : binario_(x.binario_), entero_(x.entero_), real_(x.real_) {
+  binario_.RehacerPunteros();
+  entero_.RehacerPunteros();
+  real_.RehacerPunteros();
+}
 
-genetcode &genetcode::operator=(const genetcode &x){
-  if (this!=&x){
-    PutBinary(x.binary,x.nbinary,x.mbinary);
-    PutInteger(x.integer,x.ninteger,x.minteger);
-    PutReal(x.real,x.nreal,x.mreal);
+genetcode& genetcode::operator=(const genetcode& x) {
+  if (this != &x) {
+    genetcode copia(x);
+    *this = std::move(copia);
   }
   return *this;
 }
 
-void genetcode::PutBinary(int bin, int*nbin, char **mbin){
-  if (binary>0){
-    for (int i=0; i<binary; i++)
-      delete [] mbinary[i];
-    delete [] mbinary;
-    delete [] nbinary;
-  }
-
-  binary=bin;
-  nbinary=new int[binary];
-  for (int i=0; i<binary; i++)
-    nbinary[i]=nbin[i];
-  mbinary=new char *[binary];
-  for (int i=0; i<binary; i++){
-    mbinary[i]=new char[nbinary[i]];
-    for (int j=0; j<nbinary[i]; j++)
-      mbinary[i][j]=mbin[i][j];
-  }
-
+void genetcode::PutBinary(std::vector<std::vector<char>> filas) {
+  binario_.Asignar(std::move(filas));
 }
 
-void genetcode::PutInteger(int ent, int*nent, int **ment){
-  if (integer>0){
-    for (int i=0; i<integer; i++)
-      delete [] minteger[i];
-    delete [] minteger;
-    delete [] ninteger;
-  }
-
-  integer=ent;
-  ninteger=new int[integer];
-  for (int i=0; i<integer; i++)
-    ninteger[i]=nent[i];
-  minteger=new int*[integer];
-  for (int i=0; i<integer; i++){
-    minteger[i]=new int[ninteger[i]];
-    for (int j=0; j<ninteger[i]; j++)
-      minteger[i][j]=ment[i][j];
-  }
+void genetcode::PutInteger(std::vector<std::vector<int>> filas) {
+  entero_.Asignar(std::move(filas));
 }
 
-void genetcode::PutReal(int rea, int*nrea, double **mrea){
+void genetcode::PutReal(std::vector<std::vector<double>> filas) { real_.Asignar(std::move(filas)); }
 
-  if (real>0){
-    for (int i=0; i<real; i++)
-      delete [] mreal[i];
-    delete [] mreal;
-    delete [] nreal;
-  }
-
-  real=rea;
-  nreal=new int[real];
-  for (int i=0; i<real; i++)
-    nreal[i]=nrea[i];
-  mreal=new double*[real];
-  for (int i=0; i<real; i++){
-    mreal[i]=new double[nreal[i]];
-    for (int j=0; j<nreal[i]; j++)
-      mreal[i][j]=mrea[i][j];
-  }
+void genetcode::PutValueBinary(int fila, int columna, char value) {
+  binario_.filas[indice(fila)][indice(columna)] = value;
 }
 
-
-void genetcode::PutValueBinary(int fila, int columna, char value){
-  mbinary[fila][columna]=value;
+void genetcode::PutValueInteger(int fila, int columna, int value) {
+  entero_.filas[indice(fila)][indice(columna)] = value;
 }
 
-void genetcode::PutValueInteger(int fila, int columna, int value){
-  minteger[fila][columna]=value;
+int genetcode::TamaBinary(int fila) const { return binario_.tamanos[indice(fila)]; }
+
+int genetcode::TamaInteger(int fila) const { return entero_.tamanos[indice(fila)]; }
+
+int genetcode::TamaReal(int fila) const { return real_.tamanos[indice(fila)]; }
+
+void genetcode::GetBinary(int& bin, int*& nbin, char**& mbin) {
+  bin = static_cast<int>(binario_.filas.size());
+  nbin = binario_.tamanos.data();
+  mbin = binario_.punteros.data();
 }
 
-
-
-int genetcode::TamaBinary(int fila) const{
-  return nbinary[fila];
+void genetcode::GetInteger(int& ent, int*& nent, int**& ment) {
+  ent = static_cast<int>(entero_.filas.size());
+  nent = entero_.tamanos.data();
+  ment = entero_.punteros.data();
 }
 
-int genetcode::TamaInteger(int fila) const{
-  return ninteger[fila];
+void genetcode::GetReal(int& rea, int*& nrea, double**& mrea) {
+  rea = static_cast<int>(real_.filas.size());
+  nrea = real_.tamanos.data();
+  mrea = real_.punteros.data();
 }
 
-int genetcode::TamaReal(int fila) const{
-  return nreal[fila];
+char genetcode::GetValueBinary(int fila, int columna) const {
+  return binario_.filas[indice(fila)][indice(columna)];
 }
 
-
-void genetcode::GetBinary(int &bin, int*&nbin, char **&mbin){
-  bin=binary;
-  nbin=nbinary;
-  mbin=mbinary;
+int genetcode::GetValueInteger(int fila, int columna) const {
+  return entero_.filas[indice(fila)][indice(columna)];
 }
 
-void genetcode::GetInteger(int &ent, int*&nent, int **&ment) {
-  ent=integer;
-  nent=ninteger;
-  ment=minteger;
+double genetcode::GetValueReal(int fila, int columna) const {
+  return real_.filas[indice(fila)][indice(columna)];
 }
-
-void genetcode::GetReal(int &rea, int*&nrea, double **&mrea){
-  rea=real;
-  nrea=nreal;
-  mrea=mreal;
-}
-
-
-char genetcode::GetValueBinary(int fila, int columna) const{
-  return mbinary[fila][columna];
-}
-
-
-int genetcode::GetValueInteger(int fila, int columna) const{
-  return minteger[fila][columna];
-}
-
-double genetcode::GetValueReal(int fila, int columna) const{
-  return mreal[fila][columna];
-}
-
-
-
-
-
 
 }  // namespace inslv

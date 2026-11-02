@@ -1,59 +1,33 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include <stdlib.h>
 #include "inslv/genetico/operaciones.h"
+
+#include <cstdlib>
+#include <utility>
 
 namespace inslv {
 
-bool Probabilidad(double x){
-  double a=(1.0*rand()/(RAND_MAX*1.0));
-  return (a<=x);
+int Aleatorio() {
+  return std::rand();  // NOLINT(concurrency-mt-unsafe)
 }
 
+bool Probabilidad(double x) { return 1.0 * Aleatorio() / (RAND_MAX * 1.0) <= x; }
 
-int Select_Random_Individuo(int n, int menos_este, int eli){
-  double nd=n;
-  int a=(nd*rand()/(RAND_MAX+1.0));
-
-  while (a==menos_este || a<eli)
-    a=(nd*rand()/(RAND_MAX+1.0));
-
+int Select_Random_Individuo(int n, int menos_este, int eli) {
+  const double nd = n;
+  int a = 0;
+  do {
+    a = static_cast<int>(nd * Aleatorio() / (RAND_MAX + 1.0));
+  } while (a == menos_este || a < eli);
   return a;
 }
 
-
-
-
-void PuntoCorte2(int n, int &a, int &b){
-  double nd=n;
-  a=(nd*rand()/(RAND_MAX+1.0));
-  b=(nd*rand()/(RAND_MAX+1.0));
-  if (a>b){
-    int aux=a;
-    a=b;
-    b=aux;
+void PuntoCorte2(int n, int& a, int& b) {
+  const double nd = n;
+  a = static_cast<int>(nd * Aleatorio() / (RAND_MAX + 1.0));
+  b = static_cast<int>(nd * Aleatorio() / (RAND_MAX + 1.0));
+  if (a > b) {
+    std::swap(a, b);
   }
-}
-
-
-
-
-void Swap_int(int &a, int &b){
-  int aux=a;
-  a=b;
-  b=aux;
-}
-
-
-void Swap_double(double &a, double &b){
-  double aux=a;
-  a=b;
-  b=aux;
-}
-
-void Swap_bool(bool &a, bool &b){
-  bool aux=a;
-  a=b;
-  b=aux;
 }
 
 }  // namespace inslv

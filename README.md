@@ -117,9 +117,9 @@ git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
   `tests/datos`), `lento` (the same with the large datasets: `ctest --preset lento`) and
   `oraculo` (only locally, with `old/`: the library against the original built into the same
   program). See [Tests](docs/en/tests.md).
-- **Code inherited from the original:** for now every sub-library holds the original code
-  (`HEREDADA` in its `CMakeLists.txt`). It is built without the new code's warnings, formatting
-  or clang-tidy until it is modernized. Everything else is built with strict warnings, and the
+- **Code inherited from the original:** the sub-libraries not yet modernized (`reglas` and
+  `aprendizaje`) hold the original code (`HEREDADA` in their `CMakeLists.txt`). It is built
+  without the new code's warnings, formatting or clang-tidy until it is modernized. Everything else is built with strict warnings, and the
   continuous integration treats them as errors.
 - **Test dependencies:** GoogleTest 1.14 or later (if it is not installed, CMake downloads it);
   for coverage, gcovr.

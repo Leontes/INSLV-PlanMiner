@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Los arreglos de la S4: errores que terminaban el programa, la regla -1 de R_mix y las fugas de
-// memoria (las comprueba el preset asan, sin supresiones). La salida del progreso, en
-// test_verbosidad.cpp.
+// Los arreglos de errores del original que no cambian las reglas: los que terminaban el programa,
+// la regla -1 de R_mix, las fugas de memoria (las comprueba el preset asan, sin supresiones) y las
+// lecturas sin inicializar. La salida del progreso, en test_verbosidad.cpp.
 
 #include <gtest/gtest.h>
 
@@ -97,6 +97,20 @@ TEST(Arreglos, ConjuntosSinEjemplos) {
   const inslv::example_set& misma = copia;
   copia = misma;
   EXPECT_EQ(copia.N_Examples(), 0);
+}
+
+TEST(Arreglos, UnSoloAtributo) {
+  // En el original, con un solo atributo, la población inicial del nivel de variable comparaba
+  // dos valores sin inicializar.
+  inslv::Datos datos = clase_es_a();
+  datos.atributos.pop_back();
+  datos.valores.pop_back();
+  const std::vector<inslv::Regla> reglas = inslv::aprender(datos);
+  ASSERT_EQ(reglas.size(), 2U);
+  for (const inslv::Regla& regla : reglas) {
+    ASSERT_EQ(regla.antecedente.size(), 1U);
+    EXPECT_EQ(regla.antecedente[0].etiquetas, std::vector<std::size_t>{regla.consecuente});
+  }
 }
 
 }  // namespace

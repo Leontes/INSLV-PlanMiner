@@ -769,7 +769,6 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
 
     int sin_cambios = 0;
     int z;
-    double aciertos;
 
 
   E.Examples_per_Class(V.Consecuente(),n_clases, n_ejemplos_por_clase);
@@ -838,7 +837,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
     //G.Sort_4L(E, n_clases, n_ejemplos_por_clase, individuos_por_clase, agregado, Total_ejemplos);
     //G.Sort(n_clases, n_ejemplos_por_clase);
     G.Sort();
-    G.Better(n_clases, better, old_nbetter, individuos_por_clase);
+    G.Better(better, old_nbetter);
     for (z=0; z<old_nbetter; z++)
         for (int l=0; l<NFitness; l++)
             fbetter_old[z][l]=G.ValorFitness(better[z],l);
@@ -887,8 +886,8 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
           G.MutacionUniforme_Estacionario();
         }
         fitness(G,V,E, R, discriminante, reducir_reglas ,ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla, errores_para_regla, tam_rule_not_removed);
-	aciertos=G.Sort_4L(E, n_clases, n_ejemplos_por_clase, individuos_por_clase, agregado, peso_agregado, Total_ejemplos);
-        G.Better(n_clases, better, nbetter, individuos_por_clase);
+	G.Sort_4L(n_clases, individuos_por_clase);
+        G.Better(better, nbetter);
         for (z=0; z<nbetter; z++)
         {
             for (int l=0; l<NFitness; l++)
@@ -1024,7 +1023,7 @@ int GA(multipoblacion &G, const VectorVar &V, example_set &E, ruleset &R, rulese
     // Para sacar la mejor regla de cada clase
 
     //cout << "--------------------------------------------------"<<endl;
-    G.Better(n_clases, better, nbetter, individuos_por_clase);
+    G.Better(better, nbetter);
 
     delete [] n_ejemplos_por_clase;
 
@@ -4003,7 +4002,7 @@ std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &option
      int paso=static_cast<int>(options.tamano_episodio), pasoANT=0, trozo=0, inicio=0;
 
      Indiv = rango[0]*10;
-     multipoblacion G(NPobBin,NPobEnt,NPobRea,rango,rangoi,rangos,mut,cruce,Elite,Indiv,tama,NFitness);
+     multipoblacion G(NPobBin,NPobEnt,NPobRea,rango,mut,Indiv,tama,NFitness);
 
      int fin=paso;
      bool salir=false;

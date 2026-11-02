@@ -1,256 +1,59 @@
 // SPDX-License-Identifier: GPL-3.0-only
-using namespace std;
-#include <iostream>
-#include <stdlib.h>
-#include <fstream>
 #include "inslv/genetico/poblacionbinaria.h"
+
+#include <cstddef>
+#include <vector>
+
 #include "inslv/genetico/operaciones.h"
 
 namespace inslv {
 
+namespace {
 
+char BitAleatorio() { return Probabilidad(0.9) ? '1' : '0'; }
 
+}  // namespace
 
+poblacionbinaria::poblacionbinaria(double mut, int n, int tama)
+    : poblacion<char>(n, tama), prob_mutacion_(mut) {}
 
-
-
-
-
-poblacionbinaria::poblacionbinaria(double mut, double cruce, int eli, int n, int tama){
-  prob_mutacion=mut;
-  prob_cruce=cruce;
-  elitismo=eli;
-  n_individuos=n;
-  tamano= new int[n_individuos];
-  for (int i=0; i<n_individuos; i++)
-    tamano[i]=tama;
-
-  modificado= new bool[n_individuos];
-  for (int i=0; i<n_individuos; i++)
-    modificado[i]=true;
-
-  valoracion= new double[n_individuos];
-
-  individuos = new char*[n_individuos];
-  for (int i=0; i<n_individuos; i++)
-    individuos[i] = new char[tamano[i]];
-}
-
-
-
-
-
-
-
-
-
-
-
-
-poblacionbinaria::~poblacionbinaria(){
-  if (n_individuos>0){
-    delete [] tamano;
-    delete [] modificado;
-    delete [] valoracion;
-    for (int i=0; i<n_individuos; i++)
-      if (individuos[i]!=0){
-        delete [] individuos[i];
-	individuos[i]=0;
-      }
-    delete [] individuos;
+void poblacionbinaria::PoblacionInicialAleatoria() {
+  for (std::vector<char>& individuo : individuos_) {
+    for (char& bit : individuo) {
+      bit = BitAleatorio();
+    }
   }
-
-  n_individuos=0;
 }
 
-
-char * poblacionbinaria::Individuo(int i, int &tama) const{
-  tama = tamano[i];
-  return individuos[i];
-}
-
-
-
-void poblacionbinaria::Pasar(int i, const poblacionbinaria &x, int j){
-
-  if (tamano[i]>0)
-    delete[] individuos[i];
-
-  tamano[i]=x.tamano[j];
-  individuos[i]= new char[tamano[i]];
-  for (int k=0; k<tamano[i]; k++)
-    individuos[i][k]=x.individuos[j][k];
-}
-
-
-void poblacionbinaria::Swap(int i, int j){
-  Swap_int(tamano[i],tamano[j]);
-  Swap_bool(modificado[i],modificado[j]);
-  Swap_double(valoracion[i],valoracion[j]);
-  char *p=individuos[i];
-  individuos[i]=individuos[j];
-  individuos[j]=p;
-}
-
-
-void poblacionbinaria::Codigo(int i, char *&v, int &tama) const{
-
-  //if (v!=0)
-    //delete [] v;
-
-  tama=tamano[i];
-  v=new char[tama];
-  for (int j=0;j<tama;j++)
-    v[j]=individuos[i][j];
-}
-
-
-
-
-
-
-
-
-
-
-
-
-void poblacionbinaria::PutValue(int indiv, int bit, char value){
-  individuos[indiv][bit]=value;
-}
-
-
-
-void poblacionbinaria::PoblacionInicialAleatoria(){
-  for (int i=0; i<n_individuos; i++)
-    for (int j=0; j<tamano[i]; j++)
-        individuos[i][j]= (Probabilidad(0.9))?'1':'0';
-        //individuos[i][j]= '1';
-}
-
-
-
-
-
-void poblacionbinaria::PoblacionInicial(int **sujeto, int tama, int* tama_dom){
-  int j;
-  for (int i=0; i<n_individuos; i++){
-    j=0;
-    for (int k=0; k<tama; k++){
-      if (sujeto[i][k]==-1){
-        for (int l=0; l<tama_dom[k]; l++){
-          individuos[i][j]= (Probabilidad(0.9))?'1':'0';
-          j++;
+void poblacionbinaria::PoblacionInicial(const int* const* sujeto, int tama, const int* tama_dom) {
+  for (std::size_t i = 0; i < individuos_.size(); ++i) {
+    std::vector<char>& individuo = individuos_[i];
+    std::size_t j = 0;
+    for (int k = 0; k < tama; ++k) {
+      const auto bits = static_cast<std::size_t>(tama_dom[k]);
+      if (sujeto[i][k] == -1) {
+        for (std::size_t l = 0; l < bits; ++l) {
+          individuo[j + l] = BitAleatorio();
         }
+      } else {
+        for (std::size_t l = 0; l < bits; ++l) {
+          individuo[j + l] = '0';
+        }
+        individuo[j + static_cast<std::size_t>(sujeto[i][k])] = '1';
       }
-      else {
-        for (int l=0; l<tama_dom[k]; l++)
-          individuos[i][j+l]='0';
-        individuos[i][j+sujeto[i][k]]='1';
-        j+=tama_dom[k];
-      }
+      j += bits;
     }
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-void poblacionbinaria::MutacionUniforme_Estacionario(){
-  for (int i=n_individuos-2; i<n_individuos; i++){
-    for (int j=0; j<tamano[i]; j++){
-      if (Probabilidad(prob_mutacion)){
-         //cout << "Mutado: " << i << "(" << j <<")"<<endl;
-         if (individuos[i][j]=='1')
-            individuos[i][j]='0';
-        else
-            individuos[i][j]='1';
-        modificado[i]=true;
+void poblacionbinaria::MutacionUniforme_Estacionario() {
+  for (std::size_t i = individuos_.size() - 2; i < individuos_.size(); ++i) {
+    for (char& bit : individuos_[i]) {
+      if (Probabilidad(prob_mutacion_)) {
+        bit = bit == '1' ? '0' : '1';
       }
     }
   }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void poblacionbinaria::Cruce2puntos_Estacionario(int indiv1, int indiv2){
-  int a,b,p1,p2;
-  char aux;
-  //for (int i=n_individuos-2; i<n_individuos; i++){
-      //a=Select_Random_Individuo(n_individuos,i,0);
-      //b=Select_Random_Individuo(n_individuos,i,0);
-      PuntoCorte2(tamano[indiv1],p1,p2);
-      modificado[indiv1]=true;
-      modificado[indiv2]=true;
-      for (int j=p1; j<p2; j++){
-        aux=individuos[indiv2][j];
-        individuos[indiv2][j]=individuos[indiv1][j];
-        individuos[indiv1][j]=aux;
-      }
-
-  //}
-}
-
-void poblacionbinaria::CruceAND_OR_Estacionario(int indiv1, int indiv2){
-  int a,b,p1,p2;
-  char aux;
-  int i=n_individuos-2;
-
-  PuntoCorte2(tamano[i],p1,p2);
-  modificado[i]=true;
-  modificado[i+1]=true;
-  for (int j=p1; j<p2; j++){
-    if (individuos[indiv1][j] =='1' && individuos[indiv2][j] =='1')
-       individuos[i][j]='1';
-    else
-       individuos[i][j]='0';
-
-    if (individuos[indiv1][j] =='1' || individuos[indiv2][j] =='1')
-       individuos[i+1][j]='1';
-    else
-       individuos[i+1][j]='0';
-  }
-}
-
-void poblacionbinaria::CruceNAND_NOR_Estacionario(int indiv1, int indiv2){
-  int a,b,p1,p2;
-  char aux;
-  int i=n_individuos-2;
-      modificado[i]=true;
-      modificado[i+1]=true;
-      for (int j=0; j<tamano[i]; j++){
-        if (individuos[indiv1][j] =='1' && individuos[indiv2][j] =='1')
-          individuos[i][j]='0';
-        else
-          individuos[i][j]='1';
-
-        if (individuos[indiv1][j] =='1' || individuos[indiv2][j] =='1')
-          individuos[i+1][j]='0';
-        else
-          individuos[i+1][j]='1';
-      }
 }
 
 }  // namespace inslv

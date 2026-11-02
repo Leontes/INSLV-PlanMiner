@@ -1,60 +1,30 @@
 // SPDX-License-Identifier: GPL-3.0-only
-/***************************************************************************
-                          poblacionreal.h  -  description
-                             -------------------
-    begin                : Tue Apr 30 2002
-    copyright            : (C) 2002 by Ral P�ez
-    email                : fgr@decsai.ugr.es
- ***************************************************************************/
+// Una población de individuos reales. Parte de NSLV, de Raúl Pérez (2002).
+#pragma once
 
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-#ifndef _POBLACIONREALH_
-#define _POBLACIONREALH_
+#include "inslv/genetico/poblacion.h"
 
 namespace inslv {
 
-class poblacionreal{
-  private:
-    double prob_mutacion;
-    double prob_cruce;
-    int elitismo;
-    int n_individuos;
-    int *tamano;
-    bool *modificado;
-    double rango_i;
-    double rango_s;
-    double **individuos;
-  public:
-    poblacionreal(double raninf, double ransup, double mut, double cruce, int eli, int n, int tama);
-    ~poblacionreal();
-    // Operaciones en la estructura
-    double* Individuo(int i, int &tama) const;
-    void Pasar(int i, const poblacionreal &x, int j);
-    void Codigo(int i, double *&v, int &tama) const;
-    void Swap(int i, int j);
-    void PutValue(int indiv, int bit, double value);
-    void PoblacionInicialAleatoria(int n_item);
+/// En la que usa el aprendizaje, el último valor de cada individuo es un umbral y los demás, uno
+/// por atributo, se comparan con él.
+class poblacionreal : public poblacion<double> {
+ public:
+  /// n individuos de tama valores, que mutan con probabilidad mut.
+  poblacionreal(double mut, int n, int tama);
 
-    void PoblacionInicial(double **I, int clases);
+  /// El último valor de cada individuo, a n_item.
+  void PoblacionInicialAleatoria(int n_item);
+  /// Cada individuo i, para la clase c = i % clases: el valor j, I[j][c + 1] o, si es el mismo
+  /// para todos los j, uno al azar entre 0 y 1; y el umbral, a 0,2.
+  void PoblacionInicial(const double* const* I, int clases);
 
+  /// Con la probabilidad de mutación, cada valor de los dos últimos individuos (salvo el umbral)
+  /// pasa a estar justo al otro lado del umbral (a 0,01), sin salirse de [0, 1].
+  void MutacionUniforme_Estacionario();
 
-
-    void MutacionUniforme_Estacionario();
-    void Cruce2puntos_Estacionario(int indiv1, int indiv2);
-    void CruceAND_OR_Estacionario(int indiv1, int indiv2);
-    void CruceNAND_NOR_Estacionario(int indiv1, int indiv2);
+ private:
+  double prob_mutacion_;
 };
 
-
-
 }  // namespace inslv
-
-#endif
