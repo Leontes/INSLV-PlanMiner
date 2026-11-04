@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include "inslv/difuso/fuzzy_t.h"
+#include "inslv/difuso/etiqueta.hpp"
 
 #include <string>
 #include <utility>
 
 #include "inslv/comun/progreso.hpp"
 
-namespace inslv {
+namespace inslv::difuso {
 
-fuzzy_t::fuzzy_t(double a, double b, double c, double d, std::string nombre)
+Etiqueta::Etiqueta(double a, double b, double c, double d, std::string nombre)
     : a_(a), b_(b), c_(c), d_(d), nombre_(std::move(nombre)) {}
 
-double fuzzy_t::Adaptacion(double x) const {
+double Etiqueta::adaptacion(double x) const {
   if (x == -999999999) {
     return 1;
   }
@@ -30,12 +30,12 @@ double fuzzy_t::Adaptacion(double x) const {
   return 0;
 }
 
-void fuzzy_t::Pinta() const {
+void Etiqueta::pintar() const {
   comun::progreso(Verbosidad::depuracion)
       << "Nombre: " << nombre_ << '\n'
       << "[" << a_ << "," << b_ << "," << c_ << "," << d_ << "]\n";
 }
 
-std::string fuzzy_t::SPrint() const { return nombre_; }
+const std::string& Etiqueta::nombre() const { return nombre_; }
 
-}  // namespace inslv
+}  // namespace inslv::difuso

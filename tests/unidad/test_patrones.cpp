@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "inslv/aprendizaje/patrones.h"
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/inslv.hpp"
 #include "inslv/reglas/ruleset.h"
@@ -18,11 +18,11 @@ inslv::Variable logica(const std::string& nombre) {
   return {nombre, {{"False", 0, 0, 0, 0}, {"True", 1, 1, 1, 1}}};
 }
 
-inslv::VectorVar variables() {
+inslv::difuso::Variables variables() {
   inslv::Datos datos;
   datos.atributos = {logica("a"), logica("b")};
   datos.clase = {"Clase", {{"No", 0, 0, 0, 0}, {"Si", 1, 1, 1, 1}}};
-  return inslv::VectorVar(datos);
+  return inslv::difuso::Variables(datos);
 }
 
 // Una regla con los dos atributos por encima del umbral.
@@ -30,14 +30,14 @@ inslv::genetcode regla(const std::string& etiquetas, int clase) {
   return {etiquetas, clase, {1, 1, 0.5}};
 }
 
-inslv::ruleset conjunto(const inslv::VectorVar& V) {
+inslv::ruleset conjunto(const inslv::difuso::Variables& V) {
   inslv::ruleset reglas;
   reglas.AddDomain(V);
   return reglas;
 }
 
 TEST(Patrones, ElPatronDeUnaRegla) {
-  const inslv::VectorVar V = variables();
+  const inslv::difuso::Variables V = variables();
   inslv::ruleset R = conjunto(V);
   R.Add(regla("0101", 1), 0.5);
   EXPECT_EQ(inslv::Patron1Regla(R, 0), "0101");
@@ -45,7 +45,7 @@ TEST(Patrones, ElPatronDeUnaRegla) {
 }
 
 TEST(Patrones, ElPatronDeDosReglasEmparejadas) {
-  const inslv::VectorVar V = variables();
+  const inslv::difuso::Variables V = variables();
   inslv::ruleset descriptiva = conjunto(V);
   inslv::ruleset discriminante = conjunto(V);
   descriptiva.Add(regla("0101", 1), 0.5);
@@ -54,7 +54,7 @@ TEST(Patrones, ElPatronDeDosReglasEmparejadas) {
 }
 
 TEST(Patrones, UnAtributoPorDebajoDelUmbralAdmiteTodas) {
-  const inslv::VectorVar V = variables();
+  const inslv::difuso::Variables V = variables();
   inslv::ruleset descriptiva = conjunto(V);
   inslv::ruleset discriminante = conjunto(V);
   descriptiva.Add(regla("0101", 1), 0.5);
@@ -70,7 +70,7 @@ TEST(Patrones, EspecificacionDeOtra) {
 }
 
 TEST(Patrones, FiltrarQuitaLasReglasDeLosTresConjuntos) {
-  const inslv::VectorVar V = variables();
+  const inslv::difuso::Variables V = variables();
   inslv::ruleset R = conjunto(V);
   inslv::ruleset R_dis = conjunto(V);
   inslv::ruleset R_mix = conjunto(V);
@@ -98,7 +98,7 @@ class Analizar : public testing::Test {
     R_mix.Add(regla(patron, clase), mas, menos, false);
   }
 
-  inslv::VectorVar V = variables();
+  inslv::difuso::Variables V = variables();
   inslv::ruleset R = conjunto(V);
   inslv::ruleset R_Descrip = conjunto(V);
   inslv::ruleset R_mix = conjunto(V);

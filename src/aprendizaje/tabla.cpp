@@ -14,14 +14,15 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 }  // namespace
 
-TablaDeAdaptaciones::TablaDeAdaptaciones(const VectorVar& V, const datos::Ejemplos& E)
-    : n_antecedente_(V.N_Antecedente()), consecuente_(V.Consecuente()) {
-  const int n = V.TotalVariables();
+TablaDeAdaptaciones::TablaDeAdaptaciones(const difuso::Variables& V, const datos::Ejemplos& E)
+    : n_antecedente_(V.numero_de_atributos()), consecuente_(V.consecuente()) {
+  const int n = V.numero_de_variables();
   const int m = E.numero_de_ejemplos();
 
   adaptaciones_.resize(indice(n));
   for (int v = 0; v < n; ++v) {
-    adaptaciones_[indice(v)].assign(indice(V.SizeDomain(v)), std::vector<double>(indice(m)));
+    adaptaciones_[indice(v)].assign(indice(V.numero_de_etiquetas(v)),
+                                    std::vector<double>(indice(m)));
   }
 
   for (int e = 0; e < m; ++e) {
@@ -30,7 +31,7 @@ TablaDeAdaptaciones::TablaDeAdaptaciones(const VectorVar& V, const datos::Ejempl
       std::vector<std::vector<double>>& etiquetas = adaptaciones_[indice(v)];
       int valores_distinto_cero = 0;
       for (std::size_t j = 0; j < etiquetas.size(); ++j) {
-        const double adaptacion = V.Adaptacion(valor, v, static_cast<int>(j));
+        const double adaptacion = V.adaptacion(valor, v, static_cast<int>(j));
         etiquetas[j][indice(e)] = adaptacion;
         if (adaptacion > 0 && adaptacion <= 1) {
           ++valores_distinto_cero;

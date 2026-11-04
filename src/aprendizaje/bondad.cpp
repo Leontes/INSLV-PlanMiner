@@ -48,7 +48,7 @@ void fitness(const Evaluacion& ev) {
 void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
                                  std::vector<int>& reglas_a_eliminar) {
   multipoblacion& G = ev.G;
-  const VectorVar& V = ev.V;
+  const difuso::Variables& V = ev.V;
   std::string& etiquetas = G.Etiquetas(elemento_i);
   std::vector<double>& niveles = G.Niveles(elemento_i);
   const std::size_t atributos = niveles.size() - 1;
@@ -56,7 +56,7 @@ void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
 
   std::size_t tama = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
-    const auto longitud = indice(V.Variable(static_cast<int>(j)).N_etiquetas());
+    const auto longitud = indice(V.numero_de_etiquetas(static_cast<int>(j)));
     if (niveles[j] < umbral) {
       etiquetas.replace(tama, longitud, longitud, '1');
     }
@@ -88,7 +88,7 @@ void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
   tama = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
     const double aux2 = niveles[j];
-    const auto longitud = indice(V.Variable(static_cast<int>(j)).N_etiquetas());
+    const auto longitud = indice(V.numero_de_etiquetas(static_cast<int>(j)));
 
     if (niveles[j] >= umbral) {
       for (std::size_t s = 0; s < longitud; ++s) {
@@ -114,7 +114,7 @@ void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
 void Obtener_Regla_Descriptiva(const Evaluacion& ev, int elemento_i,
                                std::vector<int>& reglas_a_eliminar) {
   multipoblacion& G = ev.G;
-  const VectorVar& V = ev.V;
+  const difuso::Variables& V = ev.V;
   std::string& etiquetas = G.Etiquetas(elemento_i);
   std::vector<double>& niveles = G.Niveles(elemento_i);
   const std::size_t atributos = niveles.size() - 1;
@@ -127,7 +127,7 @@ void Obtener_Regla_Descriptiva(const Evaluacion& ev, int elemento_i,
 
   std::size_t tama = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
-    const auto longitud = indice(V.Variable(static_cast<int>(j)).N_etiquetas());
+    const auto longitud = indice(V.numero_de_etiquetas(static_cast<int>(j)));
 
     if (niveles[j] < umbral) {
       // Añade el atributo a la regla si, quitándole alguna etiqueta, no empeora.
@@ -201,7 +201,7 @@ double Weight_Individual(const multipoblacion& G, const datos::Ejemplos& E,
 double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
               std::vector<int>& reglas_a_eliminar) {
   multipoblacion& G = ev.G;
-  const VectorVar& V = ev.V;
+  const difuso::Variables& V = ev.V;
   const datos::Ejemplos& E = ev.E;
   const ruleset& R = ev.R;
   const std::vector<int>& ponderacion_por_clase = ev.ponderacion_por_clase;
@@ -221,7 +221,7 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
   std::size_t pos = 0;  // posicion en el cromosoma nivel de valor
 
   for (std::size_t j = 0; j < atributos; ++j) {
-    const auto tamanio = indice(V.Variable(static_cast<int>(j)).N_etiquetas());
+    const auto tamanio = indice(V.numero_de_etiquetas(static_cast<int>(j)));
     const std::string_view trozo = std::string_view(etiquetas).substr(pos, tamanio);
     if (niveles[j] < umbral) {
       ++variables_irrelevantes;
@@ -237,7 +237,7 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
   const int variables_relevantes = static_cast<int>(atributos - variables_irrelevantes);
 
   // Comprobar que es una regla valida
-  if (!V.Es_Valida(etiquetas, niveles) || variables_irrelevantes >= atributos) {
+  if (!V.es_valida(etiquetas, niveles) || variables_irrelevantes >= atributos) {
     valor.fill(-2 * ne);
     return 0;
   }
@@ -302,7 +302,7 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
       if (-a * peso > E.grado_positivo(j) ||
           (-a * peso == E.grado_positivo(j) && peso > E.peso_positivo(j))) {
         negativos =
-            negativos + ((-a * peso) / ponderacion_por_clase[indice(E.clase(V.Consecuente(), j))]);
+            negativos + ((-a * peso) / ponderacion_por_clase[indice(E.clase(V.consecuente(), j))]);
         if (!E.bien_clasificado(j)) {
           anota(errores_esta_regla, j, -1);
         } else {

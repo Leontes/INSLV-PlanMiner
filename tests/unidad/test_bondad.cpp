@@ -11,7 +11,7 @@
 #include "inslv/aprendizaje/bondad.h"
 #include "inslv/aprendizaje/tabla.h"
 #include "inslv/datos/ejemplos.hpp"
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/genetico/multipoblacion.h"
 #include "inslv/inslv.hpp"
@@ -23,11 +23,11 @@ inslv::Variable logica(const std::string& nombre) {
   return {nombre, {{"False", 0, 0, 0, 0}, {"True", 1, 1, 1, 1}}};
 }
 
-inslv::VectorVar variables() {
+inslv::difuso::Variables variables() {
   inslv::Datos datos;
   datos.atributos = {logica("a"), logica("b")};
   datos.clase = {"Clase", {{"No", 0, 0, 0, 0}, {"Si", 1, 1, 1, 1}}};
-  return inslv::VectorVar(datos);
+  return inslv::difuso::Variables(datos);
 }
 
 // 8 ejemplos: la clase es el valor de a; b no tiene relación con ella.
@@ -51,7 +51,7 @@ class Bondad : public testing::Test {
     return {G, V, E, R, false, por_clase, tabla, basica, errores, 0};
   }
 
-  inslv::VectorVar V = variables();
+  inslv::difuso::Variables V = variables();
   inslv::datos::Ejemplos E = ejemplos();
   inslv::TablaDeAdaptaciones tabla{V, E};
   inslv::multipoblacion G = poblacion();
@@ -178,7 +178,7 @@ TEST_F(Bondad, EspecializarQuitaLasEtiquetasQueNoHacenFalta) {
 }
 
 TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
-  const inslv::VectorVar V = variables();
+  const inslv::difuso::Variables V = variables();
   inslv::datos::Ejemplos E = ejemplos();
   inslv::ruleset R;
   R.AddDomain(V);
@@ -196,7 +196,7 @@ TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
 }
 
 TEST(Aciertos, LasReglasQueDisparan) {
-  const inslv::VectorVar V = variables();
+  const inslv::difuso::Variables V = variables();
   const inslv::datos::Ejemplos E = ejemplos();
   inslv::ruleset R;
   R.AddDomain(V);

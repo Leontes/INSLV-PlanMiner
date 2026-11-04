@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "inslv/datos/ejemplos.hpp"
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 
 namespace inslv {
 
@@ -14,7 +14,7 @@ namespace inslv {
 class TablaDeAdaptaciones {
  public:
   /// Lanza std::invalid_argument si algún valor no se adapta a ninguna etiqueta de su variable.
-  TablaDeAdaptaciones(const VectorVar& V, const datos::Ejemplos& E);
+  TablaDeAdaptaciones(const difuso::Variables& V, const datos::Ejemplos& E);
 
   /// La adaptación del ejemplo a una etiqueta de la variable.
   [[nodiscard]] double Etiqueta(int ejemplo, int variable, int etiqueta) const;

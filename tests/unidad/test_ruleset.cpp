@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "inslv/datos/ejemplos.hpp"
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/inslv.hpp"
 #include "inslv/reglas/ruleset.h"
@@ -22,11 +22,11 @@ inslv::Variable logica(const std::string& nombre) {
   return {nombre, {{"False", 0, 0, 0, 0}, {"True", 1, 1, 1, 1}}};
 }
 
-inslv::VectorVar variables() {
+inslv::difuso::Variables variables() {
   inslv::Datos datos;
   datos.atributos = {logica("a"), logica("b")};
   datos.clase = {"Clase", {{"No", 0, 0, 0, 0}, {"Si", 1, 1, 1, 1}}};
-  return inslv::VectorVar(datos);
+  return inslv::difuso::Variables(datos);
 }
 
 // Una regla: bits, las etiquetas que admiten a y b, seguidas; niveles, los de a y b (el umbral es

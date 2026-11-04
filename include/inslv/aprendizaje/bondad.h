@@ -6,7 +6,7 @@
 
 #include "inslv/aprendizaje/tabla.h"
 #include "inslv/datos/ejemplos.hpp"
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/multipoblacion.h"
 #include "inslv/reglas/ruleset.h"
 
@@ -15,7 +15,7 @@ namespace inslv {
 /// Lo que necesita la bondad de un individuo y no cambia durante un genético.
 struct Evaluacion {
   multipoblacion& G;
-  const VectorVar& V;
+  const difuso::Variables& V;
   const datos::Ejemplos& E;
   const ruleset& R;
   /// Si solo se añaden reglas que eliminen a otras.

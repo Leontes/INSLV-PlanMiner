@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 #include "inslv/reglas/ruleset.h"
 
 namespace inslv {
@@ -20,14 +20,14 @@ void Comparar2patronesPinta(const std::string& cad1, const std::string& cad2);
 /// Las etiquetas de la regla pos, o una cadena vacía si no existe.
 [[nodiscard]] std::string Patron1Regla(const ruleset& R_1, int pos);
 /// El patrón de dos reglas emparejadas: sus etiquetas donde coinciden y '?' donde no.
-[[nodiscard]] std::string Patron2Reglas(const ruleset& R_1, const ruleset& R_2, const VectorVar& V,
-                                        int pos);
+[[nodiscard]] std::string Patron2Reglas(const ruleset& R_1, const ruleset& R_2,
+                                        const difuso::Variables& V, int pos);
 /// Quita las reglas de los tres conjuntos, emparejados. reglas_a_eliminar va en orden creciente.
 void Filtrar_Reglas_New(ruleset& R, ruleset& R_dis, ruleset& R_mix,
                         const std::vector<int>& reglas_a_eliminar);
 /// Combina las nuevas (las primeras) con las demás reglas de su clase que tengan un patrón
 /// compatible, y resta peso a las que tengan el mismo patrón que una de otra clase.
-void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descrip, ruleset& R_mix,
-                               int nuevas);
+void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& R_Descrip,
+                               ruleset& R_mix, int nuevas);
 
 }  // namespace inslv

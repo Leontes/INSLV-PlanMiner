@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "inslv/datos/ejemplo.hpp"
-#include "inslv/difuso/VectorVar.h"
+#include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/inslv.hpp"
 
@@ -22,7 +22,7 @@ namespace inslv {
 class ruleset {
  public:
   /// Las variables de los atributos y la clase.
-  void AddDomain(const VectorVar& x);
+  void AddDomain(const difuso::Variables& x);
 
   /// Añade una regla al final, con ese peso (N+ y N- a 0) y como modificada.
   void Add(const genetcode& x, double weight);
@@ -116,7 +116,7 @@ class ruleset {
   [[nodiscard]] std::vector<AtributoRelevante> Relevantes(const genetcode& code) const;
 
   std::vector<ReglaCodificada> reglas_;
-  VectorVar domain_;
+  difuso::Variables variables_;
 };
 
 }  // namespace inslv

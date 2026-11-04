@@ -39,9 +39,10 @@ double adaptacion(double valor, const ConjuntoDifuso& etiqueta) {
   return 0;
 }
 
-// La adaptación de un valor a una condición, como domain_t::Adaptacion: recorre sus etiquetas en
-// orden; la de la primera a la que se adapta el valor y, si se adapta a otra más, 1 (supone que
-// las etiquetas forman una partición: la unión de dos que se solapan cubre el valor por completo).
+// La adaptación de un valor a una condición, como difuso::Dominio::adaptacion: recorre sus
+// etiquetas en orden; la de la primera a la que se adapta el valor y, si se adapta a otra más, 1
+// (supone que las etiquetas forman una partición: la unión de dos que se solapan cubre el valor por
+// completo).
 double adaptacion(double valor, const Condicion& condicion, const Variable& atributo) {
   std::vector<std::size_t> etiquetas = condicion.etiquetas;
   std::sort(etiquetas.begin(), etiquetas.end());
@@ -61,7 +62,8 @@ double adaptacion(double valor, const Condicion& condicion, const Variable& atri
   return resultado;
 }
 
-// La adaptación de un ejemplo a una regla: la menor de sus condiciones (VectorVar::Adaptacion).
+// La adaptación de un ejemplo a una regla: la menor de sus condiciones
+// (difuso::Variables::adaptacion).
 double adaptacion(const Regla& regla, const Datos& datos, std::size_t ejemplo) {
   double menor = 1;
   for (const Condicion& condicion : regla.antecedente) {

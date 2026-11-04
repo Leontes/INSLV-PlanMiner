@@ -40,7 +40,7 @@ void Obtener_Aciertos_y_Errores_Reglas_Aprendidas(const datos::Ejemplos& E,
 }
 
 // Los aciertos de cada regla, para el informe (marca los ejemplos, como Aciertos).
-double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, datos::Ejemplos& E,
+double Aciertos_Por_Regla(const ruleset& R, const difuso::Variables& V, datos::Ejemplos& E,
                           const std::string& nomfich) {
   const double acierto = Aciertos(R, V, E);
   std::vector<int> bien_clas(indice(R.N_rule()));
@@ -71,7 +71,7 @@ double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, datos::Ejemplos&
   return acierto;
 }
 
-void Escribir_Informe(const std::string& task_res, const VectorVar& V, datos::Ejemplos& E,
+void Escribir_Informe(const std::string& task_res, const difuso::Variables& V, datos::Ejemplos& E,
                       const ruleset& R_prev, const ruleset& R_prev_dis, const ruleset& R_mix_prev,
                       double tiempo) {
   const double aciertos_discriminantes = Aciertos_Por_Regla(R_prev_dis, V, E, task_res);
@@ -107,19 +107,19 @@ void Escribir_Informe(const std::string& task_res, const VectorVar& V, datos::Ej
     out << Patron1Regla(R_mix_prev, kk) << '(' << R_mix_prev.Class_of_rule(kk) << ")\n";
   }
 
-  out << "Frecuencia de aparicion de las " << V.N_Antecedente()
+  out << "Frecuencia de aparicion de las " << V.numero_de_atributos()
       << " distintas variables en las reglas: \n";
-  for (int i = 0; i < V.N_Antecedente(); ++i) {
-    out << V.SPrintVar(i) << ": --> "
+  for (int i = 0; i < V.numero_de_atributos(); ++i) {
+    out << V.nombre(i) << ": --> "
         << (1.0 * frecuencia_variables[indice(i)] / R_prev.N_rule()) * 100 << " %\n";
   }
 }
 
 }  // namespace
 
-double Aciertos(const ruleset& R, const VectorVar& V, datos::Ejemplos& E) {
+double Aciertos(const ruleset& R, const difuso::Variables& V, datos::Ejemplos& E) {
   const int n = E.numero_de_ejemplos();
-  const int conse = V.Consecuente();
+  const int conse = V.consecuente();
   double bien = 0;
 
   for (int i = 0; i < n; ++i) {
@@ -176,12 +176,13 @@ void ActualizarPeso(multipoblacion& G, const datos::Ejemplos& E, ruleset& R,
   }
 }
 
-std::vector<Regla> Aprender(const VectorVar& V, const datos::Ejemplos& E, const Opciones& options) {
+std::vector<Regla> Aprender(const difuso::Variables& V, const datos::Ejemplos& E,
+                            const Opciones& options) {
   // El informe (el antiguo <tarea>.res) solo se escribe si se pide.
   const bool informe = !options.informe.empty();
   const std::string task_res = options.informe.string();
 
-  V.Pinta();
+  V.pintar();
 
   if (informe) {
     std::ofstream out(task_res);
@@ -194,12 +195,10 @@ std::vector<Regla> Aprender(const VectorVar& V, const datos::Ejemplos& E, const 
   std::srand(options.semilla);
   comun::progreso(Verbosidad::depuracion) << "SEED " << options.semilla << '\n';
 
-  // El tamano del nivel de valor y el numero de clases
-  int tama_valor = 0;
-  int n_clases = 0;
-  V.Encode(tama_valor, n_clases);
+  const int tama_valor = V.etiquetas_de_atributos();
+  const int n_clases = V.numero_de_etiquetas(V.consecuente());
   // El nivel de variable: el de cada atributo y el umbral
-  const int tama_nivel = V.N_Antecedente() + 1;
+  const int tama_nivel = V.numero_de_atributos() + 1;
 
   comun::progreso(Verbosidad::detalle) << "Calculando medidas de informacion\n";
   const std::vector<std::vector<double>> Med_Inform =
@@ -360,7 +359,7 @@ std::vector<Regla> Aprender(const VectorVar& V, const datos::Ejemplos& E, const 
       do {
         const int anterior_n = E_Par_Not_Covered.sin_clasificar_bien();
         const std::vector<int> ejemplos_por_clase =
-            E_Par_Not_Covered.sin_clasificar_bien_por_clase(V.Consecuente(), n_clases);
+            E_Par_Not_Covered.sin_clasificar_bien_por_clase(V.consecuente(), n_clases);
 
         std::vector<int> basica_para_regla(indice(R.N_rule() + 1));
         std::vector<int> errores_para_regla(indice(R.N_rule() + 1));

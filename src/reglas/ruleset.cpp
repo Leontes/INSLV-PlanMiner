@@ -66,7 +66,7 @@ ruleset::ReglaCodificada& ruleset::Regla_i(int i) {
   return reglas_[indice(i)];
 }
 
-void ruleset::AddDomain(const VectorVar& x) { domain_ = x; }
+void ruleset::AddDomain(const difuso::Variables& x) { variables_ = x; }
 
 void ruleset::Add(const genetcode& x, double weight) { reglas_.push_back({x, weight, 0, 0, true}); }
 
@@ -159,7 +159,7 @@ int ruleset::Numero_Ceros_of_rule(int i) const {
   int ceros = 0;
   std::size_t donde = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
-    const auto n_casos = indice(domain_.SizeDomain(static_cast<int>(j)));
+    const auto n_casos = indice(variables_.numero_de_etiquetas(static_cast<int>(j)));
     if (code.niveles[j] >= code.niveles.back()) {
       const std::string_view etiquetas = std::string_view(code.etiquetas).substr(donde, n_casos);
       ceros += static_cast<int>(std::count(etiquetas.begin(), etiquetas.end(), '0'));
@@ -172,8 +172,8 @@ int ruleset::Numero_Ceros_of_rule(int i) const {
 std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetcode& code) const {
   std::vector<AtributoRelevante> relevantes;
   std::size_t donde = 0;
-  for (int j = 0; j < domain_.N_Antecedente(); ++j) {
-    const auto n_casos = indice(domain_.SizeDomain(j));
+  for (int j = 0; j < variables_.numero_de_atributos(); ++j) {
+    const auto n_casos = indice(variables_.numero_de_etiquetas(j));
     const std::string_view etiquetas = std::string_view(code.etiquetas).substr(donde, n_casos);
     if (code.niveles[indice(j)] >= code.niveles.back() &&
         !std::all_of(etiquetas.begin(), etiquetas.end(), [](char bit) { return bit == '1'; })) {
@@ -186,7 +186,7 @@ std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetcode& cod
 
 double ruleset::Frecuence_each_Variables(std::vector<int>& frec) const {
   // En el original leía la regla 0 para saber cuántos atributos hay, aunque no hubiera reglas.
-  frec.assign(indice(domain_.N_Antecedente()), 0);
+  frec.assign(indice(variables_.numero_de_atributos()), 0);
   for (const ReglaCodificada& regla : reglas_) {
     for (const AtributoRelevante& relevante : Relevantes(regla.codigo)) {
       ++frec[indice(relevante.atributo)];
@@ -205,7 +205,7 @@ int ruleset::Condiciones_per_RB() const {
 }
 
 double ruleset::Adaptacion(const datos::Ejemplo& v, const ReglaCodificada& regla) const {
-  return domain_.Adaptacion(v, regla.codigo.etiquetas, regla.codigo.niveles) * regla.peso;
+  return variables_.adaptacion(v, regla.codigo.etiquetas, regla.codigo.niveles) * regla.peso;
 }
 
 int ruleset::InferenceC(const datos::Ejemplo& v, double& grado, int& regla_disparada) const {
@@ -308,7 +308,7 @@ int ruleset::InferenceC(const datos::Ejemplo& v, int clase, double& grado_p, dou
 int ruleset::Class_of_rule(int i) const { return Regla_i(i).codigo.clase; }
 
 std::string ruleset::SPrint_Consequent(int i) const {
-  return domain_.SPrintDomain(domain_.Consecuente(), Class_of_rule(i));
+  return variables_.nombre_de_etiqueta(variables_.consecuente(), Class_of_rule(i));
 }
 
 std::string ruleset::SPrint(int i) const {
@@ -317,18 +317,18 @@ std::string ruleset::SPrint(int i) const {
   std::ostringstream buffer;
   buffer << "IF\n";
   for (const AtributoRelevante& relevante : Relevantes(code)) {
-    buffer << '\t' << domain_.SPrintVar(relevante.atributo) << " = {";
+    buffer << '\t' << variables_.nombre(relevante.atributo) << " = {";
     for (std::size_t t = 0; t < relevante.n_casos; ++t) {
       if (code.etiquetas[relevante.donde + t] == '1') {
-        buffer << ' ' << domain_.SPrintDomain(relevante.atributo, static_cast<int>(t));
+        buffer << ' ' << variables_.nombre_de_etiqueta(relevante.atributo, static_cast<int>(t));
       }
     }
     buffer << "}\n";
   }
 
-  const int consecuente = domain_.Consecuente();
-  buffer << "THEN " << domain_.SPrintVar(consecuente) << " IS "
-         << domain_.SPrintDomain(consecuente, Class_of_rule(i)) << "   W " << regla.peso
+  const int consecuente = variables_.consecuente();
+  buffer << "THEN " << variables_.nombre(consecuente) << " IS "
+         << variables_.nombre_de_etiqueta(consecuente, Class_of_rule(i)) << "   W " << regla.peso
          << " and N+= " << regla.n_mas << " and N-= " << regla.n_menos << '\n';
   return buffer.str();
 }

@@ -35,11 +35,11 @@ int Comparar2patrones(const std::string& cad1, const std::string& cad2) {
 }
 
 // Las etiquetas de la regla, con los atributos por debajo del umbral admitiendo todas.
-std::string EtiquetasEfectivas(const genetcode& code, const VectorVar& V) {
+std::string EtiquetasEfectivas(const genetcode& code, const difuso::Variables& V) {
   std::string etiquetas = code.etiquetas;
   std::size_t tama = 0;
-  for (int j = 0; j < V.N_Antecedente(); ++j) {
-    const auto longitud = indice(V.SizeDomain(j));
+  for (int j = 0; j < V.numero_de_atributos(); ++j) {
+    const auto longitud = indice(V.numero_de_etiquetas(j));
     if (code.niveles[indice(j)] < code.niveles.back()) {
       etiquetas.replace(tama, longitud, longitud, '1');
     }
@@ -65,20 +65,21 @@ std::string Interseccion(const std::string& cad1, const std::string& cad2) {
 }
 
 // Hace la union de las dos reglas y la operacion la almacena en la regla r1
-void UnionReglasDescriptivas(const VectorVar& V, ruleset& R1, int r1, const ruleset& R2, int r2) {
+void UnionReglasDescriptivas(const difuso::Variables& V, ruleset& R1, int r1, const ruleset& R2,
+                             int r2) {
   const std::string patron = Union(EtiquetasEfectivas(R1.Get_Code_Rule(r1), V),
                                    EtiquetasEfectivas(R2.Get_Code_Rule(r2), V));
   R1.Get_Code_Rule(r1).etiquetas = patron;
 }
 
 // Hace la interseccion de las dos reglas y la operacion la almacena en la regla r1
-void IntersecionReglasDiscriminantes(const VectorVar& V, ruleset& R1, int r1, const ruleset& R2,
-                                     int r2) {
+void IntersecionReglasDiscriminantes(const difuso::Variables& V, ruleset& R1, int r1,
+                                     const ruleset& R2, int r2) {
   const std::string patron = Interseccion(EtiquetasEfectivas(R1.Get_Code_Rule(r1), V),
                                           EtiquetasEfectivas(R2.Get_Code_Rule(r2), V));
   genetcode& code = R1.Get_Code_Rule(r1);
   code.etiquetas = patron;
-  for (int j = 0; j < V.N_Antecedente(); ++j) {
+  for (int j = 0; j < V.numero_de_atributos(); ++j) {
     if (code.niveles[indice(j)] < code.niveles.back()) {
       code.niveles[indice(j)] = code.niveles.back();
     }
@@ -150,7 +151,8 @@ std::string Patron1Regla(const ruleset& R_1, int pos) {
   return R_1.Get_Code_Rule(pos).etiquetas;
 }
 
-std::string Patron2Reglas(const ruleset& R_1, const ruleset& R_2, const VectorVar& V, int pos) {
+std::string Patron2Reglas(const ruleset& R_1, const ruleset& R_2, const difuso::Variables& V,
+                          int pos) {
   const std::string regla1 = EtiquetasEfectivas(R_1.Get_Code_Rule(pos), V);
   const std::string regla2 = EtiquetasEfectivas(R_2.Get_Code_Rule(pos), V);
   std::string regla3 = regla1;
@@ -171,8 +173,8 @@ void Filtrar_Reglas_New(ruleset& R, ruleset& R_dis, ruleset& R_mix,
   }
 }
 
-void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descrip, ruleset& R_mix,
-                               int nuevas) {
+void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& R_Descrip,
+                               ruleset& R_mix, int nuevas) {
   std::vector<bool> eliminar(indice(R.N_rule()), false);
 
   for (int i = 0; i < nuevas; ++i) {

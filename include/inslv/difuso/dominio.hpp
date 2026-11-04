@@ -1,34 +1,33 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// El dominio de una variable: sus etiquetas.
+// Las etiquetas de una variable.
 #pragma once
 
 #include <string>
 #include <vector>
 
-#include "inslv/difuso/fuzzy_t.h"
+#include "inslv/difuso/etiqueta.hpp"
 
-namespace inslv {
+namespace inslv::difuso {
 
-class domain_t {
+class Dominio {
  public:
-  domain_t() = default;
-  explicit domain_t(std::vector<fuzzy_t> etiquetas);
+  Dominio() = default;
+  explicit Dominio(std::vector<Etiqueta> etiquetas);
 
-  [[nodiscard]] int N_etiquetas() const;
+  [[nodiscard]] int numero_de_etiquetas() const;
   /// La adaptación del valor a la etiqueta. Lanza std::logic_error si no existe.
-  [[nodiscard]] double Adaptacion(double x, int etiqueta) const;
+  [[nodiscard]] double adaptacion(double x, int etiqueta) const;
   /// La adaptación del valor a un conjunto de etiquetas, dado como una cadena de 0 y 1 (una por
   /// etiqueta): la de la primera a la que se adapta el valor o, si se adapta a otra más, 1 (supone
   /// que las etiquetas forman una partición). Lanza std::logic_error si el dominio está vacío o la
   /// cadena es más larga que las etiquetas.
-  [[nodiscard]] double Adaptacion(double x, const std::string& etiquetas) const;
+  [[nodiscard]] double adaptacion(double x, const std::string& etiquetas) const;
   /// Las etiquetas, a la depuración.
-  void Pinta() const;
-  /// El nombre de la etiqueta i.
-  [[nodiscard]] std::string SPrint(int i) const;
+  void pintar() const;
+  [[nodiscard]] const std::string& nombre_de_etiqueta(int i) const;
 
  private:
-  std::vector<fuzzy_t> label_;
+  std::vector<Etiqueta> etiquetas_;
 };
 
-}  // namespace inslv
+}  // namespace inslv::difuso

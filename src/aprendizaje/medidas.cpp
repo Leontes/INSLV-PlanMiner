@@ -14,9 +14,9 @@ namespace {
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Las probabilidades de cada etiqueta de la variable en los ejemplos sin clasificar bien.
-std::vector<double> CalcularProbabilidadSimpleVariable(const VectorVar& V, const datos::Ejemplos& E,
-                                                       int variable) {
-  const auto n_casos = indice(V.SizeDomain(variable));
+std::vector<double> CalcularProbabilidadSimpleVariable(const difuso::Variables& V,
+                                                       const datos::Ejemplos& E, int variable) {
+  const auto n_casos = indice(V.numero_de_etiquetas(variable));
   std::vector<double> p(n_casos, 0);
   std::vector<double> aux(n_casos);
   int ne = 0;
@@ -24,7 +24,7 @@ std::vector<double> CalcularProbabilidadSimpleVariable(const VectorVar& V, const
     if (!E.bien_clasificado(i)) {
       double suma = 0;
       for (std::size_t j = 0; j < n_casos; ++j) {
-        aux[j] = V.Domain(variable).Adaptacion(E.valor(i, variable), static_cast<int>(j));
+        aux[j] = V.adaptacion(E.valor(i, variable), variable, static_cast<int>(j));
         suma += aux[j];
       }
       // Añadir los valores a la sumatoria
@@ -46,11 +46,11 @@ std::vector<double> CalcularProbabilidadSimpleVariable(const VectorVar& V, const
 }
 
 // Las probabilidades de cada par de etiquetas de dos variables, igual.
-std::vector<std::vector<double>> CalcularProbabilidadConjunta2Variables(const VectorVar& V,
+std::vector<std::vector<double>> CalcularProbabilidadConjunta2Variables(const difuso::Variables& V,
                                                                         const datos::Ejemplos& E,
                                                                         int var1, int var2) {
-  const auto n_casos1 = indice(V.SizeDomain(var1));
-  const auto n_casos2 = indice(V.SizeDomain(var2));
+  const auto n_casos1 = indice(V.numero_de_etiquetas(var1));
+  const auto n_casos2 = indice(V.numero_de_etiquetas(var2));
   std::vector<std::vector<double>> m(n_casos1, std::vector<double>(n_casos2, 0));
   std::vector<std::vector<double>> aux(n_casos1, std::vector<double>(n_casos2));
   int ne = 0;
@@ -59,8 +59,8 @@ std::vector<std::vector<double>> CalcularProbabilidadConjunta2Variables(const Ve
       double suma = 0;
       for (std::size_t j = 0; j < n_casos1; ++j) {
         for (std::size_t k = 0; k < n_casos2; ++k) {
-          aux[j][k] = V.Domain(var1).Adaptacion(E.valor(i, var1), static_cast<int>(j)) *
-                      V.Domain(var2).Adaptacion(E.valor(i, var2), static_cast<int>(k));
+          aux[j][k] = V.adaptacion(E.valor(i, var1), var1, static_cast<int>(j)) *
+                      V.adaptacion(E.valor(i, var2), var2, static_cast<int>(k));
           suma = suma + aux[j][k];
         }
       }
@@ -86,11 +86,12 @@ std::vector<std::vector<double>> CalcularProbabilidadConjunta2Variables(const Ve
 
 }  // namespace
 
-std::vector<std::vector<double>> MedidasDeInformacion(const VectorVar& V,
+std::vector<std::vector<double>> MedidasDeInformacion(const difuso::Variables& V,
                                                       const datos::Ejemplos& E) {
-  const int conse = V.Consecuente();
-  const auto n_clases = indice(V.SizeDomain(conse));
-  std::vector<std::vector<double>> I(indice(V.N_Antecedente()), std::vector<double>(n_clases + 1));
+  const int conse = V.consecuente();
+  const auto n_clases = indice(V.numero_de_etiquetas(conse));
+  std::vector<std::vector<double>> I(indice(V.numero_de_atributos()),
+                                     std::vector<double>(n_clases + 1));
 
   const std::vector<double> py = CalcularProbabilidadSimpleVariable(V, E, conse);
 
@@ -118,7 +119,7 @@ std::vector<std::vector<double>> MedidasDeInformacion(const VectorVar& V,
     }
     I[i][0] = H1 == 0 ? 0 : I1 / H1;
 
-    V.PrintVar(atributo);
+    V.pintar_nombre(atributo);
     comun::progreso(Verbosidad::depuracion) << ": " << I1 << "/" << H1 << ": " << I[i][0] << '\n';
   }
   return I;

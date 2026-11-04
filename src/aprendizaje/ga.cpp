@@ -19,17 +19,17 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 // Un individuo por cada elemento de la población: un ejemplo al azar de su clase sin clasificar
 // bien, como la mejor etiqueta de cada atributo; -1 si no quedan ejemplos de la clase.
 std::vector<std::vector<int>> Encontrar_Individuos_dados_ejemplos(
-    const VectorVar& V, const datos::Ejemplos& E, int nclases, int n_individuos,
+    const difuso::Variables& V, const datos::Ejemplos& E, int nclases, int n_individuos,
     const TablaDeAdaptaciones& tabla, const std::vector<int>& n_ejemplos_por_clase) {
   std::vector<std::vector<int>> matriz(indice(n_individuos),
-                                       std::vector<int>(indice(V.N_Antecedente()), -1));
+                                       std::vector<int>(indice(V.numero_de_atributos()), -1));
   for (int i = 0; i < n_individuos; ++i) {
     if (n_ejemplos_por_clase[indice(i % nclases)] != 0) {
       int a = Select_Random_Individuo(E.numero_de_ejemplos(), -1, 0);
-      while (E.bien_clasificado(a) || tabla.Etiqueta(a, V.Consecuente(), i % nclases) == 0) {
+      while (E.bien_clasificado(a) || tabla.Etiqueta(a, V.consecuente(), i % nclases) == 0) {
         a = (a + 1) % E.numero_de_ejemplos();
       }
-      for (int j = 0; j < V.N_Antecedente(); ++j) {
+      for (int j = 0; j < V.numero_de_atributos(); ++j) {
         matriz[indice(i)][indice(j)] = tabla.MejorEtiqueta(a, j);
       }
     }
@@ -43,22 +43,22 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
         const std::vector<std::vector<double>>& I, bool primeraVez,
         std::vector<int>& reglas_a_eliminar, bool& Added_Rule) {
   multipoblacion& G = ev.G;
-  const VectorVar& V = ev.V;
+  const difuso::Variables& V = ev.V;
   const datos::Ejemplos& E = ev.E;
 
   Added_Rule = false;
 
-  const int n_clases = V.SizeDomain(V.Consecuente());
+  const int n_clases = V.numero_de_etiquetas(V.consecuente());
 
   if (R.N_rule() == 0 || primeraVez) {
     const std::vector<int> n_ejemplos_por_clase =
-        E.sin_clasificar_bien_por_clase(V.Consecuente(), n_clases);
+        E.sin_clasificar_bien_por_clase(V.consecuente(), n_clases);
     const std::vector<std::vector<int>> sujetos = Encontrar_Individuos_dados_ejemplos(
         V, E, n_clases, G.N_individuos(), ev.tabla, n_ejemplos_por_clase);
     std::vector<int> lista_tamano;
-    lista_tamano.reserve(static_cast<std::size_t>(V.N_Antecedente()));
-    for (int i = 0; i < V.N_Antecedente(); ++i) {
-      lista_tamano.push_back(V.SizeDomain(i));
+    lista_tamano.reserve(static_cast<std::size_t>(V.numero_de_atributos()));
+    for (int i = 0; i < V.numero_de_atributos(); ++i) {
+      lista_tamano.push_back(V.numero_de_etiquetas(i));
     }
     G.PoblacionInicial(I, sujetos, lista_tamano);
   } else {
