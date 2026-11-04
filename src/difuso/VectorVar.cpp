@@ -12,8 +12,6 @@ namespace inslv {
 
 namespace {
 
-constexpr double desconocido = -999999999;
-
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Cuántas etiquetas admite (los 1 de la cadena).
@@ -25,27 +23,6 @@ int NumeroEtiquetasActivas(const std::string& sub) {
     }
   }
   return n;
-}
-
-// Las secuencias de 1 y de 0 seguidos de la cadena.
-void SecuenciasDeEtiquetasActivas(const std::string& sub, int& unos, int& ceros) {
-  unos = 0;
-  ceros = 0;
-  bool anterior_uno = sub[0] == '1';
-  if (anterior_uno) {
-    ++unos;
-  } else {
-    ++ceros;
-  }
-  for (std::size_t i = 1; i < sub.size(); ++i) {
-    if (anterior_uno && sub[i] == '0') {
-      anterior_uno = false;
-      ++ceros;
-    } else if (!anterior_uno && sub[i] == '1') {
-      anterior_uno = true;
-      ++unos;
-    }
-  }
 }
 
 }  // namespace
@@ -63,7 +40,6 @@ VectorVar::VectorVar(const Datos& data) {
     }
     lista_.emplace_back(variable.nombre, es_clase ? 1 : 0, std::move(etiquetas));
   }
-  oper_.resize(numero);
 }
 
 int VectorVar::N_Antecedente() const {
@@ -120,9 +96,7 @@ double VectorVar::Adaptacion(double x, int variable, int dominio) const {
   return lista_[indice(variable)].Adaptacion(x, dominio);
 }
 
-bool VectorVar::Es_Valida(const std::string& regla, const double* var, double umbral,
-                          double& simplicidad) const {
-  simplicidad = 0;
+bool VectorVar::Es_Valida(const std::string& regla, const double* var, double umbral) const {
   std::size_t trozo = 0;
   for (std::size_t i = 0; i < lista_.size(); ++i) {
     const variable_t& variable = lista_[i];
@@ -130,16 +104,8 @@ bool VectorVar::Es_Valida(const std::string& regla, const double* var, double um
       continue;
     }
     const auto tam = indice(variable.N_etiquetas());
-    if (var[i] >= umbral) {
-      int unos = 0;
-      int ceros = 0;
-      SecuenciasDeEtiquetasActivas(regla.substr(trozo, tam), unos, ceros);
-      if (unos == 0) {
-        return false;
-      }
-      if (unos == 1 || ceros == 1) {
-        simplicidad = simplicidad + 1;
-      }
+    if (var[i] >= umbral && NumeroEtiquetasActivas(regla.substr(trozo, tam)) == 0) {
+      return false;
     }
     trozo += tam;
   }
@@ -173,63 +139,6 @@ double VectorVar::Adaptacion(const vectordouble& x, const std::string& regla, co
   return max;
 }
 
-double VectorVar::Adaptacion_funcion(const vectordouble& x, const std::string& regla,
-                                     const int* lista_funcion, int tama,
-                                     double adaptacion_previa) const {
-  double max = adaptacion_previa;
-  std::size_t trozo = 0;
-  for (int i = 0; i < tama && max > 0; ++i) {
-    if (lista_funcion[i] != 0) {
-      const std::size_t f = indice(lista_funcion[i] - 1);
-      const std::string sub = regla.substr(trozo, indice(lista_[f].N_etiquetas()));
-      const double x1 = x.At(oper_[f].operando[0]);
-      const double x2 = x.At(oper_[f].operando[1]);
-      double resultado = 0;
-      if (x1 == desconocido || x2 == desconocido) {
-        resultado = desconocido;
-      } else {
-        switch (oper_[f].op) {
-          case 1:
-            resultado = x1 >= x2 ? 1 : 0;
-            break;
-          case 2:
-            resultado = x1 + x2;
-            break;
-          case 3:
-            resultado = x1 * x2;
-            break;
-          case 4:
-            resultado = x1 - x2;
-            break;
-          case 5:
-            if (x2 == 0) {
-              return desconocido;
-            }
-            resultado = x1 / x2;
-            break;
-          case 19:
-            resultado = x1 == x2 ? 1 : 0;
-            break;
-          case 7:
-          case 8:
-            resultado = x1;
-            break;
-          default:
-            max = 0;
-            break;
-        }
-      }
-      // En el original, aux quedaba sin inicializar si max ya era 0.
-      const double aux = max > 0 ? lista_[f].Adaptacion(resultado, sub) : max;
-      if (aux < max) {
-        max = aux;
-      }
-    }
-    trozo += 2;
-  }
-  return max;
-}
-
 const domain_t& VectorVar::Domain(int var) const { return lista_[indice(var)].Domain(); }
 
 const variable_t& VectorVar::Variable(int var) const { return lista_[indice(var)]; }
@@ -242,13 +151,6 @@ int VectorVar::Consecuente() const {
   }
   progreso(Verbosidad::depuracion) << "No hay variable consecuente\n";
   return -1;
-}
-
-void VectorVar::Funcion(int pos, int& x1, int& x2, int& op) const {
-  const combinado& funcion = oper_[indice(pos)];
-  x1 = funcion.operando[0];
-  x2 = funcion.operando[1];
-  op = funcion.op;
 }
 
 }  // namespace inslv

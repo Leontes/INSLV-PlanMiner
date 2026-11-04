@@ -10,29 +10,32 @@
 
 namespace inslv {
 
+namespace {
+
+string Cadena(const genetcode& code) {
+  const std::vector<char>& bits = code.Binary(0);
+  return {bits.begin(), bits.end()};
+}
+
+// Si la valoración v2 es mejor que la v en sus tres primeros valores.
+bool Mejor(const Fitness& v2, const Fitness& v) {
+  return (v2[0] > v[0]) or (v2[0] == v[0] and v2[1] > v[1]) or
+         (v2[0] == v[0] and v2[1] == v[1] and v2[2] > v[2]);
+}
+
+// Igual, o si es igual de buena.
+bool MejorOIgual(const Fitness& v2, const Fitness& v) {
+  return (v2[0] > v[0]) or (v2[0] == v[0] and v2[1] > v[1]) or
+         (v2[0] == v[0] and v2[1] == v[1] and v2[2] >= v[2]);
+}
+
+}  // namespace
+
 // En el original esperaba una tecla tras los avisos de consistencia del análisis de patrones.
 // Como librería no puede bloquearse esperando la entrada estándar: solo avisa.
 void Pausa() {
   progreso(Verbosidad::detalle)
       << "INSLV: aviso de consistencia en el análisis de patrones (ver la salida anterior)\n";
-}
-
-bool vectoresIguales(double* v1, double* v2, int tama) {
-  int i = 0;
-
-  while (i < tama and v1[i] == v2[i]) {
-    i++;
-  }
-
-  return (i == tama);
-}
-
-int DistanciaHamming(const string& s1, const string& s2) {
-  int cont = 0;
-  for (int i = 0; i < s1.length(); i++)
-    if (s1[i] != s2[i] and s1[i] != '?' and s2[i] != '?') cont++;
-
-  return cont;
 }
 
 int Comparar2patrones(const string& cad1, const string& cad2) {
@@ -246,22 +249,14 @@ int Grados_Libertad(string cad) {
   return cont;
 }
 
-bool AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descrip, ruleset& R_mix,
+void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descrip, ruleset& R_mix,
                                int nuevas) {
-  bool cambio = false;
-  int* eliminables = new int[R.N_rule()];
-  int n_eliminables = 0;
   genetcode *aux_mix, *aux_R, *aux_R_des;
   int iguales, iguales2;
-  bool *eliminar = new bool[R.N_rule()], eliminacion_retrasada;
-
-  for (int i = 0; i < R.N_rule(); i++) {
-    eliminar[i] = false;
-  }
+  std::vector<bool> eliminar(R.N_rule(), false);
 
   for (int i = 0; i < nuevas; i++) {
     if (!eliminar[i]) {
-      eliminacion_retrasada = false;
       string res = Patron2Reglas(R_Descrip, R, V, i);
       string res3 = Patron1Regla(R_Descrip, V, i);
       string res4 = Patron1Regla(R, V, i);
@@ -321,12 +316,6 @@ bool AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
             iguales2 = Comparar2patrones(res3, res2);
             int iguales3 = Comparar2patrones(res4, res2);
 
-            if (iguales2 != 2) {
-            }
-
-            if (iguales3 != 2) {
-            }
-
             // El caso raro de campatibildades entre patrones
             if (iguales > 1 and iguales2 != 2 and iguales3 != 2) {
               progreso(Verbosidad::depuracion)
@@ -342,29 +331,12 @@ bool AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
 
             // Los dos patrones son iguales
             if (iguales == 0) {
-              cambio = true;
-              double n_mas[2], n_menos[2];
               eliminar[i] = true;
-
             }
             // Los dos patrones son compatibles
             else if (iguales == 1) {
-              cambio = true;
               progreso(Verbosidad::detalle) << "\t\t\t\t\tCombinando Reglas " << i << " y " << j
                                             << " de la clase " << R.Class_of_rule(i) << endl;
-
-              double n_mas[4], n_menos[4];
-              n_mas[0] = R_Descrip.Get_N_Mas(i);
-              n_menos[0] = R_Descrip.Get_N_Menos(i);
-
-              n_mas[1] = R.Get_N_Mas(i);
-              n_menos[1] = R.Get_N_Menos(i);
-
-              n_mas[2] = R_Descrip.Get_N_Mas(j);
-              n_menos[2] = R_Descrip.Get_N_Menos(j);
-
-              n_mas[3] = R.Get_N_Mas(j);
-              n_menos[3] = R.Get_N_Menos(j);
 
               string cad1 = Patron2Reglas(R_Descrip, R, V, i);
 
@@ -417,16 +389,14 @@ bool AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
               R.Modificada(j, true);
 
               if (Grados_Libertad(res2) >= Grados_Libertad(patr)) {
-                R_Descrip.Add_N_Mas(j, n_mas[0]);
-                R_Descrip.Add_N_Menos(j, n_menos[0]);
+                R_Descrip.Add_N_Mas(j, R_Descrip.Get_N_Mas(i));
+                R_Descrip.Add_N_Menos(j, R_Descrip.Get_N_Menos(i));
 
-                R.Add_N_Mas(j, n_mas[1]);
-                R.Add_N_Menos(j, n_menos[1]);
+                R.Add_N_Mas(j, R.Get_N_Mas(i));
+                R.Add_N_Menos(j, R.Get_N_Menos(i));
               }
-
-            } else if (DistanciaHamming(res2, patr) == 1) {
             }
-          } else if (R.Class_of_rule(i) != R.Class_of_rule(j) and i < nuevas) {
+          } else {
             string res2 = Patron2Reglas(R_Descrip, R, V, j);
             iguales = Comparar2patrones(res2, patr);
 
@@ -440,51 +410,22 @@ bool AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
             } else if (iguales == 1) {
               progreso(Verbosidad::detalle)
                   << "las reglas " << i << " y " << j << " entran en conflicto\n";
-            } else {
-              // no entra en principio en conflicto con ninguna otra regla
             }
           }
         }
       }
-      if (eliminacion_retrasada) eliminar[i] = true;
     }
   }
 
+  std::vector<int> eliminables;
   for (int i = 0; i < R.N_rule() - 1; i++) {
-    if (eliminar[i]) {
-      eliminables[n_eliminables] = i;
-      n_eliminables++;
-    }
+    if (eliminar[i]) eliminables.push_back(i);
   }
 
-  Filtrar_Reglas_New(R, R_Descrip, R_mix, eliminables, n_eliminables, false);
-
-  delete[] eliminables;
-  delete[] eliminar;
-
-  return cambio;
+  Filtrar_Reglas_New(R, R_Descrip, R_mix, eliminables);
 }
 
-bool Cambios(int n_act, double** m_act, int n_old, double** m_old, int cols) {
-  bool iguales = true;
-
-  if (n_act != n_old)
-    return true;
-  else {
-    int i = 0, j;
-    while (i < n_act && iguales) {
-      j = 0;
-      while (j < cols && m_act[i][j] == m_old[i][j]) j++;
-      if (j == cols)
-        i++;
-      else
-        iguales = false;
-    }
-    return !iguales;
-  }
-}
-
-int** Encontrar_Individuos_dados_ejemplos(const VectorVar& V, example_set& E, int nclases,
+int** Encontrar_Individuos_dados_ejemplos(const VectorVar& V, const example_set& E, int nclases,
                                           int n_individuos, double*** Tabla,
                                           int* n_ejemplos_por_clase) {
   int a;
@@ -512,7 +453,7 @@ int** Encontrar_Individuos_dados_ejemplos(const VectorVar& V, example_set& E, in
   return matriz;
 }
 
-void Obtener_Aciertos_y_Errores_Reglas_Aprendidas(example_set& E, int* basica_para_regla,
+void Obtener_Aciertos_y_Errores_Reglas_Aprendidas(const example_set& E, int* basica_para_regla,
                                                   int* errores_para_regla, int nrule) {
   for (int i = 0; i < nrule; i++) {
     basica_para_regla[i] = 0;
@@ -528,278 +469,139 @@ void Obtener_Aciertos_y_Errores_Reglas_Aprendidas(example_set& E, int* basica_pa
   }
 }
 
-void ActualizarPeso(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R, VectorVar& F,
-                    double*** Tabla, double*** Tabla_Nuevas) {
-  genetcode* aux;
+void ActualizarPeso(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R,
+                    double*** Tabla) {
   double n_mas, n_menos;
   for (int i = 0; i < R.N_rule(); i++) {
     if (R.Get_Modificada(i)) {
-      aux = R.Get_Code_Rule(i);
-      G.PutCodigo(G.N_individuos() - 1, *aux);
-      double peso = R.Get_Weight(i);
-
-      peso =
-          Weight_Individual(G, V, E, F, Tabla, Tabla_Nuevas, G.N_individuos() - 1, n_mas, n_menos);
+      G.PutCodigo(G.N_individuos() - 1, *R.Get_Code_Rule(i));
+      Weight_Individual(G, V, E, Tabla, G.N_individuos() - 1, n_mas, n_menos);
       R.Add_Weight(i, n_mas, n_menos);
-
       R.Modificada(i, false);
     }
   }
 }
 
-int GA(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R, ruleset& R_dis,
-       ruleset& R_mix, double** I, double* agregado, double* peso_agregado, int Total_ejemplos,
-       bool discriminante, bool primeraVez, bool reducir_reglas, int* ponderacion_por_clase,
-       double*** Tabla, double*** Tabla_Nuevas, VectorVar& F, int* basica_para_regla,
-       int* errores_para_regla, int* reglas_a_eliminar, int& n_reglas_a_eliminar, bool& Added_Rule,
-       bool& Specific_Rule, int tam_rule_not_removed) {
+void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix, double** I,
+        bool primeraVez, std::vector<int>& reglas_a_eliminar, bool& Added_Rule) {
+  multipoblacion& G = ev.G;
+  const VectorVar& V = ev.V;
+  const example_set& E = ev.E;
+  double*** Tabla = ev.Tabla;
+
   Added_Rule = false;
 
-  double peso;
-  int NFitness = G.N_Valoracion();
-  double* valor = new double[NFitness];
-  int n_clases = V.SizeDomain(V.Consecuente());
-  int* n_ejemplos_por_clase = new int[n_clases];
-  ofstream f;
-  int n = G.N_individuos();
-  int nbetter;                        // Numero de los mejores individuos
-  int old_nbetter;                    // Numero de los mejores en t-1
-  int* better = new int[n];           // Lista de los mejores individuos
-  double** fbetter = new double*[n];  // Valoracion de los mejores individuos
-  for (int i = 0; i < n; i++) fbetter[i] = new double[NFitness];
-  double** fbetter_old = new double*[n];  // Valoracion de los mejores individuos en t-1
-  for (int i = 0; i < n; i++) fbetter_old[i] = new double[NFitness];
-
-  int sin_cambios = 0;
-  int z;
-
-  E.Examples_per_Class(V.Consecuente(), n_clases, n_ejemplos_por_clase);
-  int** individuos_por_clase = new int*[n_clases];
-  for (int i = 0; i < n_clases; i++) {
-    individuos_por_clase[i] = new int[n + 1];
-    individuos_por_clase[i][0] = 0;
-  }
-
-  int **sujetos, *lista_tamano;
+  const int n_clases = V.SizeDomain(V.Consecuente());
 
   if (R.N_rule() == 0 or primeraVez) {
-    sujetos = Encontrar_Individuos_dados_ejemplos(V, E, n_clases, G.N_individuos(), Tabla,
-                                                  n_ejemplos_por_clase);
-    lista_tamano = new int[V.N_Antecedente()];
+    std::vector<int> n_ejemplos_por_clase(n_clases);
+    E.Examples_per_Class(V.Consecuente(), n_clases, n_ejemplos_por_clase.data());
+    int** sujetos = Encontrar_Individuos_dados_ejemplos(V, E, n_clases, G.N_individuos(), Tabla,
+                                                        n_ejemplos_por_clase.data());
+    std::vector<int> lista_tamano(V.N_Antecedente());
     for (int i = 0; i < V.N_Antecedente(); i++) lista_tamano[i] = V.SizeDomain(i);
 
-    G.PoblacionInicial(I, n_clases, E.N_Examples(), sujetos, V.N_Antecedente(),
-                       lista_tamano);  // Revisar
+    G.PoblacionInicial(I, sujetos, V.N_Antecedente(), lista_tamano.data());
 
     for (int i = 0; i < G.N_individuos(); i++) delete[] sujetos[i];
     delete[] sujetos;
-    delete[] lista_tamano;
   } else {
     for (int i = 0; i < G.N_individuos(); i++) G.PutModificado(i);
   }
 
-  fitness(G, V, E, R, discriminante, reducir_reglas, ponderacion_por_clase, R.N_rule(), Tabla,
-          Tabla_Nuevas, F, basica_para_regla, errores_para_regla, tam_rule_not_removed);
-
-  genetcode code;
-  G.Codigo(G.N_individuos() - 1, code);
-  int len = code.TamaBinary(0);
-  char* cad = new char[len + 1];
-  for (int i = 0; i < len; i++) cad[i] = '?';
-  cad[len] = '\0';
-  string patron_general = cad;
-  delete[] cad;
-  string vacia = "";
+  fitness(ev);
 
   for (int ik = G.N_individuos() - 2; ik < G.N_individuos(); ik++)
-    Obtener_Regla_Descriptiva(G, V, E, R, ik, discriminante, reducir_reglas, ponderacion_por_clase,
-                              Tabla, Tabla_Nuevas, F, basica_para_regla, errores_para_regla,
-                              reglas_a_eliminar, n_reglas_a_eliminar, false, patron_general, true,
-                              vacia, tam_rule_not_removed);
+    Obtener_Regla_Descriptiva(ev, ik, reglas_a_eliminar);
 
   G.Sort();
-  G.Better(better, old_nbetter);
-  for (z = 0; z < old_nbetter; z++)
-    for (int l = 0; l < NFitness; l++) fbetter_old[z][l] = G.ValorFitness(better[z], l);
 
-  int t = 0;
+  // La valoración del mejor individuo, el primero.
+  const auto valoracion_del_mejor = [&G] {
+    Fitness valoracion;
+    for (int l = 0; l < G.N_Valoracion(); l++) valoracion[l] = G.ValorFitness(0, l);
+    return valoracion;
+  };
+  Fitness mejor_anterior = valoracion_del_mejor();
 
-  int max_iter = 500;
-
-  if (G.ValorFitness(0) != -E.N_Examples()) max_iter = 500;
-
+  const int max_iter = 500;
+  int sin_cambios = 0;
   while (sin_cambios <= max_iter) {
     if ((R.N_rule() > 1 and G.ValorFitness(0) <= 0 and Probabilidad(0.75)) or
         (R.N_rule() > 1 and Probabilidad(0.01))) {
-      int pos = Select_Random_Individuo(R.N_rule(), -1, -1);
-
-      genetcode* aux;
-
+      // En el original elegía aquí una regla que luego no usaba. Se mantiene por el número que
+      // pide.
+      static_cast<void>(Select_Random_Individuo(R.N_rule(), -1, -1));
       G.MutacionUniforme_Estacionario_Especial();
     } else {
       G.CruceBasedLogical_Estacionario((1.0 * sin_cambios) / max_iter);
       G.MutacionUniforme_Estacionario();
     }
-    fitness(G, V, E, R, discriminante, reducir_reglas, ponderacion_por_clase, R.N_rule(), Tabla,
-            Tabla_Nuevas, F, basica_para_regla, errores_para_regla, tam_rule_not_removed);
-    G.Sort_4L(n_clases, individuos_por_clase);
-    G.Better(better, nbetter);
-    for (z = 0; z < nbetter; z++) {
-      for (int l = 0; l < NFitness; l++) fbetter[z][l] = G.ValorFitness(better[z], l);
-    }
+    fitness(ev);
+    G.Sort_4L();
 
-    if (sin_cambios == 0) {
-      for (z = 0; z < nbetter; z++) {
-      }
-
-      // Controlar numero de individuos de cada clase en la poblacion final
-    }
-    t++;
-
-    if (!Cambios(nbetter, fbetter, old_nbetter, fbetter_old, NFitness)) {
+    const Fitness mejor = valoracion_del_mejor();
+    if (mejor == mejor_anterior) {
       sin_cambios++;
       if (sin_cambios == 2) {
-        int t;
-
-        t = 1;
+        const int t = 1;
         genetcode code;
         G.Codigo(0, code);
         G.PutCodigo(t, code);
 
-        int len = code.TamaBinary(0);
-        char* cad = new char[len + 1];
-        for (int i = 0; i < len; i++) cad[i] = '?';
-        cad[len] = '\0';
-        string patr = cad;
-        delete[] cad;
-        string cadena_vacia = "";
-
-        if (G.ValorFitness(t) != -E.N_Examples()) {
-          Obtener_Regla_Discriminante(
-              G, V, E, R, t, discriminante, reducir_reglas, ponderacion_por_clase, Tabla,
-              Tabla_Nuevas, F, basica_para_regla, errores_para_regla, reglas_a_eliminar,
-              n_reglas_a_eliminar, false, patr, true, cadena_vacia, tam_rule_not_removed);
+        if (G.ValorFitness(t) != -E.N_Examples() or G.ValorFitness(t, 1) != 1) {
+          Obtener_Regla_Discriminante(ev, t, reglas_a_eliminar);
         } else {
-          if (G.ValorFitness(t, 1) == 1) {
-            Obtener_Regla_Descriptiva(
-                G, V, E, R, t, discriminante, reducir_reglas, ponderacion_por_clase, Tabla,
-                Tabla_Nuevas, F, basica_para_regla, errores_para_regla, reglas_a_eliminar,
-                n_reglas_a_eliminar, false, patr, true, cadena_vacia, tam_rule_not_removed);
-          } else {
-            Obtener_Regla_Discriminante(
-                G, V, E, R, t, discriminante, reducir_reglas, ponderacion_por_clase, Tabla,
-                Tabla_Nuevas, F, basica_para_regla, errores_para_regla, reglas_a_eliminar,
-                n_reglas_a_eliminar, false, patr, true, cadena_vacia, tam_rule_not_removed);
-          }
+          Obtener_Regla_Descriptiva(ev, t, reglas_a_eliminar);
         }
       }
     } else {
       sin_cambios = 0;
-
-      if (G.ValorFitness(0) != -E.N_Examples()) {
-        max_iter = 500;
-      }
-
-      for (z = 0; z < nbetter; z++)
-        for (int l = 0; l < NFitness; l++) fbetter_old[z][l] = fbetter[z][l];
-      old_nbetter = nbetter;
+      mejor_anterior = mejor;
     }
   }
 
-  // Controlar numero de individuos de cada clase en la poblacion final
+  const double v0 = G.ValorFitness(0), v1 = G.ValorFitness(0, 1), v2 = G.ValorFitness(0, 2),
+               v3 = G.ValorFitness(0, 3), v4 = G.ValorFitness(0, 4);
+  const double ne = -E.N_Examples();
 
-  // Para sacar la mejor regla de cada clase
-
-  G.Better(better, nbetter);
-
-  delete[] n_ejemplos_por_clase;
-
-  if (G.ValorFitness(0) <= -1 and G.ValorFitness(0, 1) > 1 and
-      G.ValorFitness(0, 1) >= (-G.ValorFitness(0)) + 2) {
+  if (v0 <= -1 and v1 > 1 and v1 >= (-v0) + 2) {
     progreso(Verbosidad::depuracion) << "->->->->->-> El nuevo caso especial\n";
   }
 
-  if ((G.ValorFitness(0) > -1) or
-      (G.ValorFitness(0) <= -1 and G.ValorFitness(0, 1) > 1 and
-       G.ValorFitness(0, 1) >= (-G.ValorFitness(0)) + 2) or
-      (G.ValorFitness(0) == -E.N_Examples() and G.ValorFitness(0, 1) > 1) or
-      ((G.ValorFitness(0) == -E.N_Examples()) and G.ValorFitness(0, 1) == 1 and
-       G.ValorFitness(0, 2) > 0) or
-      ((G.ValorFitness(0) == -E.N_Examples()) and G.ValorFitness(0, 1) == 1 and
-       G.ValorFitness(0, 2) == 0 and G.ValorFitness(0, 3) > 0) or
-      ((G.ValorFitness(0) == -E.N_Examples()) and G.ValorFitness(0, 1) == 1 and
-       G.ValorFitness(0, 2) == 0 and G.ValorFitness(0, 3) == 0 and G.ValorFitness(0, 4) > 0)) {
-    genetcode code, code1, code2;
-    double val_aux = G.ValorFitness(0);
-    G.Codigo(0, code);
-
-    int len = code.TamaBinary(0);
-    char* cad = new char[len + 1];
-    for (int i = 0; i < len; i++) cad[i] = '?';
-    cad[len] = '\0';
-    string patr = cad;
-    delete[] cad;
-
-    double valor2[10], nmas1, nmas2, nmenos1, nmenos2, esp[4], gen[4];
-
-    string s_esp, s_gen, cadena_vacia = "";
+  if ((v0 > -1) or (v0 <= -1 and v1 > 1 and v1 >= (-v0) + 2) or (v0 == ne and v1 > 1) or
+      (v0 == ne and v1 == 1 and v2 > 0) or (v0 == ne and v1 == 1 and v2 == 0 and v3 > 0) or
+      (v0 == ne and v1 == 1 and v2 == 0 and v3 == 0 and v4 > 0)) {
+    genetcode code1, code2;
+    Fitness valor;
+    std::array<double, 2> esp, gen;
+    double peso, nmas1, nmas2, nmenos1, nmenos2;
+    string s_esp, s_gen;
 
     do {
-      Obtener_Regla_Discriminante(G, V, E, R, 0, discriminante, reducir_reglas,
-                                  ponderacion_por_clase, Tabla, Tabla_Nuevas, F, basica_para_regla,
-                                  errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, false,
-                                  patr, true, cadena_vacia, tam_rule_not_removed);
+      Obtener_Regla_Discriminante(ev, 0, reglas_a_eliminar);
 
       G.Codigo(0, code1);
-      len = code1.TamaBinary(0);
-      cad = new char[len + 1];
-      for (int i = 0; i < len; i++) cad[i] = code1.GetValueBinary(0, i);
-      cad[len] = '\0';
-      s_gen = cad;
-      delete[] cad;
+      s_gen = Cadena(code1);
 
-      Bondad(G, V, E, R, valor, NFitness, 0, discriminante, reducir_reglas, ponderacion_por_clase,
-             R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla, errores_para_regla,
-             reglas_a_eliminar, n_reglas_a_eliminar, false, cadena_vacia, tam_rule_not_removed);
+      Bondad(ev, 0, valor, reglas_a_eliminar);
+      peso = Weight_Individual(G, V, E, Tabla, 0, nmas1, nmenos1);
+      gen = {valor[0], valor[1]};
 
-      peso = Weight_Individual(G, V, E, F, Tabla, Tabla_Nuevas, 0, nmas1, nmenos1);
+      Obtener_Regla_Descriptiva(ev, 0, reglas_a_eliminar);
 
-      gen[0] = valor[0];
-      gen[1] = valor[1];
-      gen[2] = 0;
-      gen[3] = 0;
-
-      Obtener_Regla_Descriptiva(G, V, E, R, 0, discriminante, reducir_reglas, ponderacion_por_clase,
-                                Tabla, Tabla_Nuevas, F, basica_para_regla, errores_para_regla,
-                                reglas_a_eliminar, n_reglas_a_eliminar, false, patr, true,
-                                cadena_vacia, tam_rule_not_removed);
-
-      Bondad(G, V, E, R, valor, NFitness, 0, discriminante, reducir_reglas, ponderacion_por_clase,
-             R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla, errores_para_regla,
-             reglas_a_eliminar, n_reglas_a_eliminar, false, cadena_vacia, tam_rule_not_removed);
-
-      peso = Weight_Individual(G, V, E, F, Tabla, Tabla_Nuevas, 0, nmas2, nmenos2);
-
-      esp[0] = valor[0];
-      esp[1] = valor[1];
-      esp[2] = 0;
-      esp[3] = 0;
+      Bondad(ev, 0, valor, reglas_a_eliminar);
+      peso = Weight_Individual(G, V, E, Tabla, 0, nmas2, nmenos2);
+      esp = {valor[0], valor[1]};
 
       G.Codigo(0, code2);
-      len = code2.TamaBinary(0);
-      cad = new char[len + 1];
-      for (int i = 0; i < len; i++) cad[i] = code2.GetValueBinary(0, i);
-      cad[len] = '\0';
-      s_esp = cad;
-      delete[] cad;
-
-    } while (!vectoresIguales(esp, gen, 4) or !ComprobacionEspGen(s_esp, s_gen));
+      s_esp = Cadena(code2);
+    } while (esp != gen or !ComprobacionEspGen(s_esp, s_gen));
 
     R.Add(code2, nmas2, nmenos2, false);
-
     R_dis.Add(code1, nmas1, nmenos1, false);
 
-    patr = Patron2Reglas(R, R_dis, V, R.N_rule() - 1);
+    const string patr = Patron2Reglas(R, R_dis, V, R.N_rule() - 1);
 
     if (!ComprobacionEspGen(Patron1Regla(R, V, R.N_rule() - 1),
                             Patron1Regla(R_dis, V, R_dis.N_rule() - 1))) {
@@ -812,18 +614,11 @@ int GA(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R, rulese
       Pausa();
     }
 
+    const int len = code1.TamaBinary(0);
     for (int i = 0; i < len; i++) code1.PutValueBinary(0, i, patr[i]);
     R_mix.Add(code1, peso);
 
     Added_Rule = true;
-
-    if (G.ValorFitness(0) == E.N_Examples() and G.ValorFitness(0, 1) == 1)
-      Specific_Rule = true;
-    else
-      Specific_Rule = false;
-
-    z = 1;
-    // Meter mas reglas
 
     // Pongo la regla por defecto para la clase obtenida en la posición penultima de la poblacion
     for (int i = 0; i < len; i++) code1.PutValueBinary(0, i, '1');
@@ -831,7 +626,6 @@ int GA(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R, rulese
     int c = code1.GetValueInteger(0, 0);
 
     G.PutCodigo(0, code2);
-    code2.PutValueInteger(0, 0, (c + 1) % n_clases);
 
     // Pongo la regla por defecto para otra clase en la ultima posicion de la poblacion
     code1.PutValueInteger(0, 0, (c + 1) % n_clases);
@@ -839,32 +633,7 @@ int GA(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R, rulese
     c = (c + 1) % n_clases;
     code1.PutValueInteger(0, 0, (c + 1) % n_clases);
     G.PutCodigo(G.N_individuos() - 2, code1);
-
-    while (z < nbetter) {
-      G.Codigo(better[z], code);
-      peso = Bondad(G, V, E, R, valor, NFitness, better[z], discriminante, reducir_reglas,
-                    ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-                    errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, false, cadena_vacia,
-                    tam_rule_not_removed);
-      R.Add(code, peso);
-      z++;
-    }
   }
-
-  for (int i = 0; i < n_clases; i++) {
-    delete[] individuos_por_clase[i];
-  }
-  delete[] individuos_por_clase;
-  delete[] better;
-  for (int i = 0; i < n; i++) {
-    delete[] fbetter[i];
-    delete[] fbetter_old[i];
-  }
-  delete[] fbetter;
-  delete[] fbetter_old;
-  delete[] valor;
-
-  return t;
 }
 
 // Determina si se mantiene que esp es una especificacion de gen y viceversa
@@ -877,28 +646,17 @@ bool ComprobacionEspGen(string esp, string gen) {
   return correcto;
 }
 
-void fitness(multipoblacion& G, const VectorVar& V, const example_set& E, ruleset& R,
-             bool discriminante, bool reducir_reglas, int* ponderacion_por_clase, int nrule,
-             double*** Tabla, double*** Tabla_Nuevas, VectorVar& F, int* basica_para_regla,
-             int* errores_para_regla, int tam_rule_not_removed) {
-  string cadena_vacia = "";
-  int n = G.N_individuos();
-  int n_fitnes_componentes = G.N_Valoracion();
-  double* valor = new double[n_fitnes_componentes];
-  int *reglas_a_eliminar = new int[R.N_rule()], n_reglas_a_eliminar;
-
-  for (int i = 0; i < n; i++) {
+void fitness(const Evaluacion& ev) {
+  multipoblacion& G = ev.G;
+  // Las reglas que eliminaría cada individuo solo interesan al evaluar la regla que se añade.
+  std::vector<int> reglas_a_eliminar;
+  Fitness valor;
+  for (int i = 0; i < G.N_individuos(); i++) {
     if (G.Modificado(i)) {
-      Bondad(G, V, E, R, valor, n_fitnes_componentes, i, discriminante, reducir_reglas,
-             ponderacion_por_clase, nrule, Tabla, Tabla_Nuevas, F, basica_para_regla,
-             errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, false, cadena_vacia,
-             tam_rule_not_removed);
-      G.Valoracion(i, valor);
+      Bondad(ev, i, valor, reglas_a_eliminar);
+      G.Valoracion(i, valor.data());
     }
   }
-
-  delete[] valor;
-  delete[] reglas_a_eliminar;
 }
 
 bool Relevante(char* s, int tama) {
@@ -908,33 +666,6 @@ bool Relevante(char* s, int tama) {
   return (i < tama);
 }
 
-bool Asignacion_Comprensible(char* s, int tama) {
-  int sec_unos = 0, sec_ceros = 0, n_ceros = 0;
-  bool act_unos = (s[0] == '1');
-
-  if (act_unos)
-    sec_unos = 1;
-  else {
-    sec_ceros = 1;
-    n_ceros = 1;
-  }
-
-  for (int i = 1; i < tama; i++) {
-    if (!act_unos && s[i] == '1') {
-      act_unos = true;
-      sec_unos++;
-    } else if (!act_unos && s[i] == '0') {
-      n_ceros++;
-    } else if (act_unos && s[i] == '0') {
-      sec_ceros++;
-      n_ceros++;
-      act_unos = false;
-    }
-  }
-
-  return ((sec_unos == 1));
-}
-
 int NumeroCeros(char* s, int tama) {
   int acu = 0;
   for (int i = 0; i < tama; i++)
@@ -942,170 +673,59 @@ int NumeroCeros(char* s, int tama) {
   return acu;
 }
 
-int NumeroUnos(char* s, int tama) {
-  int acu = 0;
-  for (int i = 0; i < tama; i++)
-    if (s[i] == '1') acu++;
-  return acu;
-}
+void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
+                                 std::vector<int>& reglas_a_eliminar) {
+  multipoblacion& G = ev.G;
+  const VectorVar& V = ev.V;
+  int r1, b1;
+  double* nr1 = G.Subpoblacion_Real(elemento_i, r1);
+  char* nb1 = G.Subpoblacion_Binaria(elemento_i, b1);
+  const double umbral = nr1[r1 - 1];
 
-void Obtener_Regla_Discriminante(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R,
-                                 int elemento_i, bool discriminante, bool reduccion_reglas,
-                                 int* ponderacion_por_clase, double*** Tabla,
-                                 double*** Tabla_Nuevas, VectorVar& F, int* basica_para_regla,
-                                 int* errores_para_regla, int* reglas_a_eliminar,
-                                 int& n_reglas_a_eliminar, bool debug, string patr, bool inGA,
-                                 string initial_rule, int tam_rule_not_removed) {
-  int r1;
-  double* nr1 = G.Subpoblacion_Real(0, elemento_i, r1);
-  double umbral = nr1[r1 - 1], aux;
-  int N_valor = G.N_Valoracion();
-  double *valor = new double[N_valor], *valor2 = new double[N_valor];
-  string cadena;
-  bool mejora = false, mejora_global = false;
   int tama = 0;
-  int b1;
-  char* nb1 = G.Subpoblacion_Binaria(0, elemento_i, b1);
-  char* s = new char[b1 + 1];
-  for (int i = 0; i < b1; i++) s[i] = nb1[i];
-  s[b1] = '\0';
-  cadena = s;
-  delete[] s;
-  int longitud;
   for (int j = 0; j < r1 - 1; j++) {
-    longitud = V.Variable(j).N_etiquetas();
+    const int longitud = V.Variable(j).N_etiquetas();
     if (nr1[j] < umbral) {
-      for (int s = 0; s < longitud; s++) {
-        cadena[tama + s] = '1';
-        nb1[tama + s] = '1';
-      }
+      for (int s = 0; s < longitud; s++) nb1[tama + s] = '1';
     }
     tama += longitud;
   }
 
-  Bondad(G, V, E, R, valor, N_valor, elemento_i, discriminante, reduccion_reglas,
-         ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-         errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-         tam_rule_not_removed);
+  Fitness valor, valor2;
+  Bondad(ev, elemento_i, valor, reglas_a_eliminar);
+  G.Valoracion(elemento_i, valor.data());
 
-  G.Valoracion(elemento_i, valor);
-
-  if (debug) {
-    progreso(Verbosidad::depuracion) << "Valor antes de Discriminacion:   " << endl;
-    progreso(Verbosidad::depuracion) << cadena << endl;
-    progreso(Verbosidad::depuracion) << "Valor de partida\n";
-    G.PintaFitness_Estacionario(elemento_i);
-  }
-
-  tama = 0;
-
-  bool* se_puede_anular = new bool[r1 - 1];
-
+  // Quita cada atributo relevante si la regla mejora sin él.
   for (int j = 0; j < r1 - 1; j++) {
-    longitud = V.Variable(j).N_etiquetas();
-    if (nr1[j] >= umbral)
-      se_puede_anular[j] = true;
-    else
-      se_puede_anular[j] = false;
-
-    for (int s = 0; s < longitud and se_puede_anular[j]; s++)
-      if (patr[tama + s] == '0') se_puede_anular[j] = false;
-
-    if (patr[tama] == 'x') nr1[j] = umbral - 0.001;
-
-    tama += longitud;
-  }
-
-  for (int j = 0; j < patr.length(); j++)
-    if (patr[j] == '0' or patr[j] == '1') nb1[j] = patr[j];
-
-  tama = 0;
-  for (int j = 0; j < r1 - 1; j++) {
-    longitud = V.Variable(j).N_etiquetas();
-
-    if (nr1[j] >= umbral and se_puede_anular[j]) {
-      aux = nr1[j];
-      mejora = false;
+    if (nr1[j] >= umbral) {
+      const double aux = nr1[j];
       nr1[j] = umbral - 0.001;
 
-      Bondad(G, V, E, R, valor2, N_valor, elemento_i, discriminante, reduccion_reglas,
-             ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-             errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-             tam_rule_not_removed);
+      Bondad(ev, elemento_i, valor2, reglas_a_eliminar);
 
-      if ((valor2[0] > valor[0]) or (valor2[0] == valor[0] and valor2[1] > valor[1]) or
-          (valor2[0] == valor[0] and valor2[1] == valor[1] and valor2[2] > valor[2])) {
-        valor[0] = valor2[0];
-        valor[1] = valor2[1];
-        valor[2] = valor2[2];
-        valor[3] = valor2[3];
-        valor[4] = valor2[4];
-        mejora = true;
-        mejora_global = true;
-
-        if (debug) {
-          progreso(Verbosidad::depuracion)
-              << "Anulada la variable " << V.Variable(j).Name() << "  Valor: " << valor2[0] << endl;
-          G.Valoracion(elemento_i, valor2);
-          G.PintaFitness_Estacionario(elemento_i);
-        }
+      if (Mejor(valor2, valor)) {
+        valor = valor2;
       } else {
         nr1[j] = aux;
       }
     }
-
-    tama += longitud;
   }
 
+  // Admite cada etiqueta más si la regla no empeora.
   tama = 0;
   for (int j = 0; j < r1 - 1; j++) {
-    longitud = V.Variable(j).N_etiquetas();
-    if (nr1[j] < umbral) {
-      for (int s = 0; s < longitud; s++) cadena[tama + s] = '1';
-    }
-    tama += longitud;
-  }
-
-  double aux2;
-  tama = 0;
-  for (int j = 0; j < r1 - 1; j++) {
-    aux2 = nr1[j];
-    longitud = V.Variable(j).N_etiquetas();
+    const double aux2 = nr1[j];
+    const int longitud = V.Variable(j).N_etiquetas();
 
     if (nr1[j] >= umbral) {
       for (int s = 0; s < longitud; s++) {
-        if (nb1[tama + s] == '0' and patr[tama + s] == '?') {
+        if (nb1[tama + s] == '0') {
           nb1[tama + s] = '1';
-          cadena[tama + s] = '1';
-          Bondad(G, V, E, R, valor2, N_valor, elemento_i, discriminante, reduccion_reglas,
-                 ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-                 errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-                 tam_rule_not_removed);
-          if (debug)
-            progreso(Verbosidad::depuracion)
-                << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1]
-                << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] << endl;
-          if ((valor2[0] > valor[0]) or (valor2[0] == valor[0] and valor2[1] > valor[1]) or
-              (valor2[0] == valor[0] and valor2[1] == valor[1] and valor2[2] >= valor[2])) {
-            valor[0] = valor2[0];
-            valor[1] = valor2[1];
-            valor[2] = valor2[2];
-            valor[3] = valor2[3];
-            valor[4] = valor2[4];
-
-            mejora_global = true;
-
-            if (debug) {
-              progreso(Verbosidad::depuracion) << "\t\t\t\t" << cadena << endl;
-              progreso(Verbosidad::depuracion)
-                  << "  Anulado caso " << s << " de la variable " << V.Variable(j).Name()
-                  << "  Valor: " << valor2[0] << endl;
-              G.Valoracion(elemento_i, valor2);
-              G.PintaFitness_Estacionario(elemento_i);
-            }
+          Bondad(ev, elemento_i, valor2, reglas_a_eliminar);
+          if (MejorOIgual(valor2, valor)) {
+            valor = valor2;
           } else {
             nb1[tama + s] = '0';
-            cadena[tama + s] = '0';
             nr1[j] = aux2;
           }
         }
@@ -1114,50 +734,15 @@ void Obtener_Regla_Discriminante(multipoblacion& G, const VectorVar& V, example_
     tama += longitud;
   }
 
-  Bondad(G, V, E, R, valor, N_valor, elemento_i, discriminante, reduccion_reglas,
-         ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-         errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-         tam_rule_not_removed);
-
-  G.Valoracion(elemento_i, valor);
-
-  if (debug) {
-    progreso(Verbosidad::depuracion) << "Valor Final\n";
-    G.PintaFitness_Estacionario(elemento_i);
-  }
-
-  if (debug) progreso(Verbosidad::depuracion) << cadena << endl;
-
-  delete[] valor;
-  delete[] valor2;
-  delete[] se_puede_anular;
+  Bondad(ev, elemento_i, valor, reglas_a_eliminar);
+  G.Valoracion(elemento_i, valor.data());
 }
 
 string Patron1Regla(ruleset& R_1, const VectorVar& V, int pos) {
   // Sin esa regla, un patrón vacío. En el original leía la regla -1 cuando el genético no
   // añadía ninguna en la primera vuelta (R_mix vacío) y el programa reventaba (HALLAZGOS).
   if (pos < 0 || pos >= R_1.N_rule()) return "";
-  genetcode r_1, r_2, *aux1, *aux2;
-  aux1 = R_1.Get_Code_Rule(pos);
-  r_1 = *aux1;
-
-  int b, *nb, n, *nn, **nnn, r, *nr;
-  char** mb;
-  double** mr;
-  string regla1;
-
-  r_1.GetBinary(b, nb, mb);
-  r_1.GetReal(r, nr, mr);
-
-  char* s = new char[nb[0] + 1];
-  for (int j = 0; j < nb[0]; j++) s[j] = mb[0][j];
-  s[nb[0]] = '\0';
-  regla1 = s;
-  delete[] s;
-
-  int tama = 0, longitud;
-
-  return regla1;
+  return Cadena(*R_1.Get_Code_Rule(pos));
 }
 
 string Patron2Patrones(string pat1, string pat2) {
@@ -1238,137 +823,54 @@ string Patron2Reglas(ruleset& R_1, ruleset& R_2, const VectorVar& V, int pos) {
   return regla3;
 }
 
-void Obtener_Regla_Descriptiva(multipoblacion& G, const VectorVar& V, example_set& E, ruleset& R,
-                               int elemento_i, bool discriminante, bool reduccion_reglas,
-                               int* ponderacion_por_clase, double*** Tabla, double*** Tabla_Nuevas,
-                               VectorVar& F, int* basica_para_regla, int* errores_para_regla,
-                               int* reglas_a_eliminar, int& n_reglas_a_eliminar, bool debug,
-                               string patr, bool inGA, string initial_rule,
-                               int tam_rule_not_removed) {
-  int r1;
-  double* nr1 = G.Subpoblacion_Real(0, elemento_i, r1);
-  double umbral = nr1[r1 - 1], aux;
-  int N_valor = G.N_Valoracion();
-  double *valor = new double[N_valor], *valor2 = new double[N_valor];
-  bool mejora, mejora_global = false;
+void Obtener_Regla_Descriptiva(const Evaluacion& ev, int elemento_i,
+                               std::vector<int>& reglas_a_eliminar) {
+  multipoblacion& G = ev.G;
+  const VectorVar& V = ev.V;
+  int r1, b1;
+  double* nr1 = G.Subpoblacion_Real(elemento_i, r1);
+  char* nb1 = G.Subpoblacion_Binaria(elemento_i, b1);
+  const double umbral = nr1[r1 - 1];
+
+  Fitness valor, valor2;
+  Bondad(ev, elemento_i, valor, reglas_a_eliminar);
+  G.Valoracion(elemento_i, valor.data());
+
   int tama = 0;
-  int b1;
-  char* nb1 = G.Subpoblacion_Binaria(0, elemento_i, b1);
-
-  char* s = new char[b1 + 1];
-  for (int i = 0; i < b1; i++) s[i] = nb1[i];
-  s[b1] = '\0';
-  string cadena = s;
-  delete[] s;
-  int longitud;
-
   for (int j = 0; j < r1 - 1; j++) {
-    longitud = V.Variable(j).N_etiquetas();
+    const int longitud = V.Variable(j).N_etiquetas();
+
     if (nr1[j] < umbral) {
-      for (int s = 0; s < longitud; s++) cadena[tama + s] = '1';
-    }
-    tama += longitud;
-  }
-
-  Bondad(G, V, E, R, valor, N_valor, elemento_i, discriminante, reduccion_reglas,
-         ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-         errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-         tam_rule_not_removed);
-
-  G.Valoracion(elemento_i, valor);
-  if (debug) {
-    progreso(Verbosidad::depuracion) << "Valor al principio\n";
-    G.PintaFitness_Estacionario(elemento_i);
-  }
-
-  for (int j = 0; j < patr.length(); j++)
-    if (patr[j] == '0' or patr[j] == '1') nb1[j] = patr[j];
-
-  tama = 0;
-  for (int j = 0; j < r1 - 1; j++) {
-    longitud = V.Variable(j).N_etiquetas();
-
-    if (nr1[j] < umbral and patr[tama] != 'x') {
-      aux = nr1[j];
-      mejora = false;
+      // Añade el atributo a la regla si, quitándole alguna etiqueta, no empeora.
+      const double aux = nr1[j];
+      bool mejora = false;
       nr1[j] = umbral;
+      for (int s = 0; s < longitud; s++) nb1[tama + s] = '1';
+
       for (int s = 0; s < longitud; s++) {
-        if (patr[tama + s] == '?') {
-          nb1[tama + s] = '1';
-          cadena[tama + s] = '1';
+        nb1[tama + s] = '0';
+        Bondad(ev, elemento_i, valor2, reglas_a_eliminar);
+
+        if (MejorOIgual(valor2, valor)) {
+          valor = valor2;
+          mejora = true;
         } else {
-          nb1[tama + s] = patr[tama + s];
-          cadena[tama + s] = patr[tama + s];
+          nb1[tama + s] = '1';
+          nr1[j] = umbral;
         }
       }
 
-      for (int s = 0; s < longitud; s++) {
-        if (patr[tama + s] == '?' and nb1[tama + s] == '1') {
-          nb1[tama + s] = '0';
-          cadena[tama + s] = '0';
-          Bondad(G, V, E, R, valor2, N_valor, elemento_i, discriminante, reduccion_reglas,
-                 ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-                 errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-                 tam_rule_not_removed);
-          if (debug)
-            progreso(Verbosidad::depuracion)
-                << cadena << " v[0]=" << valor2[0] << " V[1]= " << valor2[1]
-                << " V[2]= " << valor2[2] << " V[3]= " << valor2[3] << endl;
-
-          if ((valor2[0] > valor[0]) or (valor2[0] == valor[0] and valor2[1] > valor[1]) or
-              (valor2[0] == valor[0] and valor2[1] == valor[1] and valor2[2] >= valor[2])) {
-            valor[0] = valor2[0];
-            valor[1] = valor2[1];
-            valor[2] = valor2[2];
-            valor[3] = valor2[3];
-            valor[4] = valor2[4];
-            mejora = true;
-            mejora_global = true;
-            G.Valoracion(elemento_i, valor2);
-            if (debug) {
-              G.PintaFitness_Estacionario(elemento_i);
-            }
-
-          } else {
-            nb1[tama + s] = '1';
-            cadena[tama + s] = '1';
-            nr1[j] = umbral;
-          }
-        }
-      }
-
-      if (!mejora) {
-        nr1[j] = aux;
-        for (int s = 0; s < longitud; s++) {
-          cadena[tama + s] = '-';
-        }
-      }
-    } else if (patr[tama] != 'x') {
+      if (!mejora) nr1[j] = aux;
+    } else {
+      // Quita cada etiqueta si la regla mejora sin ella.
       for (int s = 0; s < longitud; s++)
-        if (nb1[tama + s] == '1' and patr[tama + s] == '?') {
+        if (nb1[tama + s] == '1') {
           nb1[tama + s] = '0';
-          cadena[tama + s] = '0';
-          Bondad(G, V, E, R, valor2, N_valor, elemento_i, discriminante, reduccion_reglas,
-                 ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-                 errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-                 tam_rule_not_removed);
-          if ((valor2[0] > valor[0]) or (valor2[0] == valor[0] and valor2[1] > valor[1]) or
-              (valor2[0] == valor[0] and valor2[1] == valor[1] and valor2[2] > valor[2])) {
-            valor[0] = valor2[0];
-            valor[1] = valor2[1];
-            valor[2] = valor2[2];
-            valor[3] = valor2[3];
-            valor[4] = valor2[4];
-            mejora = true;
-            mejora_global = true;
-            G.Valoracion(elemento_i, valor2);
-            if (debug) {
-              G.PintaFitness_Estacionario(elemento_i);
-            }
-
+          Bondad(ev, elemento_i, valor2, reglas_a_eliminar);
+          if (Mejor(valor2, valor)) {
+            valor = valor2;
           } else {
             nb1[tama + s] = '1';
-            cadena[tama + s] = '1';
           }
         }
     }
@@ -1376,807 +878,272 @@ void Obtener_Regla_Descriptiva(multipoblacion& G, const VectorVar& V, example_se
     tama += longitud;
   }
 
-  Bondad(G, V, E, R, valor, N_valor, elemento_i, discriminante, reduccion_reglas,
-         ponderacion_por_clase, R.N_rule(), Tabla, Tabla_Nuevas, F, basica_para_regla,
-         errores_para_regla, reglas_a_eliminar, n_reglas_a_eliminar, !inGA, initial_rule,
-         tam_rule_not_removed);
-
-  G.Valoracion(elemento_i, valor);
-
-  if (debug) {
-    progreso(Verbosidad::depuracion) << "Valor final\n";
-    G.PintaFitness_Estacionario(elemento_i);
-  }
-
-  delete[] valor;
-  delete[] valor2;
+  Bondad(ev, elemento_i, valor, reglas_a_eliminar);
+  G.Valoracion(elemento_i, valor.data());
 }
 
-double Weight_Individual(multipoblacion& G, const VectorVar& V, const example_set& E, VectorVar& F,
-                         double*** Tabla, double*** Tabla_Nuevas, int elemento_i, double& n_mas,
-                         double& n_menos) {
-  int b1, b2, n1, n2, r1, r2, r3;
-  char *nb1, *nb2;
-  int *nn1, *nn2, r;
-  double *nr1, *nr2, *nr3;
-  string regla, regla_funciones;
-  int var1, var2;
-  int ne = E.N_Examples();
-  double peso;
-  int j;
-
-  nb1 = G.Subpoblacion_Binaria(0, elemento_i, b1);
-  char* s = new char[b1 + 1];
-  for (j = 0; j < b1; j++) {
-    s[j] = nb1[j];
-    s[b1] = '\0';
-  }
-  regla = s;
-  delete[] s;
-
-  nb2 = G.Subpoblacion_Binaria(1, elemento_i, b2);
-  s = new char[b2 + 1];
-  for (j = 0; j < b2; j++) {
-    s[j] = nb2[j];
-    s[b2] = '\0';
-  }
-  regla_funciones = s;
-  delete[] s;
-
-  nn1 = G.Subpoblacion_Entera(0, elemento_i, n1);
-  nn2 = G.Subpoblacion_Entera(1, elemento_i, n2);
-  nr1 = G.Subpoblacion_Real(0, elemento_i, r1);
-
-  nr2 = new double[ne];
+double Weight_Individual(multipoblacion& G, const VectorVar& V, const example_set& E,
+                         double*** Tabla, int elemento_i, double& n_mas, double& n_menos) {
+  int b1, r1;
+  const char* nb1 = G.Subpoblacion_Binaria(elemento_i, b1);
+  const string regla(nb1, b1);
+  const double* nr1 = G.Subpoblacion_Real(elemento_i, r1);
+  const int clase = G.ClaseIndividuo(elemento_i);
 
   double positivos = 0, negativos = 0, aux_p, aux_n;
 
-  for (j = 0; j < E.N_Examples(); j++) {
-    T_AdaptacionC(V, Tabla, j, nn1[0], aux_p, aux_n);
+  for (int j = 0; j < E.N_Examples(); j++) {
+    T_AdaptacionC(V, Tabla, j, clase, aux_p, aux_n);
 
-    double x = T_Adaptacion_Antecedente(V, Tabla, j, regla, nr1, nr1[r1 - 1]);
+    const double x = T_Adaptacion_Antecedente(V, Tabla, j, regla, nr1, nr1[r1 - 1]);
 
-    nr2[j] = x;
-
-    nr2[j] = T_Adaptacion_Antecedente_Nuevas(F, Tabla_Nuevas, j, regla_funciones, nn2, n2, nr2[j]);
-
-    positivos = positivos + (nr2[j] * aux_p);
-    negativos = negativos + (nr2[j] * aux_n);
-    if (aux_p < aux_n) nr2[j] = -nr2[j];
+    positivos = positivos + (x * aux_p);
+    negativos = negativos + (x * aux_n);
   }
 
   n_mas = positivos;
   n_menos = negativos;
 
-  peso = (positivos + 1) / (positivos + negativos + 1);
-
-  delete[] nr2;
-
-  return peso;
+  return (positivos + 1) / (positivos + negativos + 1);
 }
 
-double Bondad(multipoblacion& G, const VectorVar& V, const example_set& E, ruleset& R,
-              double* valor, int N_valor, int elemento_i, bool discriminante, bool reducir_reglas,
-              int* ponderacion_por_clase, int nrule, double*** Tabla, double*** Tabla_Nuevas,
-              VectorVar& F, int* basica_para_regla, int* errores_para_regla, int* reglas_a_eliminar,
-              int& n_reglas_a_eliminar, bool esp_gen, string initial_rule,
-              int tam_rule_not_removed) {
-  int b1, b2, n1, n2, r1, r2, r3;
-  char *nb1, *nb2;
-  int *nn1, *nn2, r;
-  double *nr1, *nr2, *nr3;
-  string regla, regla_funciones;
-  int var1, var2;
-  int ne = E.N_Examples();
-  vectordouble w(V.N_Antecedente());
-  double positivos = 0, negativos = 0, rango, eficacia, negativos_que_conllevan_error = 0,
-         positivos_a_incrementar = 0, positivos_sobrecubrimiento = 0, negativos2 = 0;
-  int j;
-  double aciertos = 0, fallos = 0, aciertos_aqui = 0, fallos_aqui = 0, sin_cubrir = 0,
-         aciertos_no_cubiertos = 0, max_pos = 0, max_neg = 0, max_neg2 = 0;
-  int clase = G.ClaseIndividuo(elemento_i);
-  bool menos_infinito = true, valida = true;
-  int variables_irrelevantes = 0, funciones_irrelevantes = 0, variables_estables = 0,
-      funciones_estables = 0, ceros_variables = 0, ceros_funciones = 0, unos_variables = 0,
-      unos_funciones = 0, variables_relevantes, funciones_relevantes;
+double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
+              std::vector<int>& reglas_a_eliminar) {
+  multipoblacion& G = ev.G;
+  const VectorVar& V = ev.V;
+  const example_set& E = ev.E;
+  const ruleset& R = ev.R;
+  const int* ponderacion_por_clase = ev.ponderacion_por_clase;
+  const int* basica_para_regla = ev.basica_para_regla;
+  const int* errores_para_regla = ev.errores_para_regla;
+  double*** Tabla = ev.Tabla;
 
-  nrule = R.N_rule();
+  const int ne = E.N_Examples();
+  const int nrule = R.N_rule();
+  const int clase = G.ClaseIndividuo(elemento_i);
 
-  nb1 = G.Subpoblacion_Binaria(0, elemento_i, b1);
-  char* s = new char[b1 + 1];
-  valor[2] = 0;  // numero de unos en el cromosoma
-  for (j = 0; j < b1; j++) {
-    s[j] = nb1[j];
-    if (nb1[j] == '1') valor[2]++;
-    s[b1] = '\0';
-  }
-  regla = s;
-  delete[] s;
+  int b1, r1;
+  char* nb1 = G.Subpoblacion_Binaria(elemento_i, b1);
+  const string regla(nb1, b1);
+  double* nr1 = G.Subpoblacion_Real(elemento_i, r1);
+  const double umbral = nr1[r1 - 1];
 
-  nb2 = G.Subpoblacion_Binaria(1, elemento_i, b2);
-  s = new char[b2 + 1];
-  for (j = 0; j < b2; j++) {
-    s[j] = nb2[j];
-    if (nb2[j] == '1') valor[2]++;
-    s[b2] = '\0';
-  }
-  regla_funciones = s;
-  delete[] s;
+  int variables_irrelevantes = 0, ceros_variables = 0;
+  int pos = 0;  // posicion en el cromosoma nivel de valor
 
-  nn1 = G.Subpoblacion_Entera(0, elemento_i, n1);
-  nn2 = G.Subpoblacion_Entera(1, elemento_i, n2);
-  nr1 = G.Subpoblacion_Real(0, elemento_i, r1);
-  nr2 = new double[ne];
-
-  valor[1] = 0;  // numero de variable irrelevantes
-  valor[2] = 0;  // funciones irrelevantes
-  valor[3] = 0;  // asignaciones comprensibles
-  valor[4] = 0;  // numero de ceros
-  int pos = 0;   // posicion en el cromosoma nivel de valor
-  int tamanio;   // numero de genes de una variable
-
-  for (j = 0; j < r1 - 1; j++) {
-    tamanio = V.Variable(j).N_etiquetas();
-    if (nr1[j] < nr1[r1 - 1])
+  for (int j = 0; j < r1 - 1; j++) {
+    const int tamanio = V.Variable(j).N_etiquetas();
+    if (nr1[j] < umbral) {
       variables_irrelevantes++;
-    else {
-      if (Relevante(&(nb1[pos]), tamanio)) {
-        if (Asignacion_Comprensible(&(nb1[pos]), tamanio)) {
-          variables_estables++;
-        }
-
-        ceros_variables += NumeroCeros(&(nb1[pos]), tamanio);
-        unos_variables += NumeroUnos(&(nb1[pos]), tamanio);
-        // Asignacion no comprensible
-        // considero entonces la regla como invalida
-
-      } else {
-        nr1[j] = nr1[r1 - 1] - 0.001;
-        variables_irrelevantes++;
-      }
-    }
-    pos = pos + tamanio;
-  }
-
-  // Quitar funciones repetidas
-
-  for (int i = 1; i < n2; i++) {
-    if (nn2[i] != 0) {
-      int t = 0;
-      while (t < i and nn2[t] != nn2[i]) t++;
-      if (t < i) nn2[i] = 0;
-    }
-  }
-
-  variables_relevantes = (r1 - 1) - variables_irrelevantes;
-
-  pos = 0;
-  for (j = 0; j < n2; j++) {
-    if (nn2[j] != 0) {
-      tamanio = F.SizeDomain(nn2[j] - 1);
-      if (Relevante(&(nb2[pos]), tamanio)) {
-        if (Asignacion_Comprensible(&(nb2[pos]), tamanio)) {
-          funciones_estables++;
-          ceros_funciones += NumeroCeros(&(nb2[pos]), tamanio);
-          unos_funciones += NumeroUnos(&(nb2[pos]), tamanio);
-        } else {
-          // Asignacion no comprensible
-          // considero entonces la regla como invalida
-        }
-      } else {
-        funciones_irrelevantes++;
-        nn2[j] = 0;
-      }
+    } else if (Relevante(&(nb1[pos]), tamanio)) {
+      ceros_variables += NumeroCeros(&(nb1[pos]), tamanio);
     } else {
-      tamanio = 2;
-      funciones_irrelevantes++;
+      nr1[j] = umbral - 0.001;
+      variables_irrelevantes++;
     }
-    tamanio = 2;
     pos = pos + tamanio;
   }
 
-  funciones_relevantes = (n2)-funciones_irrelevantes;
+  const int variables_relevantes = (r1 - 1) - variables_irrelevantes;
 
-  // Distingue entre descripciones discriminantes o descriptivas
-
-  bool activada_memoria = false;
-  int* basica_esta_regla = 0;
-  int* errores_esta_regla = 0;
-  if (nrule > 0) {
-    basica_esta_regla = new int[nrule];
-    errores_esta_regla = new int[nrule];
-    activada_memoria = true;
-    for (int i = 0; i < nrule; i++) {
-      basica_esta_regla[i] = 0;
-      errores_esta_regla[i] = 0;
-    }
-  }
-
-  int* ejemplos_afectado_por_esta_regla = new int[ne];
-
-  double aux_p;
-  double aux_n;
-  double peso, kk;
-  double fitness0_global_regla = -ne;
   // Comprobar que es una regla valida
-  bool esta_cubierto;
-
-  bool regla_valida = V.Es_Valida(regla, nr1, nr1[r1 - 1], kk);
-  double afecta = 0;
-
-  double n_mas = 0, n_menos = 0;
-
-  if (valida and !esp_gen)
-    valida = ponderacion_por_clase[clase] != 0;
-  else {
-    valida = true;
-    if (!regla_valida) {
-    }
+  if (!V.Es_Valida(regla, nr1, umbral) or variables_irrelevantes >= r1 - 1) {
+    valor.fill(-2 * ne);
+    return 0;
   }
 
-  // Calculo previo para obtener el peso de la regla sobre atributos originales
-  valida = (variables_irrelevantes < r1 - 1);
-  if (regla_valida and valida) {
-    for (j = 0; j < ne; j++) {
-      T_AdaptacionC(V, Tabla, j, nn1[0], aux_p, aux_n);
+  // Calculo previo para obtener el peso de la regla
+  std::vector<double> adaptacion(ne);
+  double positivos = 0, negativos = 0, afecta = 0, aux_p, aux_n;
+  for (int j = 0; j < ne; j++) {
+    T_AdaptacionC(V, Tabla, j, clase, aux_p, aux_n);
 
-      nr2[j] = T_Adaptacion_Antecedente(V, Tabla, j, regla, nr1, nr1[r1 - 1]);
+    adaptacion[j] = T_Adaptacion_Antecedente(V, Tabla, j, regla, nr1, umbral);
 
-      nr2[j] =
-          T_Adaptacion_Antecedente_Nuevas(F, Tabla_Nuevas, j, regla_funciones, nn2, n2, nr2[j]);
+    if (adaptacion[j] * aux_p > 0) afecta++;
 
-      if (nr2[j] * aux_p > 0) afecta++;
-
-      positivos = positivos + (nr2[j] * aux_p);
-      negativos = negativos + (nr2[j] * aux_n);
-      if (aux_p < aux_n) nr2[j] = -nr2[j];
-    }
+    positivos = positivos + (adaptacion[j] * aux_p);
+    negativos = negativos + (adaptacion[j] * aux_n);
+    if (aux_p < aux_n) adaptacion[j] = -adaptacion[j];
   }
 
-  n_mas = positivos;
-  n_menos = negativos;
-  peso = (positivos + 1) / (positivos + negativos + 1);
-
-  if (positivos > 0) menos_infinito = false;
+  const double peso = (positivos + 1) / (positivos + negativos + 1);
+  const bool menos_infinito = !(positivos > 0);
 
   if (ponderacion_por_clase[clase] > 0) afecta = afecta / ponderacion_por_clase[clase];
 
-  double positivos_global = 0, negativos_global = 0;
   // Dado el peso de la regla obtener la bondad de la misma.
-  int positivos_aux = 0;
-  if (regla_valida and valida) {
-    positivos = 0;
-    negativos = 0;
-    for (j = 0; j < ne; j++) {
-      if (nr2[j] >= 0)
-        positivos_global += (nr2[j] * peso);
-      else
-        negativos_global += (-nr2[j] * peso);
-
-      ejemplos_afectado_por_esta_regla[j] = 0;
-
-      esta_cubierto = E.Is_Covered(j);
-      if (!esta_cubierto) {
-        if (nr2[j] > 0) {
-          if ((nr2[j] * peso > E.Grade_Is_Negative_Covered(j)) or
-              (nr2[j] * peso == E.Grade_Is_Negative_Covered(j) and
-               peso > E.Peso_Is_Negative_Covered(j))) {
-            positivos = positivos + (nr2[j] * peso);
-            aciertos++;
-            ejemplos_afectado_por_esta_regla[j] = 1;
-            if (nrule > 0 and E.Rule_Aislada(j) == -1 and E.Rule_Used(j) >= 0 and
-                E.Rule_Used(j) < nrule)
-              errores_esta_regla[E.Rule_Used(j)]++;
-          } else {
-            positivos_a_incrementar += (nr2[j] * peso);
-          }
-        } else if (nr2[j] < 0) {
-          if ((-nr2[j] * peso > E.Grade_Is_Positive_Covered(j)) or
-              (-nr2[j] * peso == E.Grade_Is_Positive_Covered(j) and
-               peso > E.Peso_Is_Positive_Covered(j))) {
-            negativos = negativos + ((-nr2[j] * peso) /
-                                     ponderacion_por_clase[E.Class_of_example(V.Consecuente(), j)]);
-
-            ejemplos_afectado_por_esta_regla[j] = -1;
-
-            if (nrule > 0 and E.Rule_Aislada(j) == -1 and E.Rule_Used(j) >= 0 and
-                E.Rule_Used(j) < nrule)
-              errores_esta_regla[E.Rule_Used(j)]++;
-          }
+  std::vector<int> basica_esta_regla(nrule), errores_esta_regla(nrule);
+  const auto anota = [&](std::vector<int>& cuenta, int ejemplo, int aislada) {
+    if (E.Rule_Aislada(ejemplo) == aislada and E.Rule_Used(ejemplo) >= 0 and
+        E.Rule_Used(ejemplo) < nrule)
+      cuenta[E.Rule_Used(ejemplo)]++;
+  };
+  double aciertos = 0, fallos = 0;
+  positivos = 0;
+  negativos = 0;
+  for (int j = 0; j < ne; j++) {
+    const double a = adaptacion[j];
+    if (a > 0) {
+      // La regla gana a la mejor de otra clase.
+      const bool gana =
+          a * peso > E.Grade_Is_Negative_Covered(j) or
+          (a * peso == E.Grade_Is_Negative_Covered(j) and peso > E.Peso_Is_Negative_Covered(j));
+      if (gana) {
+        if (!E.Is_Covered(j)) {
+          positivos = positivos + (a * peso);
+          aciertos++;
+          anota(errores_esta_regla, j, -1);
+        } else {
+          anota(basica_esta_regla, j, 1);
         }
-      } else {
-        if (nr2[j] > 0) {
-          if (nr2[j] * peso > E.Grade_Is_Negative_Covered(j) or
-              (nr2[j] * peso == E.Grade_Is_Negative_Covered(j) and
-               peso > E.Peso_Is_Negative_Covered(j))) {
-            ejemplos_afectado_por_esta_regla[j] = 1;
-            if (nrule > 0 and E.Rule_Aislada(j) == 1 and E.Rule_Used(j) >= 0 and
-                E.Rule_Used(j) < nrule)
-              basica_esta_regla[E.Rule_Used(j)]++;
-            positivos_sobrecubrimiento += 1;
-          }
-
-        } else if (nr2[j] < 0 and ((-nr2[j]) * peso > E.Grade_Is_Positive_Covered(j) or
-                                   ((-nr2[j]) * peso == E.Grade_Is_Positive_Covered(j) and
-                                    peso > E.Peso_Is_Positive_Covered(j)))) {
-          ejemplos_afectado_por_esta_regla[j] = -1;
-
-          negativos = negativos + ((-nr2[j] * peso) /
-                                   ponderacion_por_clase[E.Class_of_example(V.Consecuente(), j)]);
+      }
+    } else if (a < 0) {
+      // La regla gana a la mejor de la clase del ejemplo.
+      const bool gana =
+          -a * peso > E.Grade_Is_Positive_Covered(j) or
+          (-a * peso == E.Grade_Is_Positive_Covered(j) and peso > E.Peso_Is_Positive_Covered(j));
+      if (gana) {
+        negativos = negativos +
+                    ((-a * peso) / ponderacion_por_clase[E.Class_of_example(V.Consecuente(), j)]);
+        if (!E.Is_Covered(j)) {
+          anota(errores_esta_regla, j, -1);
+        } else {
           fallos++;
-          if (nrule > 0 and E.Rule_Aislada(j) == 1 and E.Rule_Used(j) >= 0 and
-              E.Rule_Used(j) < nrule)
-            basica_esta_regla[E.Rule_Used(j)]++;
+          anota(basica_esta_regla, j, 1);
         }
       }
     }
   }
-  // La regla es invalida
-  else {
-    for (j = 0; j < ne; j++) nr2[j] = 0;
-    fallos = 2 * ne;
+
+  // Evaluar si es posible eliminar alguna regla ya existente
+  int reglas_eliminables = 0;
+  double aciertos_adicionales = 0;
+  int ganancia_en_variables = variables_relevantes;
+  double diferencia_peso = peso;
+
+  reglas_a_eliminar.clear();
+  for (int i = ev.tam_rule_not_removed; i < nrule; i++) {
+    const int ganancia = (basica_esta_regla[i] - basica_para_regla[i]) +
+                         (errores_para_regla[i] - errores_esta_regla[i]);
+    if (ganancia >= 0) {
+      reglas_a_eliminar.push_back(i);
+      reglas_eliminables++;
+      aciertos_adicionales += ganancia;
+      ganancia_en_variables = R.Variables_of_rule(i) - ganancia_en_variables;
+      diferencia_peso -= R.Get_Weight(i);
+    }
   }
 
-  if (regla_valida and valida) {
-    // Evaluar si es posible eliminar alguna regla ya existente
-    int reglas_eliminables = 0;
-    int reglas_otra_clase = 0;
-    double aciertos_adicionales = 0;
-    int ganancia_en_variables = (variables_relevantes + funciones_relevantes);
-    int ganancia_funciones_en_variables = funciones_irrelevantes;
-    double diferencia_peso = peso;
-    int diferencia_estables = variables_estables + funciones_estables;
-    int regla_afectada;
-    double max_porcen = 0;
-    double balance;
+  if (ponderacion_por_clase[clase] > 0)
+    positivos = positivos / ponderacion_por_clase[clase];
+  else
+    positivos = 0;
 
-    int diferencia_ceros;
-    double diferencia_n_mas_n_menos;
+  if (aciertos + aciertos_adicionales - fallos > 0) {
+    if (ponderacion_por_clase[clase] > 0) {
+      if (positivos - negativos < 0)
+        valor[0] = -0.9;
+      else {
+        valor[0] = positivos - negativos;
+        valor[0] *= peso * peso * peso * peso * peso * peso * peso * peso * peso;
+      }
 
-    n_reglas_a_eliminar = 0;
-    for (int i = tam_rule_not_removed; i < nrule; i++) {
-      if ((basica_esta_regla[i] - basica_para_regla[i]) +
-              (errores_para_regla[i] - errores_esta_regla[i]) >=
-          0) {
-        if (true) {
-          reglas_a_eliminar[n_reglas_a_eliminar] = i;
-          n_reglas_a_eliminar++;
-          reglas_eliminables++;
-          if (R.Class_of_rule(i) != clase) reglas_otra_clase++;
-
-          aciertos_adicionales += (basica_esta_regla[i] - basica_para_regla[i]) +
-                                  (errores_para_regla[i] - errores_esta_regla[i]);
-
-          ganancia_en_variables = R.Variables_of_rule(i) - ganancia_en_variables;
-
-          diferencia_n_mas_n_menos = R.Get_N_Mas(i) - R.Get_N_Menos(i);
-          ganancia_funciones_en_variables =
-              R.New_Atributes_of_rule(i) - ganancia_funciones_en_variables;
-          diferencia_peso -= R.Get_Weight(i);
-
-          diferencia_estables = 0;
-          // balance no se usa en esta función (valor[2]=balance está comentado) y su cálculo leía
-          // fuera de la población real 1, que tiene tamaño 1 y no uno por ejemplo.
-
-          diferencia_ceros = ceros_variables - R.Numero_Ceros_of_rule(i);
-          regla_afectada = i;
-        }
-      } else if (R.Class_of_rule(i) == clase and
-                 (1.0 * basica_esta_regla[i] + errores_para_regla[i]) /
-                         (basica_para_regla[i] + errores_esta_regla[i]) >
-                     max_porcen)
-        max_porcen = (1.0 * basica_esta_regla[i] + errores_para_regla[i]) /
-                     (basica_para_regla[i] + errores_esta_regla[i]);
-    }
-
-    double granularidad = 0;
-
-    if (ponderacion_por_clase[clase] > 0)
-      positivos = positivos / ponderacion_por_clase[clase];
-    else
-      positivos = 0;
-
-    if (aciertos + aciertos_adicionales - fallos > granularidad) {
-      if (ponderacion_por_clase[clase] > 0) {
-        if (positivos - negativos < 0)
-          valor[0] = -0.9;
-        else {
-          valor[0] = positivos - negativos;
-          valor[0] *= peso * peso * peso * peso * peso * peso * peso * peso * peso;
-        }
-
-        if (positivos == 0 && menos_infinito) {
-          valor[0] = -2 * ne;
-        }
-      } else
+      if (positivos == 0 && menos_infinito) {
         valor[0] = -2 * ne;
-    } else if (aciertos + aciertos_adicionales > granularidad) {
-      if (!reducir_reglas) {
-        valor[0] = aciertos + aciertos_adicionales - fallos - granularidad;
-        if (valor[0] == 0) valor[0] = -ne;
-      } else {
-        valor[0] = aciertos + aciertos_adicionales - fallos - granularidad;
-        if (valor[0] == 0)
-          valor[0] = -ne;
-        else if (reglas_eliminables >= (-valor[0]) + 2)
-          valor[0] = aciertos + aciertos_adicionales - fallos;
-        else
-          valor[0] = -2 * ne;
       }
     } else
+      valor[0] = -2 * ne;
+  } else if (aciertos + aciertos_adicionales > 0) {
+    valor[0] = aciertos + aciertos_adicionales - fallos;
+    if (valor[0] == 0)
+      valor[0] = -ne;
+    else if (ev.reducir_reglas) {
+      if (reglas_eliminables >= (-valor[0]) + 2)
+        valor[0] = aciertos + aciertos_adicionales - fallos;
+      else
+        valor[0] = -2 * ne;
+    }
+  } else
+    valor[0] = -(ne + fallos);
 
-      valor[0] = -(ne + fallos);
+  valor[6] = aciertos_adicionales;
+  valor[5] = aciertos - fallos;
+  valor[4] = 0;
+  valor[3] = -variables_relevantes;
+  valor[2] = afecta;
+  valor[1] = reglas_eliminables;
 
-    valor[6] = aciertos_adicionales;
-    valor[5] = aciertos - fallos;
-
+  if (reglas_eliminables == 1 and (valor[0] == -ne or valor[0] == 0)) {
+    if (aciertos_adicionales > 0)
+      valor[2] = 0.1 + aciertos_adicionales;
+    else
+      valor[2] = diferencia_peso;
+    valor[3] = -ganancia_en_variables;
     valor[4] = 0;
-    valor[3] = -(variables_relevantes + funciones_relevantes);
-
-    valor[2] = afecta;
-
-    valor[1] = reglas_eliminables;
-
-    if ((reglas_eliminables >= 1 and reglas_eliminables < 2) and
-        (valor[0] == -ne or valor[0] == 0)) {
-      if (!discriminante) {
-        valor[1] = 1;
-
-        valor[2] = (n_mas - n_menos) - diferencia_n_mas_n_menos;
-        valor[3] = -ganancia_en_variables;
-
-        valor[4] = 0;
-
-        valor[5] = ceros_variables;
-        valor[6] = max_porcen;
-      } else {
-        valor[1] = 1;
-
-        if (aciertos_adicionales > 0)
-          valor[2] = 0.1 + aciertos_adicionales;
-        else
-
-          valor[2] = diferencia_peso;
-        valor[3] = -ganancia_en_variables;
-
-        valor[4] = 0;
-
-        valor[5] = ceros_variables;
-
-        // En el original, con una sola regla leía el peso de una regla que no existe (aquí
-        // reglas_eliminables es 1): memoria sin inicializar o de una regla ya quitada. No cambia
-        // las reglas de ningún conjunto de prueba, ni forzando ese valor a 0, 1e9 o -1e9.
-        valor[6] = reglas_eliminables < R.N_rule() ? -R.Get_Weight(reglas_eliminables) : 0;
-      }
-    }
-
-    if (esp_gen and positivos_global == 0) {
-      valor[0] = -fallos;
-    } else if (esp_gen and positivos == 0) {
-      valor[0] = -fallos;
-    } else if (esp_gen and valor[0] <= -0.9) {
-      valor[0] = ((1.0 + (aciertos - fallos)) / (aciertos + fallos + 1) - 1) / 2.0 - 0.25;
-    }
-
-    if (esp_gen) {
-      valor[1] = aciertos;
-
-      valor[2] = 0;
-    }
-
-  } else {
-    valor[0] = valor[1] = valor[2] = valor[3] = valor[4] = valor[5] = valor[6] = -2 * ne;
-    peso = 0;
+    valor[5] = ceros_variables;
+    // En el original, con una sola regla leía el peso de una regla que no existe: memoria sin
+    // inicializar o de una regla ya quitada. No decide nada: dos individuos solo empatan hasta
+    // aquí si los dos pasan por esta rama, y entonces leen el mismo valor (y forzándolo a 0, 1e9 y
+    // -1e9, las reglas de los conjuntos de prueba no cambian).
+    valor[6] = reglas_eliminables < nrule ? -R.Get_Weight(reglas_eliminables) : 0;
   }
-
-  if (nrule > 0 and activada_memoria) {
-    delete[] basica_esta_regla;
-    delete[] errores_esta_regla;
-  }
-
-  delete[] ejemplos_afectado_por_esta_regla;
-  delete[] nr2;
 
   return peso;
 }
 
-double Aciertos(ruleset& R, const VectorVar& V, example_set& E, VectorVar& F) {
-  int n = E.N_Examples();
-
-  int clase, kk;
-  vectordouble w;
-  int *marcar = new int[n], tama1 = 0;
-  double* g_pos_grado = new double[n];
-  double* g_neg_grado = new double[n];
-  double* peso_pos = new double[n];
-  double* peso_neg = new double[n];
-  int tama2 = 0;
-  double bien = 0, mal = 0, nosesabe = 0, grado;
-  int conse = V.Consecuente();
-  int* regla_disparada = new int[n];
-  int* aislada = new int[n];
-  int* bien_clas = new int[R.N_rule()];
-  int* mal_clas = new int[R.N_rule()];
-  int* unico_rule = new int[R.N_rule()];
-  int clase_ejemplo;
-
-  for (int i = 0; i < R.N_rule(); i++) {
-    bien_clas[i] = 0;
-    mal_clas[i] = 0;
-    unico_rule[i] = 0;
-  }
+double Aciertos(const ruleset& R, const VectorVar& V, example_set& E) {
+  const int n = E.N_Examples();
+  const int conse = V.Consecuente();
+  std::vector<int> marcar(n), regla_disparada(n), aislada(n);
+  std::vector<double> g_pos_grado(n), g_neg_grado(n), peso_pos(n), peso_neg(n);
+  double bien = 0;
 
   for (int i = 0; i < n; i++) {
-    w = E.Data(i);
-    clase_ejemplo = (int)(w.At(conse));
-    clase = R.InferenceC(w, clase_ejemplo, g_pos_grado[i], peso_pos[i], g_neg_grado[i], peso_neg[i],
-                         regla_disparada[i], aislada[i]);
+    const vectordouble w = E.Data(i);
+    const int clase_ejemplo = static_cast<int>(w.At(conse));
+    const int clase = R.InferenceC(w, clase_ejemplo, g_pos_grado[i], peso_pos[i], g_neg_grado[i],
+                                   peso_neg[i], regla_disparada[i], aislada[i]);
     if (clase == -1) {
-      nosesabe++;
       marcar[i] = -1;
     } else if (clase == w.At(conse)) {
       bien++;
       marcar[i] = 1;
-      tama1++;
-      bien_clas[regla_disparada[i]]++;
-      if (aislada[i] == 1) unico_rule[regla_disparada[i]]++;
     } else {
-      mal++;
       marcar[i] = 0;
-      tama2++;
-      mal_clas[regla_disparada[i]]++;
     }
   }
 
-  E.Mark(marcar, n, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
-
-  delete[] marcar;
-  delete[] g_pos_grado;
-  delete[] g_neg_grado;
-  delete[] peso_pos;
-  delete[] peso_neg;
-  delete[] bien_clas;
-  delete[] mal_clas;
-  delete[] unico_rule;
-  delete[] regla_disparada;
-  delete[] aislada;
+  E.Mark(marcar.data(), n, g_pos_grado.data(), peso_pos.data(), g_neg_grado.data(), peso_neg.data(),
+         regla_disparada.data(), aislada.data());
 
   return bien / n;
 }
 
-double Aciertos(ruleset& R, const VectorVar& V, example_set& E, string nomfich, VectorVar& F) {
-  int n = E.N_Examples();
-  int clase, kk;
-  vectordouble w;
-  int* marcar = new int[n];
-  double* g_pos_grado = new double[n];
-  double* g_neg_grado = new double[n];
-  double* peso_pos = new double[n];
-  double* peso_neg = new double[n];
-  double bien = 0, mal = 0, nosesabe = 0, grado;
-  int conse = V.Consecuente();
-  int* regla_disparada = new int[n];
-  int* aislada = new int[n];
-  int* bien_clas = new int[R.N_rule()];
-  int* mal_clas = new int[R.N_rule()];
-  int clase_ejemplo;
+std::vector<int> Reglas_Que_Disparan(const ruleset& R, const example_set& E) {
+  std::vector<bool> usada(R.N_rule());
 
+  for (int i = 0; i < E.N_Examples(); i++) {
+    const vectordouble w = E.Data(i);
+    double grado;
+    int regla_disparada;
+    if (R.InferenceC(w, grado, regla_disparada) != -1) usada[regla_disparada] = true;
+  }
+
+  std::vector<int> lista;
   for (int i = 0; i < R.N_rule(); i++) {
-    bien_clas[i] = 0;
-    mal_clas[i] = 0;
+    if (usada[i]) lista.push_back(i);
   }
-
-  for (int i = 0; i < n; i++) {
-    w = E.Data(i);
-    clase_ejemplo = (int)(w.At(conse));
-    clase = R.InferenceC(w, clase_ejemplo, g_pos_grado[i], peso_pos[i], g_neg_grado[i], peso_neg[i],
-                         regla_disparada[i], aislada[i]);
-    if (clase == -1) {
-      nosesabe++;
-      marcar[i] = -1;
-    } else if (clase == w.At(conse)) {
-      bien++;
-      marcar[i] = 1;
-      bien_clas[regla_disparada[i]]++;
-    } else {
-      mal++;
-      marcar[i] = 0;
-      mal_clas[regla_disparada[i]]++;
-    }
-  }
-
-  E.Mark(marcar, n, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
-
-  ofstream out(nomfich.c_str(), ios::app);
-
-  out << "Aciertos: " << bien << endl;
-  out << "Errores:  " << mal << endl;
-  out << "No clasificados: " << nosesabe << endl;
-
-  for (int i = 0; i < R.N_rule(); i++) {
-    out << "\tRule " << i << "(" << R.SPrint_Consequent(i) << "): " << bien_clas[i] << " / "
-        << mal_clas[i] << endl;
-  }
-
-  out.close();
-
-  delete[] marcar;
-  delete[] g_pos_grado;
-  delete[] g_neg_grado;
-  delete[] peso_pos;
-  delete[] peso_neg;
-  delete[] bien_clas;
-  delete[] mal_clas;
-  delete[] regla_disparada;
-  delete[] aislada;
-
-  return bien / n;
+  return lista;
 }
 
-double Aciertos_Lista_Reglas_Eliminables(ruleset& R, const VectorVar& V, example_set& E,
-                                         VectorVar& F, int* lista, int& tama, int* l_aciertos,
-                                         int& tama_l) {
-  int n = E.N_Examples();
-  int clase, kk;
-  vectordouble w;
-  int *marcar = new int[n], tama1 = 0;
-  double* g_pos_grado = new double[n];
-  double* g_neg_grado = new double[n];
-  double* peso_pos = new double[n];
-  double* peso_neg = new double[n];
-  int tama2 = 0;
-  double bien = 0, mal = 0, nosesabe = 0, grado;
-  int conse = V.Consecuente();
-  int* regla_disparada = new int[n];
-  int* aislada = new int[n];
-  int* bien_clas = new int[R.N_rule()];
-  int* mal_clas = new int[R.N_rule()];
-  int* unico_rule = new int[R.N_rule()];
-  bool* usada = new bool[R.N_rule()];
-  int clase_ejemplo;
-
-  for (int i = 0; i < R.N_rule(); i++) {
-    bien_clas[i] = 0;
-    mal_clas[i] = 0;
-    unico_rule[i] = 0;
-    usada[i] = false;
+void Filtrar_Reglas_New(ruleset& R, ruleset& R_dis, ruleset& R_mix,
+                        const std::vector<int>& reglas_a_eliminar) {
+  for (auto i = reglas_a_eliminar.rbegin(); i != reglas_a_eliminar.rend(); ++i) {
+    R.Remove(*i);
+    R_dis.Remove(*i);
+    R_mix.Remove(*i);
   }
-
-  tama_l = 0;
-  for (int i = 0; i < n; i++) {
-    l_aciertos[i] = 0;
-    w = E.Data(i);
-    clase_ejemplo = (int)(w.At(conse));
-    clase = R.InferenceC(w, clase_ejemplo, g_pos_grado[i], peso_pos[i], g_neg_grado[i], peso_neg[i],
-                         regla_disparada[i], aislada[i]);
-    if (clase == -1) {
-      nosesabe++;
-      marcar[i] = -1;
-    } else if (clase == w.At(conse)) {
-      bien++;
-      marcar[i] = 1;
-      tama1++;
-      bien_clas[regla_disparada[i]]++;
-      l_aciertos[tama_l] = i;
-      tama_l++;
-      usada[regla_disparada[i]] = true;
-      if (aislada[i] == 1) unico_rule[regla_disparada[i]]++;
-    } else {
-      mal++;
-      marcar[i] = 0;
-      tama2++;
-      mal_clas[regla_disparada[i]]++;
-      usada[regla_disparada[i]] = true;
-    }
-  }
-
-  tama = 0;
-  for (int i = 0; i < R.N_rule(); i++) {
-    if (usada[i]) {
-      lista[tama] = i;
-      tama++;
-    }
-  }
-
-  delete[] marcar;
-  delete[] g_pos_grado;
-  delete[] g_neg_grado;
-  delete[] peso_pos;
-  delete[] peso_neg;
-  delete[] bien_clas;
-  delete[] mal_clas;
-  delete[] unico_rule;
-  delete[] regla_disparada;
-  delete[] aislada;
-  delete[] usada;
-
-  return bien / n;
-}
-
-double Inferencia2BasesReglas(ruleset& R, ruleset& R_Descrip, const VectorVar& V, example_set& E,
-                              int* fallosR, int* fallosR_Descrip, int* disparosR,
-                              int* disparosR_Descrip) {
-  int n = E.N_Examples();
-  int clase, clase1, regla_disparada1, clase2, regla_disparada2, discrepancias = 0,
-                                                                 discrepancias_reglas = 0;
-
-  if (R.N_rule() != R_Descrip.N_rule())
-    progreso(Verbosidad::depuracion)
-        << "\nError: No coinciden las bases de reglas en el numero de reglas. Descriptivas: "
-        << R_Descrip.N_rule() << " Discriminantes: " << R.N_rule() << endl;
-
-  for (int i = 0; i < R.N_rule(); i++) {
-    fallosR[i] = 0;
-    fallosR_Descrip[i] = 0;
-    disparosR[i] = 0;
-    disparosR_Descrip[i] = 0;
-  }
-  vectordouble w;
-  int conse = V.Consecuente();
-  double nosesabe = 0, bien = 0, mal = 0, grado1, grado2, fallos1 = 0, fallos2 = 0, n1 = 0, n2 = 0;
-  for (int i = 0; i < n; i++) {
-    w = E.Data(i);
-    clase1 = R.InferenceC(w, grado1, regla_disparada1);
-    clase2 = R_Descrip.InferenceC(w, grado2, regla_disparada2);
-
-    if (regla_disparada1 != -1) disparosR[regla_disparada1]++;
-
-    if (regla_disparada2 != -1) disparosR_Descrip[regla_disparada2]++;
-
-    if (regla_disparada1 != regla_disparada2) discrepancias_reglas++;
-
-    if (clase1 != -1 and clase1 != w.At(conse)) fallosR[regla_disparada1]++;
-
-    if (clase2 != -1 and clase2 != w.At(conse)) fallosR_Descrip[regla_disparada2]++;
-
-    if (clase1 != -1) n1++;
-
-    if (clase2 != -1) n2++;
-
-    if (clase1 != -1 and clase1 != w.At(conse)) fallos1++;
-
-    if (clase2 != -1 and clase2 != w.At(conse)) fallos2++;
-
-    if (clase1 == clase2) {
-      clase = clase1;
-    } else {
-      discrepancias++;
-      if (clase2 == -1)
-        clase = clase1;
-      else if (clase1 == -1)
-        clase = clase2;
-      else {
-        if (grado1 > grado2)
-          clase = clase1;
-        else
-          clase = clase2;
-      }
-    }
-
-    if (clase == -1) {
-      nosesabe++;
-    } else if (clase == w.At(conse)) {
-      bien++;
-    } else {
-      mal++;
-    }
-  }
-
-  return bien / n;
-}
-
-double Filtrar_Reglas_New(ruleset& R, ruleset& R_dis, ruleset& R_mix, int* reglas_a_eliminar,
-                          int n_reglas_a_eliminar, bool Specific_Rule) {
-  double mejor_acierto, acierto, peso;
-  string regla_escrita;
-
-  for (int i = n_reglas_a_eliminar - 1; i >= 0; i--) {
-    R.Remove(reglas_a_eliminar[i]);
-    R_dis.Remove(reglas_a_eliminar[i]);
-    R_mix.Remove(reglas_a_eliminar[i]);
-  }
-
-  return 0;
 }
 
 // devuelve una matriz de nv filas (n. variables antecedente) y
@@ -2237,90 +1204,6 @@ void CalcularProbabilidadSimpleVariable(const VectorVar& V, const example_set& E
 
     for (int j = 0; j < n_casos; j++) p[j] = p[j] / ne;
   }
-}
-
-double Operacion(double x1, double x2, int op) {
-  double a;
-  if (x1 == -999999999 || x2 == -999999999) return -999999999;
-  switch (op) {
-    case 19:
-      if (x1 == x2)
-        return 1;
-      else
-        return 0;
-      break;
-      // Operacion OR
-    case 20:
-      if (x1 == 1 || x2 == 1)
-        return 1;
-      else
-        return 0;
-      break;
-      // Operacion XOR
-    case 21:
-      if ((x1 == 1 && x2 == 0) || (x1 == 0 && x2 == 1))
-        return 1;
-      else
-        return 0;
-      break;
-    case 22:
-      if ((x1 == 1 && x2 == 1))
-        return 1;
-      else
-        return 0;
-      break;
-
-    case 1:
-      if (x1 >= x2)
-        return 1;
-      else
-        return 0;
-      break;
-
-    case 2:
-      return x1 + x2;
-      break;
-
-    case 5:  // Division
-      if (x2 != 0)
-        return x1 / x2;
-      else
-        return -999999999;
-      break;
-
-    case 4:
-      return (x1 - x2);
-      break;
-
-    case 3:
-      return (x1 * x2);
-      break;
-    case 7:  // Delta+
-
-      return x1;
-      break;
-    case 8:  // Delta-
-      return x1;
-      break;
-    case 9:
-      return log(fabs(x1) + 1);
-      break;
-    case 10:
-      return sin(x1) + cos(x1);
-      break;
-    case 11:
-      return sqrt(fabs(x1));
-      break;
-    case 12:
-      return 1.0 / (fabs(x1) + 1);
-      break;
-    case 13:
-      break;
-    case 15:
-      return x1;
-      break;
-  }
-  return 0.0;
 }
 
 void CalcularProbabilidadConjunta2Variables(const VectorVar& V, const example_set& E, int var1,
@@ -2449,18 +1332,6 @@ void MedidasDeInformacion(const VectorVar& V, const example_set& E, double** I) 
 
 // Determina la mejor particion del dominio de una funcion
 
-class nodo {
- public:
-  double valor;
-  int operando1;
-  int operando2;
-  int operacion;
-  int labels;
-  int sensibilidad;
-  domain_t atributo;
-  string nombre;
-};
-
 double*** Crear_Tabla_Adaptaciones(const VectorVar& V, const example_set& E) {
   int n = V.TotalVariables();
   int m = E.N_Examples();
@@ -2497,52 +1368,7 @@ double*** Crear_Tabla_Adaptaciones(const VectorVar& V, const example_set& E) {
   return Tabla;
 }
 
-double*** Crear_Tabla_Adaptaciones_Nuevas(const VectorVar& V, const example_set& E) {
-  int n = V.TotalVariables();
-  int m = E.N_Examples();
-  int l;
-  int var1, var2, op;
-  double valor1, valor2, resultado;
-
-  // Reservando la Memoria para las adaptaciones
-  double*** Tabla = new double**[n];
-  for (int i = 0; i < n; i++) {
-    l = V.SizeDomain(i);
-
-    Tabla[i] = new double*[l];
-    for (int j = 0; j < l; j++) {
-      Tabla[i][j] = new double[m];
-    }
-  }
-
-  // Calculando los valores de adaptaciones de cada ejemplo a cada etiqueta de cada variable
-  int valores_distinto_cero;
-  for (int e = 0; e < m; e++) {
-    for (int v = 0; v < n; v++) {
-      V.Funcion(v, var1, var2, op);
-      l = V.SizeDomain(v);
-      if (op == 5 and E.Data(e, var2) == 0)
-        for (int j = 0; j < l; j++) Tabla[v][j][e] = 0;
-      else {
-        valores_distinto_cero = 0;
-        resultado = Operacion(E.Data(e, var1), E.Data(e, var2), op);
-        for (int j = 0; j < l; j++) {
-          Tabla[v][j][e] = V.Adaptacion(resultado, v, j);
-          if (Tabla[v][j][e] > 0 and Tabla[v][j][e] <= 1) valores_distinto_cero++;
-        }
-        // En el original terminaba el programa.
-        if (valores_distinto_cero == 0)
-          throw std::invalid_argument("inslv: el valor " + std::to_string(resultado) +
-                                      " de la variable " + std::to_string(v) +
-                                      " no se adapta a ninguna de sus etiquetas");
-      }
-    }
-  }
-
-  return Tabla;
-}
-
-void Destruir_Tabla_Adaptaciones(const VectorVar& V, const example_set& E, double***& Tabla) {
+void Destruir_Tabla_Adaptaciones(const VectorVar& V, double***& Tabla) {
   int n = V.TotalVariables();
   int l;
   for (int i = 0; i < n; i++) {
@@ -2574,12 +1400,12 @@ double T_Adaptacion_Variable(const VectorVar& V, double*** Tabla, int ejemplo, i
 }
 
 // Adaptacion de un ejemplo al antecedente de una regla
-double T_Adaptacion_Antecedente(const VectorVar& V, double*** Tabla, int ejemplo, string regla,
-                                double* nivel_variable, double umbral) {
+double T_Adaptacion_Antecedente(const VectorVar& V, double*** Tabla, int ejemplo,
+                                const string& regla, const double* nivel_variable, double umbral) {
   int n = V.N_Antecedente();
   double max = 1, aux;
   string sub;
-  int trozo = 0, tam, unos;
+  int trozo = 0, tam;
   for (int v = 0; v < n && max > 0; v++) {
     tam = V.SizeDomain(v);
     if (nivel_variable[v] >= umbral) {
@@ -2587,29 +1413,6 @@ double T_Adaptacion_Antecedente(const VectorVar& V, double*** Tabla, int ejemplo
       aux = T_Adaptacion_Variable(V, Tabla, ejemplo, v, sub);
       if (aux < max) max = aux;
     }
-    trozo += tam;
-  }
-  return max;
-}
-
-// Adaptacion de un ejemplo al antecedente de una regla
-double T_Adaptacion_Antecedente_Nuevas(const VectorVar& V, double*** Tabla, int ejemplo,
-                                       string regla, int* nivel_variable_funciones,
-                                       int tama_nivel_variable_funciones, double matching_previo) {
-  int n = V.N_Antecedente();
-  double max = matching_previo, aux;
-  string sub;
-  int trozo = 0, tam, unos;
-  for (int func = 0; (max > 0) && (func < tama_nivel_variable_funciones); func++) {
-    if (nivel_variable_funciones[func] != 0) {
-      tam = V.SizeDomain(nivel_variable_funciones[func] - 1);
-      sub = regla.substr(trozo, tam);
-      aux = T_Adaptacion_Variable(V, Tabla, ejemplo, nivel_variable_funciones[func] - 1, sub);
-      if (aux < max) max = aux;
-    }
-
-    tam = 2;
-
     trozo += tam;
   }
   return max;
@@ -2640,15 +1443,91 @@ int BetterEtiqueta(const VectorVar& V, double*** Tabla, int variable, int ejempl
   return et;
 }
 
-std::vector<Regla> Aprender(VectorVar& V, example_set& E, const Opciones& options) {
+namespace {
+
+// Los aciertos de cada regla, para el informe (marca los ejemplos, como Aciertos).
+double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, example_set& E,
+                          const std::string& nomfich) {
+  const double acierto = Aciertos(R, V, E);
+  std::vector<int> bien_clas(R.N_rule()), mal_clas(R.N_rule());
+  int bien = 0, mal = 0, nosesabe = 0;
+  for (int i = 0; i < E.N_Examples(); i++) {
+    if (E.Rule_Used(i) == -1) {
+      nosesabe++;
+    } else if (E.Is_Covered(i)) {
+      bien++;
+      bien_clas[E.Rule_Used(i)]++;
+    } else {
+      mal++;
+      mal_clas[E.Rule_Used(i)]++;
+    }
+  }
+
+  ofstream out(nomfich, ios::app);
+  out << "Aciertos: " << bien << endl;
+  out << "Errores:  " << mal << endl;
+  out << "No clasificados: " << nosesabe << endl;
+  for (int i = 0; i < R.N_rule(); i++) {
+    out << "\tRule " << i << "(" << R.SPrint_Consequent(i) << "): " << bien_clas[i] << " / "
+        << mal_clas[i] << endl;
+  }
+  return acierto;
+}
+
+void Escribir_Informe(const std::string& task_res, const VectorVar& V, example_set& E,
+                      ruleset& R_prev, ruleset& R_prev_dis, ruleset& R_mix_prev, double tiempo) {
+  const double aciertos_discriminantes = Aciertos_Por_Regla(R_prev_dis, V, E, task_res);
+  const double aciertos_descriptivas = Aciertos_Por_Regla(R_prev, V, E, task_res);
+
+  std::vector<int> frecuencia_variables(V.N_Antecedente());
+  const double variables_usadas = R_prev.Frecuence_each_Variables(frecuencia_variables.data());
+
+  ofstream out(task_res, ios::app);
+  out << "----------------------------------------------------\n";
+  out << "Numero de reglas: " << R_prev.N_rule() << endl;
+  out << "Variables por regla: " << R_prev.Variables_per_rule() << endl;
+  out << "Variables usadas: " << variables_usadas << endl;
+  out << "Tiempo: " << tiempo << endl;
+  out << "Condiciones: " << R_prev.Condiciones_per_RB() << endl;
+  out << "Aciertos Discriminantes: " << aciertos_discriminantes << endl;
+  out << "Aciertos Descriptivas: " << aciertos_descriptivas << endl;
+  out << "----------------------------------------------------\n";
+  out << "------------------- REGLAS -------------------------\n";
+  out << "----------------------------------------------------\n";
+
+  out << "Descriptivas: " << endl;
+  out.close();
+  R_prev.SaveRuleInterpreted_append(task_res);
+  out.open(task_res, ios::app);
+  out << "Predictivas: " << endl;
+  out.close();
+  R_prev_dis.SaveRuleInterpreted_append(task_res);
+  out.open(task_res, ios::app);
+  out << "Patrones: " << endl;
+
+  for (int kk = 0; kk < R_mix_prev.N_rule(); kk++) {
+    string res = "(0)";
+    res[1] = res[1] + R_mix_prev.Class_of_rule(kk);
+    res = Patron1Regla(R_mix_prev, V, kk) + res;
+    out << res << endl;
+  }
+
+  out << "Frecuencia de aparicion de las " << V.N_Antecedente()
+      << " distintas variables en las reglas: \n";
+  for (int i = 0; i < V.N_Antecedente(); i++) {
+    out << V.SPrintVar(i) << ": ";
+    out << "--> " << (1.0 * frecuencia_variables[i] / R_prev.N_rule()) * 100 << " %\n";
+  }
+}
+
+}  // namespace
+
+std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opciones& options) {
   // El informe (el antiguo <tarea>.res) solo se escribe si se pide.
   const bool informe = !options.informe.empty();
   const std::string task_res = options.informe.string();
-  // Numero de particiones
-  int num_par = 1;
 
   V.Pinta();
-  int seed = options.semilla;
 
   ofstream out;
   if (informe) {
@@ -2660,757 +1539,295 @@ std::vector<Regla> Aprender(VectorVar& V, example_set& E, const Opciones& option
     out.close();
   }
 
-  srand(seed);
-  progreso(Verbosidad::depuracion) << "SEED " << seed << endl;
+  srand(options.semilla);
+  progreso(Verbosidad::depuracion) << "SEED " << options.semilla << endl;
 
-  vectordouble a1, a2(5), a3;
+  // Numero de componentes de la funcion fitness
+  const int NFitness = 7;
+  // El tamano del nivel de valor y el numero de clases
+  int tama_valor, n_clases;
+  V.Encode(tama_valor, n_clases);
+  // El nivel de variable: el de cada atributo y el umbral
+  const int tama_nivel = V.N_Antecedente() + 1;
 
-  // numero de poblaciones binarias
-  int NPobBin = 2;
-  // numero de poblaciones enteras
-  int NPobEnt = 2;
-  // numero de poblaciones reales
-  int NPobRea = 2;
-  // Elite de la poblacion genetica
-  int Elite = 10;
-  // numero de componentes de la funcion fitness
-  int NFitness = 7;
-  // numero de individuos de la poblacion
-  int Indiv = 100;
-  // numero total de poblaciones del genetico
-  int NPobTotal = NPobBin + NPobEnt + NPobRea;
-
-  int* rango = new int[NPobEnt];
-
-  double* rangoi = new double[NPobRea];
-  double* rangos = new double[NPobRea];
-  // Establece los parametros del genetico:
-  //   Tamano de cada poblacion, prob. de mut y prob. de cruce.
-  int* tama = new int[NPobTotal];
-  double* mut = new double[NPobTotal];
-  double* cruce = new double[NPobTotal];
-
-  // Configuracion del Genetico
-  for (int i = 0; i < NPobBin; i++) {
-    mut[i] = 0.01;
-    cruce[i] = 0.3;
-  }
-
-  for (int i = NPobBin; i < NPobBin + NPobEnt; i++) {
-    mut[i] = 0.01;
-    cruce[i] = 0.0;
-  }
-
-  mut[NPobBin] = 0.01;
-  cruce[NPobBin] = 0.2;
-
-  for (int i = NPobBin + NPobEnt; i < NPobBin + NPobEnt + NPobRea; i++) {
-    mut[i] = 0.05;
-    cruce[i] = 0;
-  }
-
-  // Valores para el nivel de variable
-  mut[NPobBin + NPobEnt] = 0.5 / V.N_Antecedente();
-  cruce[NPobBin + NPobEnt] = 0.2;
-  mut[1] = 0.1;
-
-  int antecedente;
-
-  string seedfich = task_res;
-  string ext = ".rl0";
-  string ext3 = ".rl_descrip0";
-  string ext2 = ".rules";
-  string nomfich, nomfich2, nomfich3;
-
-  E.Generate_Partitions(num_par);
-
-  ruleset* R = new ruleset[num_par];
-  ruleset* R_dis = new ruleset[num_par];
-  ruleset* R_prev = new ruleset[num_par];
-  ruleset* R_prev_dis = new ruleset[num_par];
-  ruleset* R_mix = new ruleset[num_par];
-  ruleset* R_mix_prev = new ruleset[num_par];
-
-  int n, z;
-  double accuracy_old;
-  double* accuracy_new = new double[num_par];
-  double* training_Descrip = new double[num_par];
-  double* test = new double[num_par];
-  double* test_Descrip = new double[num_par];
-  double* cardinal = new double[num_par];
-  double* cardinal_Descrip = new double[num_par];
-  double* variables_por_regla = new double[num_par];
-  double* variables_usadas = new double[num_par];
-  int** frecuencia_variables = new int*[num_par];
-  double* tiempo_eje = new double[num_par];
-  int* iteraciones = new int[num_par];
-  int* condiciones = new int[num_par];
-  clock_t tiempo0, tiempo1;
-  int iteraciones_parcial;
-  double aux1, aux2, aux3;
-  double* training_conjunto = new double[num_par];
-  double* test_conjunto = new double[num_par];
-
-  int Variables_Inicialmente_Involucradas = V.N_Antecedente() + 1;
-
-  double *agregado, *peso_agregado;
-  for (int i = 0; i < num_par; i++) frecuencia_variables[i] = new int[V.N_Antecedente()];
-
-  example_set E_Par, E_Par_Test, E_Par_Completo;
+  std::vector<int> ejemplos_por_clase(n_clases);
 
   double** Med_Inform = ReservaParaMedidasDeInformacion(V);
+  {
+    progreso(Verbosidad::detalle) << "Calculando medidas de informacion\n";
+    const example_set E_operadores = E.N_Examples() > 10000 ? E.SubSet(1000) : E;
+    MedidasDeInformacion(V, E_operadores, Med_Inform);
+    progreso(Verbosidad::detalle) << "Terminado el calculo de las medidas de informacion\n";
+  }
 
-  V.Encode(tama[0], rango[0]);
-  int* ejemplos_por_clase = new int[rango[0]];
-  int* ponderacion_por_clase = new int[rango[0]];
+  ruleset R, R_dis, R_prev, R_prev_dis, R_mix, R_mix_prev;
+  R.AddDomain(V);
+  R_dis = R;
+  R_prev = R;
+  R_prev_dis = R;
+  R_mix = R;
+  R_mix_prev = R;
 
-  int* basica_para_regla = 0;
-  int* errores_para_regla = 0;
+  multipoblacion G(n_clases, n_clases * 10, tama_valor, tama_nivel, 2.0 / tama_valor, 0, 0.01,
+                   NFitness);
 
-  // Inicio y fin de cada episodio. En el original eran dos vectores fijos de 10^8 enteros
-  // (800 MB por llamada); ahora se dimensionan con el número de episodios.
-  std::vector<int> psubi, psubf;
+  const int limite = E.N_Examples();
+  const int paso = static_cast<int>(options.tamano_episodio);
+  // Para la línea de cada episodio (Verbosidad::episodios).
+  const int total_episodios = (limite + paso - 1) / paso;
+  // En cuántos episodios ha aprendido reglas, y el episodio actual.
+  int it = 1, it2 = 0;
+  const double percent = 0.10;
+  double umbral_acierto = 0.7, acumulado = 0.0, accuracy_old = 0, acierto_anterior = 0;
+  int inicio = 0;
+  bool salir = false;
+  const clock_t tiempo0 = clock();
+  example_set E_Par;
 
-  int par;
-  for (par = 0; par < num_par; par++) {
-    ext[3] = (char)(par + '0');
-    ext3[11] = (char)(par + '0');
-    nomfich = seedfich + ext;
-    nomfich3 = seedfich + ext3;
-    nomfich2 = nomfich + ext2;
-    nomfich3 = nomfich3 + ext2;
+  while (!salir) {
+    int fin = inicio + paso;
 
-    if (informe) {
-      out.open(task_res, ios::app);
-      out << "\n===============\n Ejecucion " << par << "\n===============\n";
-      out.close();
+    if (fin >= limite) {
+      fin = limite;
+      salir = true;
     }
 
-    E_Par_Completo = E.Extract_Training_Set(par);
+    E_Par = E.SubSet(inicio, fin - 1);
 
-    if (E_Par_Completo.N_Examples() > 1000) {
-      E_Par = E_Par_Completo.SubSet(1000);
-    } else {
-      E_Par = E_Par_Completo;
+    progreso(Verbosidad::detalle) << endl;
+    progreso(Verbosidad::detalle)
+        << "=================================================== Episodio de " << inicio << " a "
+        << fin << " ====================================" << endl;
+    const int episodio = it2 + 1, primer_ejemplo = inicio, ultimo_ejemplo = fin - 1;
+    const int reglas_al_empezar = R_prev.N_rule();
+    const auto empieza_el_episodio = std::chrono::steady_clock::now();
+
+    const double consumido = 1.0 * (clock() - tiempo0) / CLOCKS_PER_SEC;
+    progreso(Verbosidad::detalle) << "===================== Tiempo Consumido: " << consumido
+                                  << "      ETA: "
+                                  << (consumido / (it2 + 1)) * (total_episodios - it2) << endl;
+    progreso(Verbosidad::detalle) << "=================================================== Tamano "
+                                  << E_Par.N_Examples()
+                                  << " ====================================" << endl
+                                  << endl;
+    progreso(Verbosidad::depuracion) << "[Paso: " << paso << "]" << endl;
+    inicio = fin;
+
+    progreso(Verbosidad::depuracion) << "Creando la tabla de adaptaciones.....\n";
+    double*** Tabla = Crear_Tabla_Adaptaciones(V, E_Par);
+    progreso(Verbosidad::depuracion) << "Tabla de adaptaciones creada!\n";
+
+    progreso(Verbosidad::detalle) << "  Numero de Reglas: " << R_prev.N_rule() << "("
+                                  << R_prev.N_rule(0.5) << ")" << endl;
+
+    const double last_accuracy = accuracy_old;
+    acumulado += last_accuracy;
+    if (acumulado == 0) {
+      umbral_acierto = 1;
+    }
+    progreso(Verbosidad::detalle)
+        << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy
+        << endl;
+
+    accuracy_old = Aciertos(R_prev, V, E_Par);
+    progreso(Verbosidad::detalle)
+        << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old
+        << endl;
+    const double acierto_al_empezar = accuracy_old;
+
+    // El umbral sale del acierto sobre un episodio anterior: el de hace 10 cada 10 episodios y el
+    // primero hasta el décimo. Los dos primeros episodios, y no hay anterior que mirar, 1.
+    if (it2 >= 10 and it2 % 10 == 0) {
+      example_set E_Anteriores = E.SubSet((it2 - 10) * paso, (it2 - 9) * paso - 1);
+      const double acierto = Aciertos(R_prev, V, E_Anteriores);
+      umbral_acierto = acierto - percent * acierto;
+    } else if (it2 < 10 and it2 > 1) {
+      example_set E_Anteriores = E.SubSet(0, paso - 1);
+      const double acierto = Aciertos(R_prev, V, E_Anteriores);
+      umbral_acierto = acierto - percent * acierto;
+    } else if (it2 < 10) {
+      umbral_acierto = 1;
     }
 
-    E_Par.UnMarkAll();
-    E_Par_Test = E.Extract_Test_Set(par);
-    E_Par_Test.UnMarkAll();
+    it2++;
 
-    R[par].AddDomain(V);
+    progreso(Verbosidad::detalle) << "Diferencia de acierto entre los dos últimos episodios: "
+                                  << acierto_anterior - last_accuracy << endl;
+    acierto_anterior = last_accuracy;
 
-    VectorVar F;
+    progreso(Verbosidad::detalle) << "En la iteración " << it << " el umbral se ha fijado a "
+                                  << umbral_acierto << " (" << umbral_acierto * (1 + percent) << ")"
+                                  << endl;
 
-    example_set E_operadores;
-    if (E.N_Examples() > 10000) {
-      E_operadores = E.SubSet(1000);
-    } else {
-      E_operadores = E;
-    }
+    R_prev.FixModifyToTrue();
+    R_prev_dis.FixModifyToTrue();
 
-    if (F.N_Antecedente() > 0) {
-      mut[NPobBin + NPobEnt + 1] = 0.05;
-    } else {
-      mut[NPobBin + NPobEnt + 1] = 0.05;
-    }
+    ActualizarPeso(G, V, E_Par, R_prev, Tabla);
+    ActualizarPeso(G, V, E_Par, R_prev_dis, Tabla);
 
-    // Tamano y rango del nivel de valor
-    V.Encode(tama[0], rango[0]);
-    // rango del nivel de valor en funciones
-    rango[1] = F.TotalVariables() + 1;
-    progreso(Verbosidad::depuracion) << "numero de nuevas variables... " << rango[1] << endl;
-    ;
+    R_prev_dis.Recalculate_Weight();
+    R_prev.Recalculate_Weight();
 
-    // Rango del nivel de variable
-    rangoi[0] = 0.0;
-    rangos[0] = 1.0;
-    // Rango del conjunto de ejemplos cubiertos
-    rangoi[1] = -1.0;
-    rangos[1] = 1.0;
-    // Rango del conjunto de ejemplos cubiertos
+    accuracy_old = Aciertos(R_prev, V, E_Par);
+    progreso(Verbosidad::detalle) << "Aciertos despues de ajustar los pesos de las reglas: "
+                                  << accuracy_old << endl;
+    const double acierto_despuesAjustarPeso = accuracy_old;
 
-    // Tamano del nivel de consecuente
-    tama[2] = 1;
-    // Tamano del nivel de variable en funciones
-    tama[3] = 20;
-    // Tamano del nivel de valor en funciones
-    tama[1] = 2 * tama[3];
-    // Tamano del nivel de variable
-    tama[4] = V.N_Antecedente() + 1;
-    // Tamano del nivel de peso
-    tama[5] = 1;
+    if (accuracy_old < umbral_acierto) {
+      example_set E_Par_Not_Covered = E_Par;
 
-    // Mutacion por niveles
-    mut[0] = 2.0 / tama[0];
-    mut[1] = 2.0 / tama[1];
-    mut[2] = 0;
+      for (const int regla : Reglas_Que_Disparan(R_prev, E_Par_Not_Covered)) {
+        R.Add(*R_prev.Get_Code_Rule(regla), R_prev.Get_N_Mas(regla), R_prev.Get_N_Menos(regla),
+              false);
 
-    mut[3] = 0.01;
-
-    mut[4] = 0.01;
-    mut[5] = 0;
-
-    R[par].AddDomain_Funcion(F);
-    R_dis[par] = R[par];
-    R_prev[par] = R[par];
-
-    R_prev_dis[par] = R[par];
-    R_mix[par] = R[par];
-    R_mix_prev[par] = R[par];
-
-    vector<string> patrones;
-    bool primera_vez = true;
-
-    int limite = E_Par_Completo.N_Examples();
-    int paso = static_cast<int>(options.tamano_episodio), pasoANT = 0, trozo = 0, inicio = 0;
-
-    Indiv = rango[0] * 10;
-    multipoblacion G(NPobBin, NPobEnt, NPobRea, rango, mut, Indiv, tama, NFitness);
-
-    int fin = paso;
-    bool salir = false;
-
-    example_set E_Retenidos, Subconjunto, E_Anteriores;
-    bool alterado = false;
-    double umbral_acierto = 0.7, acumulado = 0.0, acumulado2 = 0.0;
-    int it = 1, ult_it = 0, it2 = 0;
-    double last_accuracy = 0, accuracy_old = 0, acierto_anterior = 0;
-    int ult_act_rules;
-
-    int episodios = (limite / paso) + 2;
-    psubi.assign(episodios + 1, 0);
-    psubf.assign(episodios + 1, 0);
-    double despl = 0;
-
-    double *evo_media_training, *evo_media_test, *evo_umbral, *evo_media_1training,
-        *evo_media_2training, *evo_media_3training, *evo_media_4training, *evo_media_5training,
-        *evo_media_1test, *evo_media_2test, *evo_media_3test, *evo_media_4test, *evo_media_5test,
-        *evo_global_test;
-
-    int *evo_insert_rules, *evo_num_de_reglas;
-
-    evo_umbral = new double[episodios];
-    evo_media_training = new double[episodios];
-    evo_media_1training = new double[episodios];
-    evo_media_2training = new double[episodios];
-    evo_media_3training = new double[episodios];
-    evo_media_4training = new double[episodios];
-    evo_media_5training = new double[episodios];
-    evo_media_test = new double[episodios];
-    evo_media_1test = new double[episodios];
-    evo_media_2test = new double[episodios];
-    evo_media_3test = new double[episodios];
-    evo_media_4test = new double[episodios];
-    evo_media_5test = new double[episodios];
-    evo_global_test = new double[episodios];
-    evo_insert_rules = new int[episodios];
-    evo_num_de_reglas = new int[episodios];
-
-    evo_media_1training[0] = -1;
-    evo_media_2training[0] = -1;
-    evo_media_3training[0] = -1;
-    evo_media_4training[0] = -1;
-    evo_media_5training[0] = -1;
-    evo_media_training[0] = 0;
-    evo_media_test[0] = 0;
-    evo_media_1test[0] = 0;
-    evo_media_2test[0] = 0;
-    evo_media_3test[0] = 0;
-    evo_media_4test[0] = 0;
-    evo_media_5test[0] = 0;
-    evo_global_test[0] = 0;
-    evo_insert_rules[0] = 0;
-    evo_num_de_reglas[0] = 0;
-
-    double TT = 0, ETA = 0, step, percent = 0.10;
-    tiempo0 = clock();
-
-    psubi[it2] = 0;
-    psubf[it2] = paso - 1;
-    // Para la línea de cada episodio (Verbosidad::episodios).
-    const int total_episodios = (limite + paso - 1) / paso;
-
-    while (!salir) {  // while de los episodios
-      if (it2 > 0) {
-        psubi[it2] = psubf[it2 - 1] + 1;
-        psubf[it2] = psubi[it2] + paso - 1;
-      }
-      fin = inicio + paso;
-
-      if (fin >= limite) {
-        fin = limite;
-        salir = true;
+        const double nmas = R_prev_dis.Get_N_Mas(regla);
+        const double nmenos = R_prev_dis.Get_N_Menos(regla);
+        R_dis.Add(*R_prev_dis.Get_Code_Rule(regla), nmas, nmenos, false);
+        R_mix.Add(*R_mix_prev.Get_Code_Rule(regla), nmas, nmenos, false);
       }
 
-      Subconjunto = E_Par_Completo.SubSet(inicio, fin - 1);
-
-      E_Par = Subconjunto.Union(E_Retenidos);
-
-      progreso(Verbosidad::detalle) << endl;
       progreso(Verbosidad::detalle)
-          << "=================================================== Episodio de " << inicio << " a "
-          << fin << " ====================================" << endl;
-      const int episodio = it2 + 1, primer_ejemplo = inicio, ultimo_ejemplo = fin - 1;
-      const int reglas_al_empezar = R_prev[par].N_rule();
-      const auto empieza_el_episodio = std::chrono::steady_clock::now();
+          << "Reglas no filtradas: " << R.N_rule() << "(" << R.N_rule(0.5) << ")" << endl;
 
-      tiempo1 = clock();
+      double*** Tabla1 = Crear_Tabla_Adaptaciones(V, E_Par_Not_Covered);
 
-      step = 1.0 * (tiempo1 - tiempo0) / CLOCKS_PER_SEC;
-      ETA = (step / (it2 + 1)) * (episodios - it2);
+      progreso(Verbosidad::detalle)
+          << "\n-------------------------------------------> Nuevo numero de ejemplos: "
+          << E_Par_Not_Covered.N_Examples() << endl;
 
-      if (false) {
-        progreso(Verbosidad::depuracion)
-            << "===================== Tiempo Consumido: "
-            << 1.0 * (tiempo1 - tiempo0) / CLOCKS_PER_SEC
-            << "      Aciertos Test: " << Aciertos(R_prev[par], V, E_Par_Test, F) << endl;
-        ult_it = it;
+      accuracy_old = Aciertos(R, V, E_Par_Not_Covered);
+      progreso(Verbosidad::detalle)
+          << "Aciertos de la descriptiva antes de lanzar el genetico: " << accuracy_old << endl;
+
+      const int initial_size_of_rule = R.N_rule();
+      string last_patron;
+      bool primera_vez = true, reducir_reglas = false, Added_Rule;
+      std::vector<int> reglas_a_eliminar;
+
+      do {
+        const int anterior_n = E_Par_Not_Covered.Not_Covered_Examples();
+        E_Par_Not_Covered.Examples_per_Class(V.Consecuente(), n_clases, ejemplos_por_clase.data());
+
+        std::vector<int> basica_para_regla(R.N_rule() + 1), errores_para_regla(R.N_rule() + 1);
+        Obtener_Aciertos_y_Errores_Reglas_Aprendidas(E_Par_Not_Covered, basica_para_regla.data(),
+                                                     errores_para_regla.data(), R.N_rule() + 1);
+
+        const Evaluacion ev{G,
+                            V,
+                            E_Par_Not_Covered,
+                            R,
+                            reducir_reglas,
+                            ejemplos_por_clase.data(),
+                            Tabla1,
+                            basica_para_regla.data(),
+                            errores_para_regla.data(),
+                            initial_size_of_rule};
+        GA(ev, R, R_dis, R_mix, Med_Inform, primera_vez, reglas_a_eliminar, Added_Rule);
+
+        primera_vez = false;
+
+        Aciertos(R, V, E_Par_Not_Covered);
+        const string current_patron = Patron1Regla(R_mix, V, R_mix.N_rule() - 1);
+        if (current_patron == last_patron) {
+          Added_Rule = false;
+        }
+        last_patron = current_patron;
+
+        if (Added_Rule and !reglas_a_eliminar.empty()) {
+          Filtrar_Reglas_New(R, R_dis, R_mix, reglas_a_eliminar);
+          Aciertos(R, V, E_Par_Not_Covered);
+        }
+
+        if (G.ValorFitness(0) > 0 and anterior_n == E_Par_Not_Covered.Not_Covered_Examples()) {
+          progreso(Verbosidad::detalle) << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
+        }
+
+        if (G.ValorFitness(0) != -2 * E_Par_Not_Covered.N_Examples() and !reducir_reglas and
+            !Added_Rule) {
+          reducir_reglas = true;
+          Added_Rule = true;
+        }
+      } while (Added_Rule);
+
+      Destruir_Tabla_Adaptaciones(V, Tabla1);
+
+      it++;
+
+      if (it2 > 1) {
+        example_set E_Anteriores = E.SubSet(it2 > 10 ? (it2 - 10) * paso : 0, inicio - 1);
+
+        double*** Tabla2 = Crear_Tabla_Adaptaciones(V, E_Anteriores);
+
+        ActualizarPeso(G, V, E_Anteriores, R, Tabla2);
+        ActualizarPeso(G, V, E_Anteriores, R_dis, Tabla2);
+
+        Destruir_Tabla_Adaptaciones(V, Tabla2);
+      }
+
+      R_prev.AddRuleset(R);
+      R_prev_dis.AddRuleset(R_dis);
+      R_mix_prev.AddRuleset(R_mix);
+      progreso(Verbosidad::detalle)
+          << "Aniadidas " << R.N_rule() - initial_size_of_rule << " reglas\n";
+
+      accuracy_old = Aciertos(R_prev, V, E_Par);
+      progreso(Verbosidad::detalle)
+          << "Acierto antes de analizar patrones: " << accuracy_old << endl;
+
+      if (acierto_despuesAjustarPeso < accuracy_old) {
+        progreso(Verbosidad::detalle) << "............................. Analizando patrones "
+                                         "entre reglas .......................\n";
+        AnalizarConjuntosDeReglas(V, R_prev_dis, R_prev, R_mix_prev, R.N_rule());
+        accuracy_old = Aciertos(R_prev, V, E_Par);
+        progreso(Verbosidad::detalle)
+            << "Acierto despues de analizar patrones: " << accuracy_old << endl;
       } else {
-        progreso(Verbosidad::detalle)
-            << "===================== Tiempo Consumido: "
-            << 1.0 * (tiempo1 - tiempo0) / CLOCKS_PER_SEC << "      ETA: " << ETA << endl;
-      }
-
-      progreso(Verbosidad::detalle)
-          << "=================================================== Tamano " << E_Par.N_Examples()
-          << " ====================================" << endl
-          << endl;
-      progreso(Verbosidad::depuracion) << "[Paso: " << paso << "]" << endl;
-      inicio = fin;
-
-      progreso(Verbosidad::depuracion) << "Creando la tabla de adaptaciones.....\n";
-      double*** Tabla = Crear_Tabla_Adaptaciones(V, E_Par);
-      double*** Tabla_Nuevas = Crear_Tabla_Adaptaciones_Nuevas(F, E_Par);
-      double ***Tabla1 = nullptr, ***Tabla_Nuevas1 = nullptr, ***Tabla2 = nullptr,
-             ***Tabla_Nuevas2 = nullptr;
-      progreso(Verbosidad::depuracion) << "Tabla de adaptaciones creada!\n";
-
-      char ch;
-
-      iteraciones[par] = 0;
-
-      accuracy_new[par] = 0;
-      n = E_Par.Not_Covered_Examples();
-      z = E_Par_Test.Not_Covered_Examples();
-      int Total_ejemplos = E_Par.N_Examples();
-      agregado = new double[Total_ejemplos];
-      peso_agregado = new double[Total_ejemplos];
-
-      for (int i = 0; i < Total_ejemplos; i++) {
-        agregado[i] = 0;
-        peso_agregado[i] = 0;
-      }
-
-      if (it2 == 0) {
-        progreso(Verbosidad::detalle) << "Calculando medidas de informacion\n";
-        MedidasDeInformacion(V, E_operadores, Med_Inform);
-        progreso(Verbosidad::detalle) << "Terminado el calculo de las medidas de informacion\n";
-      }
-
-      int anterior_n;
-
-      E_Par.UnMarkAll();
-
-      E_Par.Examples_per_Class(V.Consecuente(), rango[0], ponderacion_por_clase);
-
-      bool reducir_reglas;
-      reducir_reglas = false;
-      bool discriminante = true;
-      bool fase_final = false;
-
-      bool activada_reserva_memoria = false;
-
-      int *reglas_a_eliminar, n_reglas_a_eliminar;
-
-      int iteracion = 1, tope = rango[0];
-
-      bool Added_Rule, Specific_Rule;
-      bool cambio_en_reglas = false, reajustar_peso = false;
-
-      example_set E_Par_Not_Covered;
-
-      progreso(Verbosidad::detalle) << "  Numero de Reglas: " << R_prev[par].N_rule() << "("
-                                    << R_prev[par].N_rule(0.5) << ")" << endl;
-
-      last_accuracy = accuracy_old;
-      acumulado += last_accuracy;
-      if (acumulado == 0) {
-        umbral_acierto = 1;
-      }
-      progreso(Verbosidad::detalle)
-          << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy
-          << endl;
-
-      if (psubi[it2] == 1082500) {
-        progreso(Verbosidad::detalle) << "En este episodiio se da el error\n";
-      }
-
-      accuracy_old = Aciertos(R_prev[par], V, E_Par, F);
-      progreso(Verbosidad::detalle)
-          << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old
-          << endl;
-      const double acierto_al_empezar = accuracy_old;
-
-      if (it2 >= 10 and it2 % 10 == 0) {
-        E_Anteriores = E_Par_Completo.SubSet(psubi[it2 - 10], psubf[it2 - 10]);
-
-        evo_media_3training[it2 - 10] = Aciertos(R_prev[par], V, E_Anteriores, F);
-        acumulado2 += evo_media_3training[it2 - 10];
-        umbral_acierto = evo_media_3training[it2 - 10] - percent * evo_media_3training[it2 - 10];
-      } else if (it2 < 10 and it2 > 1) {
-        E_Anteriores = E_Par_Completo.SubSet(psubi[0], psubf[0]);
-        evo_media_3training[it2] = Aciertos(R_prev[par], V, E_Anteriores, F);
-        umbral_acierto = evo_media_3training[it2] - percent * evo_media_3training[it2];
-      } else if (it2 < 10) {
-        umbral_acierto = 1;
-      }
-
-      evo_media_training[it2] = last_accuracy;
-      evo_media_test[it2] = accuracy_old;
-      evo_umbral[it2] = umbral_acierto;
-      it2++;
-      evo_insert_rules[it2] = 0;
-      evo_num_de_reglas[it2] = 0;
-
-      progreso(Verbosidad::detalle) << "Diferencia de acierto entre los dos últimos episodios: "
-                                    << acierto_anterior - last_accuracy << endl;
-      acierto_anterior = last_accuracy;
-
-      progreso(Verbosidad::detalle)
-          << "En la iteración " << it << " el umbral se ha fijado a " << umbral_acierto << " ("
-          << umbral_acierto * (1 + percent) << ")" << endl;
-
-      if (it % 50 == 0) {
-        reajustar_peso = true;
-      }
-
-      primera_vez = true;
-
-      R_prev[par].FixModifyToTrue();
-      R_prev_dis[par].FixModifyToTrue();
-
-      ActualizarPeso(G, V, E_Par, R_prev[par], F, Tabla, Tabla_Nuevas);
-      ActualizarPeso(G, V, E_Par, R_prev_dis[par], F, Tabla, Tabla_Nuevas);
-
-      R_prev_dis[par].Recalculate_Weight();
-      R_prev[par].Recalculate_Weight();
-
-      accuracy_old = Aciertos(R_prev[par], V, E_Par, F);
-      progreso(Verbosidad::detalle)
-          << "Aciertos despues de ajustar los pesos de las reglas: " << accuracy_old << endl;
-      double acierto_despuesAjustarPeso = accuracy_old;
-
-      if (accuracy_old < (umbral_acierto)) {
-        int *lista2 = new int[R_prev[par].N_rule()], tama2;
-        int *l_aciertos = new int[E_Par.N_Examples()], l_tama;
-
-        E_Par_Not_Covered = E_Par;
-        Aciertos_Lista_Reglas_Eliminables(R_prev[par], V, E_Par_Not_Covered, F, lista2, tama2,
-                                          l_aciertos, l_tama);
-
-        genetcode* aux;
-        double nmas, nmenos;
-
-        int j = 0;
-
-        for (int i = 0; i < tama2; i++) {
-          if (true) {
-            nmas = R_prev[par].Get_N_Mas(lista2[i]);
-            nmenos = R_prev[par].Get_N_Menos(lista2[i]);
-            aux = R_prev[par].Get_Code_Rule(lista2[i]);
-            R[par].Add(aux[0], nmas, nmenos, false);
-
-            nmas = R_prev_dis[par].Get_N_Mas(lista2[i]);
-            nmenos = R_prev_dis[par].Get_N_Menos(lista2[i]);
-            aux = R_prev_dis[par].Get_Code_Rule(lista2[i]);
-            R_dis[par].Add(aux[0], nmas, nmenos, false);
-
-            aux = R_mix_prev[par].Get_Code_Rule(lista2[i]);
-            R_mix[par].Add(aux[0], nmas, nmenos, false);
-
-            j++;
-          }
+        for (int i = 0; i < R.N_rule(); i++) {
+          R_prev.Remove(0);
+          R_prev_dis.Remove(0);
+          R_mix_prev.Remove(0);
         }
-
-        progreso(Verbosidad::detalle) << "Ejemplos eliminados: " << l_tama << endl;
-        progreso(Verbosidad::detalle) << "Reglas no filtradas: " << R[par].N_rule() << "("
-                                      << R[par].N_rule(0.5) << ")" << endl;
-
-        if (l_tama >= 0 and l_tama < E_Par_Not_Covered.N_Examples()) {
-          Tabla1 = Crear_Tabla_Adaptaciones(V, E_Par_Not_Covered);
-          Tabla_Nuevas1 = Crear_Tabla_Adaptaciones_Nuevas(F, E_Par_Not_Covered);
-        }
-
-        delete[] lista2;
-        delete[] l_aciertos;
-
-        progreso(Verbosidad::detalle)
-            << "\n-------------------------------------------> Nuevo numero de ejemplos: "
-            << E_Par_Not_Covered.N_Examples() << endl;
+        accuracy_old = Aciertos(R_prev, V, E_Par);
       }
-
-      if (accuracy_old < (umbral_acierto)) {
-        accuracy_old = Aciertos(R[par], V, E_Par_Not_Covered, F);
-        progreso(Verbosidad::detalle)
-            << "Aciertos de la descriptiva antes de lanzar el genetico: " << accuracy_old << endl;
-        cambio_en_reglas = true;
-
-        umbral_acierto -= 0.00;
-
-        int initial_size_of_rule = R[par].N_rule();
-        string last_patron = "", current_patron;
-
-        do {
-          anterior_n = E_Par_Not_Covered.Not_Covered_Examples();
-          E_Par_Not_Covered.Examples_per_Class(V.Consecuente(), rango[0], ejemplos_por_clase);
-
-          if (R[par].N_rule() >= 0) {
-            activada_reserva_memoria = true;
-            basica_para_regla = new int[R[par].N_rule() + 1];
-            errores_para_regla = new int[R[par].N_rule() + 1];
-            Obtener_Aciertos_y_Errores_Reglas_Aprendidas(E_Par_Not_Covered, basica_para_regla,
-                                                         errores_para_regla, R[par].N_rule() + 1);
-            reglas_a_eliminar = new int[R[par].N_rule() + 1];
-          }
-
-          int claseind1, claseind2, claseind3;
-          GA(G, V, E_Par_Not_Covered, R[par], R_dis[par], R_mix[par], Med_Inform, agregado,
-             peso_agregado, Total_ejemplos, discriminante, primera_vez, reducir_reglas,
-             ejemplos_por_clase, Tabla1, Tabla_Nuevas1, F, basica_para_regla, errores_para_regla,
-             reglas_a_eliminar, n_reglas_a_eliminar, Added_Rule, Specific_Rule,
-             initial_size_of_rule);
-
-          primera_vez = false;
-          accuracy_old = accuracy_new[par];
-
-          accuracy_new[par] = Aciertos(R[par], V, E_Par_Not_Covered, F);
-          current_patron = Patron1Regla(R_mix[par], V, R_mix[par].N_rule() - 1);
-          if (current_patron == last_patron) {
-            Added_Rule = false;
-          }
-          last_patron = current_patron;
-
-          if (Added_Rule) {
-            int reglas_antes = R[par].N_rule();
-            if (n_reglas_a_eliminar > 0) {
-              Filtrar_Reglas_New(R[par], R_dis[par], R_mix[par], reglas_a_eliminar,
-                                 n_reglas_a_eliminar, Specific_Rule);
-              accuracy_new[par] = Aciertos(R[par], V, E_Par_Not_Covered, F);
-            }
-          }
-
-          n = E_Par_Not_Covered.Not_Covered_Examples();
-
-          if (G.ValorFitness(0) > 0 and anterior_n == n) {
-            progreso(Verbosidad::detalle) << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
-          }
-
-          if (G.ValorFitness(0) != -2 * E_Par_Not_Covered.N_Examples() and !reducir_reglas and
-              !Added_Rule) {
-            reducir_reglas = true;
-            discriminante = true;
-            Added_Rule = true;
-          }
-
-          if (activada_reserva_memoria) {
-            activada_reserva_memoria = false;
-            delete[] basica_para_regla;
-            delete[] errores_para_regla;
-            delete[] reglas_a_eliminar;
-          }
-
-          iteracion++;
-        } while (Added_Rule);
-
-        Destruir_Tabla_Adaptaciones(V, E_Par_Not_Covered, Tabla1);
-
-        Destruir_Tabla_Adaptaciones(F, E_Par_Not_Covered, Tabla_Nuevas1);
-
-        it++;
-
-        if (it2 > 1) {
-          if (it2 > 10) {
-            E_Anteriores = E_Par_Completo.SubSet(psubi[it2 - 10], inicio - 1);
-          } else if (it2 <= 10) {
-            E_Anteriores = E_Par_Completo.SubSet(0, inicio - 1);
-          }
-
-          Tabla2 = Crear_Tabla_Adaptaciones(V, E_Anteriores);
-          Tabla_Nuevas2 = Crear_Tabla_Adaptaciones_Nuevas(F, E_Anteriores);
-
-          ActualizarPeso(G, V, E_Anteriores, R[par], F, Tabla2, Tabla_Nuevas2);
-          ActualizarPeso(G, V, E_Anteriores, R_dis[par], F, Tabla2, Tabla_Nuevas2);
-
-          Destruir_Tabla_Adaptaciones(V, E_Anteriores, Tabla2);
-          Destruir_Tabla_Adaptaciones(F, E_Anteriores, Tabla_Nuevas2);
-        }
-
-        R_prev[par].AddRuleset(R[par]);
-        R_prev_dis[par].AddRuleset(R_dis[par]);
-        R_mix_prev[par].AddRuleset(R_mix[par]);
-        progreso(Verbosidad::detalle)
-            << "Aniadidas " << R[par].N_rule() - initial_size_of_rule << " reglas\n";
-
-        if (R[par].N_rule() - initial_size_of_rule > 0) {
-          evo_insert_rules[it2] = 1;
-          evo_num_de_reglas[it2] = R[par].N_rule() - initial_size_of_rule;
-        }
-
-        accuracy_old = Aciertos(R_prev[par], V, E_Par, F);
-        progreso(Verbosidad::detalle)
-            << "Acierto antes de analizar patrones: " << accuracy_old << endl;
-
-        if (acierto_despuesAjustarPeso < accuracy_old) {
-          progreso(Verbosidad::detalle) << "............................. Analizando patrones "
-                                           "entre reglas .......................\n";
-          bool cambio = AnalizarConjuntosDeReglas(V, R_prev_dis[par], R_prev[par], R_mix_prev[par],
-                                                  R[par].N_rule());
-          if (cambio) ult_it = it - 1;
-          accuracy_old = Aciertos(R_prev[par], V, E_Par, F);
-          progreso(Verbosidad::detalle)
-              << "Acierto despues de analizar patrones: " << accuracy_old << endl;
-        }
-
-        else {
-          int m = R[par].N_rule();
-          for (int i = 0; i < m; i++) {
-            R_prev[par].Remove(0);
-            R_prev_dis[par].Remove(0);
-            R_mix_prev[par].Remove(0);
-          }
-          accuracy_old = Aciertos(R_prev[par], V, E_Par, F);
-        }
-
-      } else {
-        if (umbral_acierto < 0.99 and accuracy_old - umbral_acierto >= 0.02) {
-          umbral_acierto += 0.00;
-        }
-      }
-
-      // Una línea por episodio. Solo con lo que ya se ha calculado: Aciertos marca los ejemplos y
-      // llamarlo aquí cambiaría las reglas.
-      if (se_escribe(Verbosidad::episodios)) {
-        const std::chrono::duration<double> segundos =
-            std::chrono::steady_clock::now() - empieza_el_episodio;
-        progreso(Verbosidad::episodios) << std::format(
-            "INSLV: episodio {} de {} (ejemplos {} a {}): reglas {} -> {}, acierto {:.3f} -> "
-            "{:.3f}, {:.2f} s\n",
-            episodio, total_episodios, primer_ejemplo, ultimo_ejemplo, reglas_al_empezar,
-            R_prev[par].N_rule(), acierto_al_empezar, accuracy_old, segundos.count());
-      }
-      if (informe) {
-        ofstream salida(task_res, std::ofstream::out | std::ofstream::app);
-        salida << "*****************************************************************\n";
-        for (int i = 0; i < R[par].N_rule(); i++) salida << i << ") " << R[par].SPrint(i) << endl;
-        salida << endl;
-        salida.close();
-      }
-
-      int m = R[par].N_rule();
-      for (int i = 0; i < m; i++) {
-        R[par].Remove();
-        R_dis[par].Remove();
-        R_mix[par].Remove();
-      }
-
-      delete[] agregado;
-      delete[] peso_agregado;
-      Destruir_Tabla_Adaptaciones(V, E_Par, Tabla);
-      Destruir_Tabla_Adaptaciones(F, E_Par, Tabla_Nuevas);
     }
 
-    delete[] evo_umbral;
-    delete[] evo_media_training;
-    delete[] evo_media_test;
-    delete[] evo_media_1test;
-    delete[] evo_media_2test;
-    delete[] evo_media_3test;
-    delete[] evo_media_4test;
-    delete[] evo_media_5test;
-    delete[] evo_media_1training;
-    delete[] evo_media_2training;
-    delete[] evo_media_3training;
-    delete[] evo_media_4training;
-    delete[] evo_media_5training;
-    delete[] evo_global_test;
-    delete[] evo_insert_rules;
-    delete[] evo_num_de_reglas;
-
-    tiempo1 = clock();
-
-    test[par] = informe ? Aciertos(R_prev_dis[par], V, E_Par, task_res, F)
-                        : Aciertos(R_prev_dis[par], V, E_Par, F);
-    test_Descrip[par] =
-        informe ? Aciertos(R_prev[par], V, E_Par, task_res, F) : Aciertos(R_prev[par], V, E_Par, F);
-
-    int* fallosR = new int[R_prev_dis[par].N_rule()];
-    int* fallosR_Descrip = new int[R_prev[par].N_rule()];
-    int* disparosR = new int[R_prev_dis[par].N_rule()];
-    int* disparosR_Descrip = new int[R_prev_dis[par].N_rule()];
-
-    accuracy_new[par] =
-        Inferencia2BasesReglas(R_prev_dis[par], R_prev[par], V, E_Par_Completo, fallosR,
-                               fallosR_Descrip, disparosR, disparosR_Descrip);
-    test_conjunto[par] =
-        Inferencia2BasesReglas(R_prev_dis[par], R_prev[par], V, E_Par_Test, fallosR,
-                               fallosR_Descrip, disparosR, disparosR_Descrip);
-
-    delete[] fallosR;
-    delete[] fallosR_Descrip;
-    delete[] disparosR;
-    delete[] disparosR_Descrip;
-
-    cardinal[par] = R_prev[par].N_rule();
-    variables_por_regla[par] = R_prev[par].Variables_per_rule();
-    variables_usadas[par] = R_prev[par].Frecuence_each_Variables(frecuencia_variables[par]);
-    condiciones[par] = R_prev[par].Condiciones_per_RB();
-
-    tiempo_eje[par] = 1.0 * (tiempo1 - tiempo0) / CLOCKS_PER_SEC;
-    tiempo0 = tiempo1;
-
+    // Una línea por episodio. Solo con lo que ya se ha calculado: Aciertos marca los ejemplos y
+    // llamarlo aquí cambiaría las reglas.
+    if (se_escribe(Verbosidad::episodios)) {
+      const std::chrono::duration<double> segundos =
+          std::chrono::steady_clock::now() - empieza_el_episodio;
+      progreso(Verbosidad::episodios) << std::format(
+          "INSLV: episodio {} de {} (ejemplos {} a {}): reglas {} -> {}, acierto {:.3f} -> "
+          "{:.3f}, {:.2f} s\n",
+          episodio, total_episodios, primer_ejemplo, ultimo_ejemplo, reglas_al_empezar,
+          R_prev.N_rule(), acierto_al_empezar, accuracy_old, segundos.count());
+    }
     if (informe) {
-      out.open(task_res, ios::app);
-      out << "----------------------------------------------------\n";
-      out << "Aciertos Training: " << accuracy_new[par] << endl;
-      out << "Aciertos Test: " << test_Descrip[par] << endl;
-      out << "Numero de reglas: " << cardinal[par] << endl;
-      out << "Variables por regla: " << variables_por_regla[par] << endl;
-      out << "Variables usadas: " << variables_usadas[par] << endl;
-      out << "Tiempo: " << tiempo_eje[par] << endl;
-      out << "Iteraciones: " << iteraciones[par] << endl;
-      out << "Condiciones: " << condiciones[par] << endl;
-      out << "Aciertos Discriminantes: " << test[par] << endl;
-      out << "Aciertos Descriptivas: " << test_conjunto[par] << endl;
-      out << "----------------------------------------------------\n";
-      out << "------------------- REGLAS -------------------------\n";
-      out << "----------------------------------------------------\n";
-
-      out << "Descriptivas: " << endl;
-      out.close();
-      R_prev[par].SaveRuleInterpreted_append(task_res.c_str());
-      out.open(task_res, ios::app);
-      out << "Predictivas: " << endl;
-      out.close();
-      R_prev_dis[par].SaveRuleInterpreted_append(task_res.c_str());
-      out.open(task_res, ios::app);
-      out << "Patrones: " << endl;
-
-      for (int kk = 0; kk < R_mix_prev[par].N_rule(); kk++) {
-        string res = "(0)";
-        res[1] = res[1] + R_mix_prev[par].Class_of_rule(kk);
-        res = Patron1Regla(R_mix_prev[par], V, kk) + res;
-        out << res << endl;
-      }
-
-      out.close();
+      ofstream salida(task_res, std::ofstream::out | std::ofstream::app);
+      salida << "*****************************************************************\n";
+      for (int i = 0; i < R.N_rule(); i++) salida << i << ") " << R.SPrint(i) << endl;
+      salida << endl;
     }
+
+    while (R.N_rule() > 0) {
+      R.Remove();
+      R_dis.Remove();
+      R_mix.Remove();
+    }
+
+    Destruir_Tabla_Adaptaciones(V, Tabla);
+  }
+
+  LiberaMedidasDeInformacion(Med_Inform, V.N_Antecedente());
+
+  if (informe) {
+    Escribir_Informe(task_res, V, E_Par, R_prev, R_prev_dis, R_mix_prev,
+                     1.0 * (clock() - tiempo0) / CLOCKS_PER_SEC);
   }
 
   // Las descriptivas (R_prev) o sus versiones discriminantes (R_prev_dis), emparejadas regla a
   // regla.
-  const ruleset& elegidas =
-      options.reglas == TipoDeReglas::discriminantes ? R_prev_dis[0] : R_prev[0];
+  const ruleset& elegidas = options.reglas == TipoDeReglas::discriminantes ? R_prev_dis : R_prev;
   std::vector<Regla> reglas;
   for (int i = 0; i < elegidas.N_rule(); i++) {
     Regla regla;
@@ -3420,122 +1837,6 @@ std::vector<Regla> Aprender(VectorVar& V, example_set& E, const Opciones& option
     regla.peso = elegidas.Get_Weight(i);
     reglas.push_back(regla);
   }
-
-  if (informe) {
-    double suma = 0, suma2 = 0, suma3 = 0, suma4 = 0, suma5 = 0, suma6 = 0, suma7 = 0, suma8 = 0,
-           suma9 = 0, suma10 = 0, suma11 = 0, suma12 = 0, suma13 = 0;
-    out.open(task_res, ios::app);
-
-    for (par = 0; par < num_par; par++) {
-      out << "\tAciertos en la base [" << par << "] es: " << accuracy_new[par] << endl;
-      out << "\tAciertos en test [" << par << "] es: " << test_conjunto[par] << endl;
-      out << "\tNumero de reglas [" << par << "] es: " << cardinal[par] << endl;
-      out << "\tVariables por regla [" << par << "] es: " << variables_por_regla[par] << endl;
-      out << "\tVariables usadas [" << par << "] es: " << variables_usadas[par] << endl;
-      out << "\tTiempo [" << par << "] es: " << tiempo_eje[par] << endl;
-      out << "\tIteraciones [" << par << "] es: " << iteraciones[par] << endl;
-      out << "\tCondiciones [" << par << "] es: " << condiciones[par] << endl << endl;
-      out << "\tDiscriminantes [" << par << "] es: " << test[par] << endl << endl;
-      out << "\tDescriptivas [" << par << "] es: " << test_Descrip[par] << endl << endl;
-
-      suma = suma + accuracy_new[par];
-      suma2 = suma2 + test_conjunto[par];
-      suma3 = suma3 + cardinal[par];
-      suma4 = suma4 + variables_por_regla[par];
-      suma5 = suma5 + variables_usadas[par];
-      suma6 = suma6 + tiempo_eje[par];
-      suma7 = suma7 + iteraciones[par];
-      suma8 = suma8 + condiciones[par];
-      suma9 = suma9 + test[par];
-      suma10 = suma10 + test_Descrip[par];
-    }
-    suma = suma / num_par;
-    suma2 = suma2 / num_par;
-    suma3 = suma3 / num_par;
-    suma4 = suma4 / num_par;
-    suma5 = suma5 / num_par;
-    suma6 = suma6 / num_par;
-    suma7 = suma7 / num_par;
-    suma8 = suma8 / num_par;
-    suma9 = suma9 / num_par;
-    suma10 = suma10 / num_par;
-
-    double desv1 = 0, desv2 = 0, desv3 = 0, desv4 = 0, desv5 = 0, desv6 = 0, desv7 = 0, desv8 = 0,
-           desv9 = 0, desv10 = 0, desv11 = 0, desv12 = 0, desv13 = 0;
-
-    for (par = 0; par < num_par; par++) {
-      desv1 = desv1 + pow(suma - accuracy_new[par], 2);
-      desv2 = desv2 + pow(suma2 - test_conjunto[par], 2);
-      desv3 = desv3 + pow(suma3 - cardinal[par], 2);
-      desv4 = desv4 + pow(suma4 - variables_por_regla[par], 2);
-      desv5 = desv5 + pow(suma5 - variables_usadas[par], 2);
-      desv6 = desv6 + pow(suma6 - tiempo_eje[par], 2);
-      desv7 = desv7 + pow(suma7 - iteraciones[par], 2);
-      desv8 = desv8 + pow(suma8 - condiciones[par], 2);
-      desv9 = desv9 + pow(suma9 - test_Descrip[par], 2);
-      desv10 = desv10 + pow(suma10 - test_Descrip[par], 2);
-    }
-
-    out << "La media training: " << suma << "( " << sqrt(desv1 / num_par) << ")" << endl;
-    out << "La media test: " << suma2 << "( " << sqrt(desv2 / num_par) << ")" << endl;
-    out << "La media de reglas: " << suma3 << "( " << sqrt(desv3 / num_par) << ")" << endl;
-    out << "La media de variables por regla: " << suma4 << "( " << sqrt(desv4 / num_par) << ")"
-        << endl;
-    out << "La media de variables usadas: " << suma5 << "( " << sqrt(desv5 / num_par) << ")"
-        << endl;
-    out << "La media de tiempo: " << suma6 << "( " << sqrt(desv6 / num_par) << ")" << endl;
-    out << "La media de iteraciones: " << suma7 << "( " << sqrt(desv7 / num_par) << ")" << endl;
-    out << "La media de condiciones: " << suma8 << "( " << sqrt(desv8 / num_par) << ")" << endl;
-    out << "La media de discriminantes: " << suma9 << "( " << sqrt(desv9 / num_par) << ")" << endl;
-    out << "La media de conjuntas: " << suma10 << "( " << sqrt(desv10 / num_par) << ")" << endl;
-
-    out << "Frecuencia de aparicion de las " << V.N_Antecedente()
-        << " distintas variables en las reglas: \n";
-    for (int i = 0; i < V.N_Antecedente(); i++) {
-      out << V.SPrintVar(i) << ": ";
-      suma6 = 0;
-      for (int j = 0; j < num_par; j++) {
-        suma6 = suma6 + (1.0 * frecuencia_variables[j][i] / cardinal[j]);
-      }
-      out << "--> " << (suma6 / num_par) * 100 << " %\n";
-    }
-    out.close();
-  }
-  LiberaMedidasDeInformacion(Med_Inform, V.N_Antecedente());
-
-  delete[] ejemplos_por_clase;
-  delete[] R;
-  delete[] R_dis;
-  delete[] R_prev;
-  delete[] R_prev_dis;
-  delete[] R_mix;
-  delete[] R_mix_prev;
-  delete[] ponderacion_por_clase;
-  delete[] accuracy_new;
-  delete[] test;
-  delete[] cardinal;
-  delete[] training_Descrip;
-  delete[] test_Descrip;
-  delete[] training_conjunto;
-  delete[] test_conjunto;
-  delete[] cardinal_Descrip;
-  delete[] variables_por_regla;
-  delete[] variables_usadas;
-  delete[] rango;
-  delete[] rangoi;
-  delete[] rangos;
-  delete[] tama;
-  delete[] mut;
-  delete[] cruce;
-  delete[] tiempo_eje;
-  delete[] iteraciones;
-  delete[] condiciones;
-
-  for (int i = 0; i < num_par; i++) {
-    delete[] frecuencia_variables[i];
-  }
-  delete[] frecuencia_variables;
-
   return reglas;
 }
 

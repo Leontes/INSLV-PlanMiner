@@ -2,7 +2,6 @@
 #include "inslv/datos/example_set.h"
 
 #include <cstddef>
-#include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -23,7 +22,6 @@ example_set::example_set(int ejemplos, int variables) {
   }
   n_example = ejemplos;
   n_variable = variables;
-  n_partition = 1;
   const std::size_t n = indice(ejemplos);
   data.assign(n, std::vector<double>(indice(variables)));
   covered.assign(n, false);
@@ -33,7 +31,6 @@ example_set::example_set(int ejemplos, int variables) {
   peso_negative.assign(n, 0);
   rule_used.assign(n, -1);
   rule_aislada.assign(n, 0);
-  partition.assign(n, 0);
 }
 
 example_set::example_set(const std::vector<std::vector<double>>& columnas)
@@ -52,22 +49,6 @@ double example_set::Data(int ejemplo, int variable) const {
 vectordouble example_set::Data(int ejemplo) const { return vectordouble(data[indice(ejemplo)]); }
 
 int example_set::N_Examples() const { return n_example; }
-
-void example_set::Generate_Partitions(int num_partition) {
-  if (num_partition < 1) {
-    throw std::logic_error("inslv: número de particiones no válido: " +
-                           std::to_string(num_partition));
-  }
-  n_partition = num_partition;
-  for (int& particion : partition) {
-    // El rand() global del original, hasta que tenga un generador propio (fase B).
-    particion =
-        n_partition == 1
-            ? 1
-            : static_cast<int>((1.0 * rand() * num_partition) /  // NOLINT(concurrency-mt-unsafe)
-                               (RAND_MAX - 1));
-  }
-}
 
 int example_set::Not_Covered_Examples() const {
   int numero = 0;
@@ -148,31 +129,12 @@ example_set example_set::Seleccionar(Condicion condicion) const {
   return resultado;
 }
 
-example_set example_set::Extract_Training_Set(int particion) const {
-  return Seleccionar([&](std::size_t e) { return partition[e] != particion; });
-}
-
-example_set example_set::Extract_Test_Set(int particion) const {
-  return Seleccionar([&](std::size_t e) { return partition[e] == particion; });
-}
-
 example_set example_set::SubSet(int tama) const {
   return Seleccionar([&](std::size_t e) { return e < indice(tama); });
 }
 
 example_set example_set::SubSet(int ini, int fin) const {
   return Seleccionar([&](std::size_t e) { return indice(ini) <= e && e <= indice(fin); });
-}
-
-example_set example_set::Union(const example_set& A) const {
-  example_set resultado(n_example + A.n_example, n_variable);
-  for (std::size_t e = 0; e < data.size(); ++e) {
-    resultado.data[e] = data[e];
-  }
-  for (std::size_t e = 0; e < A.data.size(); ++e) {
-    resultado.data[data.size() + e].assign(A.data[e].begin(), A.data[e].begin() + n_variable);
-  }
-  return resultado;
 }
 
 }  // namespace inslv

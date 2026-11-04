@@ -31,12 +31,6 @@ namespace inslv {
 poblacionreal::poblacionreal(double mut, int n, int tama)
     : poblacion<double>(n, tama), prob_mutacion_(mut) {}
 
-void poblacionreal::PoblacionInicialAleatoria(int n_item) {
-  for (std::vector<double>& individuo : individuos_) {
-    individuo.back() = n_item;
-  }
-}
-
 void poblacionreal::PoblacionInicial(const double* const* I, int clases) {
   const std::size_t atributos = individuos_[0].size() - 1;
   progreso(Verbosidad::depuracion) << "CL " << atributos << '\n';

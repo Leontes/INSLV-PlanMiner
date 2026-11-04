@@ -26,10 +26,6 @@ class example_set {
   [[nodiscard]] vectordouble Data(int ejemplo) const;
   [[nodiscard]] int N_Examples() const;
 
-  /// Reparte los ejemplos en num_partition particiones: con una, todos en la 1; con más, al azar
-  /// (con rand()). Lanza std::logic_error si num_partition < 1.
-  void Generate_Partitions(int num_partition);
-
   /// Cuántos ejemplos no están bien clasificados (Mark).
   [[nodiscard]] int Not_Covered_Examples() const;
   /// Cuántos ejemplos de cada clase no están bien clasificados, en n_examples_in_class[clase].
@@ -48,14 +44,9 @@ class example_set {
   [[nodiscard]] int Rule_Used(int i) const;
   [[nodiscard]] int Rule_Aislada(int i) const;
 
-  /// Los ejemplos que no son de la partición, o los que sí.
-  [[nodiscard]] example_set Extract_Training_Set(int particion) const;
-  [[nodiscard]] example_set Extract_Test_Set(int particion) const;
   /// Los tama primeros ejemplos, o los de ini a fin (incluido).
   [[nodiscard]] example_set SubSet(int tama) const;
   [[nodiscard]] example_set SubSet(int ini, int fin) const;
-  /// Estos ejemplos y, detrás, los de A (con las variables de estos).
-  [[nodiscard]] example_set Union(const example_set& A) const;
 
  private:
   // Los que cumplen la condición, sin las anotaciones.
@@ -72,8 +63,6 @@ class example_set {
   std::vector<double> peso_negative;
   std::vector<int> rule_used;
   std::vector<int> rule_aislada;
-  int n_partition = 0;
-  std::vector<int> partition;
 };
 
 }  // namespace inslv

@@ -13,8 +13,6 @@ class poblacionreal : public poblacion<double> {
   /// n individuos de tama valores, que mutan con probabilidad mut.
   poblacionreal(double mut, int n, int tama);
 
-  /// El último valor de cada individuo, a n_item.
-  void PoblacionInicialAleatoria(int n_item);
   /// Cada individuo i, para la clase c = i % clases: el valor j, I[j][c + 1] o, si es el mismo
   /// para todos los j, uno al azar entre 0 y 1; y el umbral, a 0,2.
   void PoblacionInicial(const double* const* I, int clases);

@@ -34,7 +34,7 @@ inslv::Datos clase_es_a() {
   return datos;
 }
 
-// El mensaje de la excepción que lanza learn, o "" si no lanza std::invalid_argument.
+// El mensaje de la excepción que lanza aprender, o "" si no lanza std::invalid_argument.
 std::string error_de(const inslv::Datos& datos) {
   try {
     inslv::aprender(datos);

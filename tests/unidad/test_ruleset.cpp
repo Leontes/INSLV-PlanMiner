@@ -33,16 +33,15 @@ inslv::VectorVar variables() {
 // 0,5).
 inslv::genetcode regla(const std::string& bits, int clase, double nivel_a, double nivel_b) {
   inslv::genetcode code;
-  code.PutBinary({{bits.begin(), bits.end()}, {'0', '0'}});
-  code.PutInteger({{clase}, {0}});
-  code.PutReal({{nivel_a, nivel_b, 0.5}, {0}});
+  code.PutBinary({{bits.begin(), bits.end()}});
+  code.PutInteger({{clase}});
+  code.PutReal({{nivel_a, nivel_b, 0.5}});
   return code;
 }
 
 inslv::ruleset conjunto() {
   inslv::ruleset reglas;
   reglas.AddDomain(variables());
-  reglas.AddDomain_Funcion(inslv::VectorVar());
   return reglas;
 }
 

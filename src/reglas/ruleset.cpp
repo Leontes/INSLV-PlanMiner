@@ -53,13 +53,6 @@ int SobreElUmbral(const genetcode& code) {
                                         [&](double nivel) { return nivel >= niveles.back(); }));
 }
 
-// Las variables de funciones.
-int Funciones(const genetcode& code) {
-  const std::vector<int>& funciones = code.Integer(1);
-  return static_cast<int>(
-      std::count_if(funciones.begin(), funciones.end(), [](int f) { return f != 0; }));
-}
-
 }  // namespace
 
 void ruleset::Comprobar(int i) const {
@@ -80,8 +73,6 @@ ruleset::ReglaCodificada& ruleset::Regla_i(int i) {
 }
 
 void ruleset::AddDomain(const VectorVar& x) { domain_ = x; }
-
-void ruleset::AddDomain_Funcion(const VectorVar& x) { domain_funcion_ = x; }
 
 void ruleset::Add(const genetcode& x, double weight) { reglas_.push_back({x, weight, 0, 0, true}); }
 
@@ -164,12 +155,7 @@ double ruleset::Variables_per_rule() const {
   return 1.0 * total / N_rule();
 }
 
-int ruleset::Variables_of_rule(int i) const {
-  const genetcode& code = Regla_i(i).codigo;
-  return SobreElUmbral(code) + Funciones(code);
-}
-
-int ruleset::New_Atributes_of_rule(int i) const { return Funciones(Regla_i(i).codigo); }
+int ruleset::Variables_of_rule(int i) const { return SobreElUmbral(Regla_i(i).codigo); }
 
 int ruleset::Numero_Ceros_of_rule(int i) const {
   const genetcode& code = Regla_i(i).codigo;
@@ -230,11 +216,7 @@ int ruleset::Condiciones_per_RB() const {
 double ruleset::Adaptacion(const vectordouble& v, const ReglaCodificada& regla) const {
   const genetcode& code = regla.codigo;
   const std::vector<double>& niveles = code.Real(0);
-  const std::vector<int>& funciones = code.Integer(1);
-  const double adaptacion = domain_.Adaptacion(v, Cadena(code, 0), niveles.data(), niveles.back());
-  return domain_funcion_.Adaptacion_funcion(v, Cadena(code, 1), funciones.data(),
-                                            static_cast<int>(funciones.size()), adaptacion) *
-         regla.peso;
+  return domain_.Adaptacion(v, Cadena(code, 0), niveles.data(), niveles.back()) * regla.peso;
 }
 
 int ruleset::InferenceC(const vectordouble& v, double& grado, int& regla_disparada) const {
@@ -354,22 +336,6 @@ std::string ruleset::SPrint(int i) const {
       }
     }
     buffer << "}\n";
-  }
-
-  const std::vector<char>& bits_funcion = code.Binary(1);
-  std::size_t donde = 0;
-  for (const int funcion : code.Integer(1)) {
-    if (funcion != 0) {
-      const int variable = funcion - 1;
-      buffer << '\t' << domain_funcion_.SPrintVar(variable) << " = {";
-      for (int t = 0; t < domain_funcion_.SizeDomain(variable); ++t) {
-        if (bits_funcion[donde + indice(t)] == '1') {
-          buffer << ' ' << domain_funcion_.SPrintDomain(variable, t);
-        }
-      }
-      buffer << "}\n";
-    }
-    donde += 2;
   }
 
   const int consecuente = domain_.Consecuente();

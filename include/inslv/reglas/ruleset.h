@@ -16,7 +16,6 @@ namespace inslv {
 /// Las reglas, en orden, codificadas como individuos del genético (genetcode):
 ///
 /// - Binary(0): las etiquetas que admite cada atributo, seguidas.
-/// - Binary(1) e Integer(1): las variables de funciones.
 /// - Integer(0)[0]: la clase.
 /// - Real(0): el nivel de cada atributo y, al final, el umbral. Solo cuentan los atributos cuyo
 ///   nivel llega al umbral.
@@ -29,8 +28,6 @@ class ruleset {
  public:
   /// Las variables de los atributos y la clase.
   void AddDomain(const VectorVar& x);
-  /// Las variables de funciones.
-  void AddDomain_Funcion(const VectorVar& x);
 
   /// Añade una regla al final, con ese peso (N+ y N- a 0) y como modificada.
   void Add(const genetcode& x, double weight);
@@ -67,10 +64,8 @@ class ruleset {
   [[nodiscard]] int N_rule(double weight) const;
   /// La media de atributos con nivel por encima del umbral por regla.
   [[nodiscard]] double Variables_per_rule() const;
-  /// Los atributos con nivel por encima del umbral y las variables de funciones de la regla.
+  /// Los atributos con nivel por encima del umbral de la regla.
   [[nodiscard]] int Variables_of_rule(int i) const;
-  /// Las variables de funciones de la regla.
-  [[nodiscard]] int New_Atributes_of_rule(int i) const;
   /// Las etiquetas que no admiten los atributos con nivel por encima del umbral de la regla.
   [[nodiscard]] int Numero_Ceros_of_rule(int i) const;
   /// En frec[atributo], en cuántas reglas es relevante (ver Antecedente). Devuelve la proporción
@@ -126,7 +121,6 @@ class ruleset {
 
   std::vector<ReglaCodificada> reglas_;
   VectorVar domain_;
-  VectorVar domain_funcion_;
 };
 
 }  // namespace inslv

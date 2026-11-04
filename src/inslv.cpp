@@ -140,8 +140,8 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
       opciones.reglas == TipoDeReglas::descriptivas ? "descriptivas" : "discriminantes");
 
   const auto inicio = std::chrono::steady_clock::now();
-  VectorVar variables(datos);
-  example_set ejemplos(columnas);
+  const VectorVar variables(datos);
+  const example_set ejemplos(columnas);
   std::vector<Regla> reglas = Aprender(variables, ejemplos, opciones);
   const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - inicio;
 
