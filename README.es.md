@@ -116,10 +116,8 @@ git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
   `tests/datos`), `lento` (lo mismo con los conjuntos grandes: `ctest --preset lento`) y
   `oraculo` (solo en local, con `old/`: la librería frente al original compilado en el mismo
   programa). Ver [Tests](docs/es/pruebas.md).
-- **El código heredado del original:** `aprendizaje`, la única sublibrería que aún no se ha
-  modernizado, tiene el código original (`HEREDADA` en su `CMakeLists.txt`). Se compila sin los
-  avisos del código nuevo, sin formato y sin clang-tidy hasta que se modernice. Todo lo demás se compila con avisos
-  estrictos, y la integración continua los trata como errores.
+- **Avisos:** todo se compila con avisos estrictos, y la integración continua los trata como
+  errores.
 - **Dependencias de los tests:** GoogleTest 1.14 o posterior (si no está instalado, CMake lo
   descarga); para la cobertura, gcovr.
 - **Integración continua:** compila y prueba con GCC y Clang, pasa los tests lentos, los

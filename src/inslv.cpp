@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/aprendizaje/RuleCreator.hpp"
+#include "inslv/aprendizaje/aprender.h"
 #include "inslv/comun/progreso.hpp"
 
 namespace inslv {

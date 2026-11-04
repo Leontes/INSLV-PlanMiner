@@ -77,6 +77,5 @@ jobs:
       - name: Herramientas
         run: pip install clang-format==18.1.3
 
-      # Las carpetas del código heredado tienen un .clang-format que desactiva el formato.
       - name: clang-format
         run: git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror

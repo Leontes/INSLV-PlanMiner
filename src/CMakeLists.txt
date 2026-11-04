@@ -1,11 +1,11 @@
 # La librería INSLV: la interfaz pública (include/inslv/inslv.hpp, inslv.cpp) sobre las
 # sublibrerías de la implementación, de la base a lo que la usa:
 #
-#   comun ← datos ← genetico, difuso ← reglas ← aprendizaje ← inslv
+#   comun ← datos, genetico
+#   datos ← difuso
+#   datos, difuso, genetico ← reglas ← aprendizaje ← inslv
 #
-# Son código heredado de old/ (HEREDADA) hasta que se modernicen, salvo comun (el flujo del
-# progreso), que es nuevo. Aparte, formatos: la lectura del formato de NSLV, código nuevo que solo
-# usa los tipos de la interfaz.
+# Aparte, formatos: la lectura del formato de NSLV, que solo usa los tipos de la interfaz.
 
 add_subdirectory(comun)
 add_subdirectory(datos)

@@ -108,8 +108,8 @@ TEST(Verbosidad, CadaNivelIncluyeLosAnteriores) {
 }
 
 TEST(Verbosidad, NoCambiaLasReglas) {
-  // Los mensajes del código heredado calculan cosas (Aciertos marca los ejemplos): se evalúan
-  // siempre, aunque no se escriban.
+  // Algunos mensajes del original calculaban cosas (Aciertos marca los ejemplos): escribirlos o no
+  // no puede cambiar las reglas.
   const std::string sin_mensajes =
       inslv::pruebas::describir(aprender_con(inslv::Verbosidad::ninguna).reglas);
   for (const inslv::Verbosidad verbosidad :

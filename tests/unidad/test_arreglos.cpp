@@ -11,7 +11,8 @@
 #include <string>
 #include <vector>
 
-#include "inslv/aprendizaje/RuleCreator.hpp"
+#include "inslv/aprendizaje/patrones.h"
+#include "inslv/datos/example_set.h"
 #include "inslv/inslv.hpp"
 
 namespace {

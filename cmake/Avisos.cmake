@@ -1,6 +1,4 @@
-# Avisos del compilador para el código nuevo. Las sublibrerías heredadas de old/ se compilan
-# sin ellos hasta que se modernicen (cmake/Sublibrerias.cmake); old/ se compila con sus propias
-# opciones.
+# Avisos del compilador. old/ se compila con sus propias opciones.
 
 function(inslv_activar_avisos target)
   target_compile_options(
