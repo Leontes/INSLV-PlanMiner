@@ -41,8 +41,8 @@ inslv::genetico::MultiPoblacion poblacion() { return {2, 20, 4, 3, 0.5, 0, 0.01}
 class Bondad : public testing::Test {
  protected:
   // La bondad de la regla con estos valores en la posición 0 de la población.
-  double valora(const inslv::genetico::Codigo& code, inslv::genetico::Valoracion& valor) {
-    G.poner_codigo(0, code);
+  double valora(const inslv::genetico::Codigo& codigo, inslv::genetico::Valoracion& valor) {
+    G.poner_codigo(0, codigo);
     const inslv::aprendizaje::Evaluacion ev = evaluacion();
     return inslv::aprendizaje::bondad(ev, 0, valor, eliminables);
   }
@@ -64,15 +64,15 @@ class Bondad : public testing::Test {
 
 TEST(Multipoblacion, ElCodigoEsElDelIndividuo) {
   inslv::genetico::MultiPoblacion G = poblacion();
-  const inslv::genetico::Codigo code{"0110", 1, {0.1, 0.2, 0.3}};
-  G.poner_codigo(5, code);
+  const inslv::genetico::Codigo codigo{"0110", 1, {0.1, 0.2, 0.3}};
+  G.poner_codigo(5, codigo);
   EXPECT_EQ(G.etiquetas(5), "0110");
   EXPECT_EQ(G.clase(5), 1);
   EXPECT_EQ(G.niveles(5), (std::vector<double>{0.1, 0.2, 0.3}));
   const inslv::genetico::Codigo copia = G.codigo(5);
-  EXPECT_EQ(copia.etiquetas, code.etiquetas);
-  EXPECT_EQ(copia.clase, code.clase);
-  EXPECT_EQ(copia.niveles, code.niveles);
+  EXPECT_EQ(copia.etiquetas, codigo.etiquetas);
+  EXPECT_EQ(copia.clase, codigo.clase);
+  EXPECT_EQ(copia.niveles, codigo.niveles);
 }
 
 TEST(Multipoblacion, OrdenaPorValoracionSinCambiarElOrdenDeLosIguales) {

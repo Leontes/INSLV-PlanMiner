@@ -41,8 +41,8 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 double peso_de(double mas, double menos) { return (mas + 1) / (mas + menos + 1); }
 
 // Los atributos con nivel por encima del umbral.
-int sobre_el_umbral(const genetico::Codigo& code) {
-  const std::vector<double>& niveles = code.niveles;
+int sobre_el_umbral(const genetico::Codigo& codigo) {
+  const std::vector<double>& niveles = codigo.niveles;
   return static_cast<int>(std::count_if(niveles.begin(), niveles.end() - 1,
                                         [&](double nivel) { return nivel >= niveles.back(); }));
 }
@@ -102,31 +102,31 @@ const genetico::Codigo& ConjuntoDeReglas::codigo(int i) const { return regla_i(i
 
 void ConjuntoDeReglas::sumar_ejemplos(int i, double mas, double menos) {
   ReglaCodificada& regla = regla_i(i);
-  regla.n_mas += mas;
-  regla.n_menos += menos;
-  regla.peso = peso_de(regla.n_mas, regla.n_menos);
+  regla.aciertos += mas;
+  regla.fallos += menos;
+  regla.peso = peso_de(regla.aciertos, regla.fallos);
 }
 
 double ConjuntoDeReglas::peso(int i) const { return regla_i(i).peso; }
 
 void ConjuntoDeReglas::recalcular_peso(int i) {
   ReglaCodificada& regla = regla_i(i);
-  regla.peso = peso_de(regla.n_mas, regla.n_menos);
+  regla.peso = peso_de(regla.aciertos, regla.fallos);
 }
 
 void ConjuntoDeReglas::recalcular_peso() {
   for (ReglaCodificada& regla : reglas_) {
-    regla.peso = peso_de(regla.n_mas, regla.n_menos);
+    regla.peso = peso_de(regla.aciertos, regla.fallos);
   }
 }
 
-void ConjuntoDeReglas::sumar_aciertos(int i, double value) { regla_i(i).n_mas += value; }
+void ConjuntoDeReglas::sumar_aciertos(int i, double value) { regla_i(i).aciertos += value; }
 
-void ConjuntoDeReglas::sumar_fallos(int i, double value) { regla_i(i).n_menos += value; }
+void ConjuntoDeReglas::sumar_fallos(int i, double value) { regla_i(i).fallos += value; }
 
-double ConjuntoDeReglas::aciertos(int i) const { return regla_i(i).n_mas; }
+double ConjuntoDeReglas::aciertos(int i) const { return regla_i(i).aciertos; }
 
-double ConjuntoDeReglas::fallos(int i) const { return regla_i(i).n_menos; }
+double ConjuntoDeReglas::fallos(int i) const { return regla_i(i).fallos; }
 
 void ConjuntoDeReglas::marcar_modificada(int i, bool value) { regla_i(i).modificada = value; }
 
@@ -158,14 +158,14 @@ int ConjuntoDeReglas::atributos_sobre_el_umbral(int i) const {
 }
 
 int ConjuntoDeReglas::etiquetas_excluidas(int i) const {
-  const genetico::Codigo& code = regla_i(i).codigo;
-  const std::size_t atributos = code.niveles.size() - 1;
+  const genetico::Codigo& codigo = regla_i(i).codigo;
+  const std::size_t atributos = codigo.niveles.size() - 1;
   int ceros = 0;
   std::size_t donde = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
     const auto n_casos = indice(variables_.numero_de_etiquetas(static_cast<int>(j)));
-    if (code.niveles[j] >= code.niveles.back()) {
-      const std::string_view etiquetas = std::string_view(code.etiquetas).substr(donde, n_casos);
+    if (codigo.niveles[j] >= codigo.niveles.back()) {
+      const std::string_view etiquetas = std::string_view(codigo.etiquetas).substr(donde, n_casos);
       ceros += static_cast<int>(std::count(etiquetas.begin(), etiquetas.end(), '0'));
     }
     donde += n_casos;
@@ -174,13 +174,13 @@ int ConjuntoDeReglas::etiquetas_excluidas(int i) const {
 }
 
 std::vector<ConjuntoDeReglas::AtributoRelevante> ConjuntoDeReglas::relevantes(
-    const genetico::Codigo& code) const {
+    const genetico::Codigo& codigo) const {
   std::vector<AtributoRelevante> relevantes;
   std::size_t donde = 0;
   for (int j = 0; j < variables_.numero_de_atributos(); ++j) {
     const auto n_casos = indice(variables_.numero_de_etiquetas(j));
-    const std::string_view etiquetas = std::string_view(code.etiquetas).substr(donde, n_casos);
-    if (code.niveles[indice(j)] >= code.niveles.back() &&
+    const std::string_view etiquetas = std::string_view(codigo.etiquetas).substr(donde, n_casos);
+    if (codigo.niveles[indice(j)] >= codigo.niveles.back() &&
         !std::all_of(etiquetas.begin(), etiquetas.end(), [](char bit) { return bit == '1'; })) {
       relevantes.push_back({j, donde, n_casos});
     }
@@ -233,21 +233,21 @@ int ConjuntoDeReglas::inferir(const datos::Ejemplo& v, double& grado, int& regla
 int ConjuntoDeReglas::inferir(const datos::Ejemplo& v, int clase_del_ejemplo, double& grado_p,
                               double& peso_p, double& grado_n, double& peso_n, int& regla_disparada,
                               int& aislada) const {
-  const int n_rule = numero_de_reglas();
+  const int n_reglas = numero_de_reglas();
   // Lo que se adapta a cada regla: en positivo, las de su clase; en negativo, las de otra.
   std::vector<double> adaptacion_particular;
   adaptacion_particular.reserve(reglas_.size());
   double max = 0;
   int re = -1;
   bool clasifica_bien = false;
-  int indice_pos = n_rule;
-  int indice_neg = n_rule;
+  int indice_pos = n_reglas;
+  int indice_neg = n_reglas;
   grado_p = 0;
   peso_p = 0;
   grado_n = 0;
   peso_n = 0;
 
-  for (int i = 0; i < n_rule; ++i) {
+  for (int i = 0; i < n_reglas; ++i) {
     const ReglaCodificada& regla = regla_i(i);
     const double aux = adaptacion_por_peso(v, regla);
     const bool de_su_clase = clase(i) == clase_del_ejemplo;
@@ -281,7 +281,7 @@ int ConjuntoDeReglas::inferir(const datos::Ejemplo& v, int clase_del_ejemplo, do
 
   if (clasifica_bien) {
     aislada = 0;
-    for (int i = 0; i < n_rule; ++i) {
+    for (int i = 0; i < n_reglas; ++i) {
       const double aux = adaptacion_particular[indice(i)];
       if (aux > 0 && gana(i, aux, grado_n, peso_n, indice_neg)) {
         ++aislada;
@@ -300,7 +300,7 @@ int ConjuntoDeReglas::inferir(const datos::Ejemplo& v, int clase_del_ejemplo, do
     aislada = -1000;
   } else {
     aislada = 0;
-    for (int i = 0; i < n_rule; ++i) {
+    for (int i = 0; i < n_reglas; ++i) {
       const double aux = adaptacion_particular[indice(i)];
       if (aux < 0 && gana(i, -aux, grado_p, peso_p, indice_pos)) {
         --aislada;
@@ -320,24 +320,24 @@ std::string ConjuntoDeReglas::texto_del_consecuente(int i) const {
 
 std::string ConjuntoDeReglas::texto(int i) const {
   const ReglaCodificada& regla = regla_i(i);
-  const genetico::Codigo& code = regla.codigo;
-  std::ostringstream buffer;
-  buffer << "IF\n";
-  for (const AtributoRelevante& relevante : relevantes(code)) {
-    buffer << '\t' << variables_.nombre(relevante.atributo) << " = {";
+  const genetico::Codigo& codigo = regla.codigo;
+  std::ostringstream salida;
+  salida << "SI\n";
+  for (const AtributoRelevante& relevante : relevantes(codigo)) {
+    salida << '\t' << variables_.nombre(relevante.atributo) << " = {";
     for (std::size_t t = 0; t < relevante.n_casos; ++t) {
-      if (code.etiquetas[relevante.donde + t] == '1') {
-        buffer << ' ' << variables_.nombre_de_etiqueta(relevante.atributo, static_cast<int>(t));
+      if (codigo.etiquetas[relevante.donde + t] == '1') {
+        salida << ' ' << variables_.nombre_de_etiqueta(relevante.atributo, static_cast<int>(t));
       }
     }
-    buffer << "}\n";
+    salida << "}\n";
   }
 
   const int consecuente = variables_.consecuente();
-  buffer << "THEN " << variables_.nombre(consecuente) << " IS "
-         << variables_.nombre_de_etiqueta(consecuente, clase(i)) << "   W " << regla.peso
-         << " and N+= " << regla.n_mas << " and N-= " << regla.n_menos << '\n';
-  return buffer.str();
+  salida << "ENTONCES " << variables_.nombre(consecuente) << " ES "
+         << variables_.nombre_de_etiqueta(consecuente, clase(i)) << "   P " << regla.peso
+         << " y N+= " << regla.aciertos << " y N-= " << regla.fallos << '\n';
+  return salida.str();
 }
 
 void ConjuntoDeReglas::anadir_a_fichero(const std::string& nomfich) const {
@@ -351,13 +351,13 @@ void ConjuntoDeReglas::anadir_a_fichero(const std::string& nomfich) const {
 // La parte general de SplitAntecedent, que estaba en old/: la interpretación de PlanMiner (solo
 // atributos de hasta dos etiquetas, con el nombre de la etiqueta o su centro) se hace fuera.
 std::vector<Condicion> ConjuntoDeReglas::antecedente(int i) const {
-  const genetico::Codigo& code = regla_i(i).codigo;
+  const genetico::Codigo& codigo = regla_i(i).codigo;
   std::vector<Condicion> condiciones;
-  for (const AtributoRelevante& relevante : relevantes(code)) {
+  for (const AtributoRelevante& relevante : relevantes(codigo)) {
     Condicion condicion;
     condicion.atributo = indice(relevante.atributo);
     for (std::size_t t = 0; t < relevante.n_casos; ++t) {
-      if (code.etiquetas[relevante.donde + t] == '1') {
+      if (codigo.etiquetas[relevante.donde + t] == '1') {
         condicion.etiquetas.push_back(t);
       }
     }

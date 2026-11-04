@@ -96,8 +96,8 @@ class ConjuntoDeReglas {
   struct ReglaCodificada {
     genetico::Codigo codigo;
     double peso = 0;
-    double n_mas = 0;
-    double n_menos = 0;
+    double aciertos = 0;
+    double fallos = 0;
     bool modificada = true;
   };
 
@@ -114,7 +114,7 @@ class ConjuntoDeReglas {
   // Lo que se adapta el ejemplo a la regla, por su peso.
   [[nodiscard]] double adaptacion_por_peso(const datos::Ejemplo& v,
                                            const ReglaCodificada& regla) const;
-  [[nodiscard]] std::vector<AtributoRelevante> relevantes(const genetico::Codigo& code) const;
+  [[nodiscard]] std::vector<AtributoRelevante> relevantes(const genetico::Codigo& codigo) const;
 
   std::vector<ReglaCodificada> reglas_;
   difuso::Variables variables_;

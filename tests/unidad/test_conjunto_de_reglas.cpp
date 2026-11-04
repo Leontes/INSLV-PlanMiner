@@ -174,7 +174,7 @@ TEST(ConjuntoDeReglas, SoloCuentanLosAtributosRelevantes) {
 TEST(ConjuntoDeReglas, ElTextoDeUnaRegla) {
   inslv::reglas::ConjuntoDeReglas reglas = conjunto();
   reglas.anadir(regla("0111", 1, 1, 0), 3, 1, false);
-  EXPECT_EQ(reglas.texto(0), "IF\n\ta = { True}\nTHEN Clase IS Si   W 0.8 and N+= 3 and N-= 1\n");
+  EXPECT_EQ(reglas.texto(0), "SI\n\ta = { True}\nENTONCES Clase ES Si   P 0.8 y N+= 3 y N-= 1\n");
   EXPECT_EQ(reglas.texto_del_consecuente(0), "Si");
 }
 

@@ -57,7 +57,7 @@ class MultiPoblacion {
 
   [[nodiscard]] int numero_de_individuos() const;
   [[nodiscard]] Codigo codigo(int i) const;
-  void poner_codigo(int i, const Codigo& code);
+  void poner_codigo(int i, const Codigo& codigo);
   /// Si ha cambiado desde que se valoró.
   [[nodiscard]] bool modificado(int i) const;
   void marcar_modificado(int i);

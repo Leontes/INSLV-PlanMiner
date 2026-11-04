@@ -206,7 +206,7 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
   const std::vector<int>& sin_clasificar_por_clase = evaluacion.sin_clasificar_por_clase;
 
   const int ne = ejemplos.numero_de_ejemplos();
-  const int nrule = reglas.numero_de_reglas();
+  const int n_reglas = reglas.numero_de_reglas();
   const int clase = poblacion.clase(individuo);
   const int sin_clasificar = sin_clasificar_por_clase[indice(clase)];
 
@@ -270,11 +270,11 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
   }
 
   // Dado el peso de la regla obtener la bondad de la misma.
-  std::vector<int> basica_esta_regla(indice(nrule));
-  std::vector<int> errores_esta_regla(indice(nrule));
+  std::vector<int> basica_esta_regla(indice(n_reglas));
+  std::vector<int> errores_esta_regla(indice(n_reglas));
   const auto anota = [&](std::vector<int>& cuenta, int ejemplo, int aislada) {
     if (ejemplos.regla_aislada(ejemplo) == aislada && ejemplos.regla_usada(ejemplo) >= 0 &&
-        ejemplos.regla_usada(ejemplo) < nrule) {
+        ejemplos.regla_usada(ejemplo) < n_reglas) {
       ++cuenta[indice(ejemplos.regla_usada(ejemplo))];
     }
   };
@@ -320,7 +320,7 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
   double diferencia_peso = peso;
 
   reglas_a_eliminar.clear();
-  for (int i = evaluacion.reglas_no_eliminables; i < nrule; ++i) {
+  for (int i = evaluacion.reglas_no_eliminables; i < n_reglas; ++i) {
     const std::size_t r = indice(i);
     const int ganancia = (basica_esta_regla[r] - evaluacion.basica_para_regla[r]) +
                          (evaluacion.errores_para_regla[r] - errores_esta_regla[r]);
@@ -376,7 +376,7 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
     // inicializar o de una regla ya quitada. No decide nada: dos individuos solo empatan hasta
     // aquí si los dos pasan por esta rama, y entonces leen el mismo valor (y forzándolo a 0, 1e9 y
     // -1e9, las reglas de los conjuntos de prueba no cambian).
-    valor[6] = reglas_eliminables < nrule ? -reglas.peso(reglas_eliminables) : 0;
+    valor[6] = reglas_eliminables < n_reglas ? -reglas.peso(reglas_eliminables) : 0;
   }
 
   return peso;

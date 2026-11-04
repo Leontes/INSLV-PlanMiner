@@ -35,12 +35,13 @@ int comparar_patrones(const std::string& patron1, const std::string& patron2) {
 }
 
 // Las etiquetas de la regla, con los atributos por debajo del umbral admitiendo todas.
-std::string etiquetas_efectivas(const genetico::Codigo& code, const difuso::Variables& variables) {
-  std::string etiquetas = code.etiquetas;
+std::string etiquetas_efectivas(const genetico::Codigo& codigo,
+                                const difuso::Variables& variables) {
+  std::string etiquetas = codigo.etiquetas;
   std::size_t tama = 0;
   for (int j = 0; j < variables.numero_de_atributos(); ++j) {
     const auto longitud = indice(variables.numero_de_etiquetas(j));
-    if (code.niveles[indice(j)] < code.niveles.back()) {
+    if (codigo.niveles[indice(j)] < codigo.niveles.back()) {
       etiquetas.replace(tama, longitud, longitud, '1');
     }
     tama += longitud;
@@ -80,11 +81,11 @@ void intersecar_discriminantes(const difuso::Variables& variables,
   const std::string patron =
       interseccion_de_etiquetas(etiquetas_efectivas(reglas1.codigo(regla1), variables),
                                 etiquetas_efectivas(reglas2.codigo(regla2), variables));
-  genetico::Codigo& code = reglas1.codigo(regla1);
-  code.etiquetas = patron;
+  genetico::Codigo& codigo = reglas1.codigo(regla1);
+  codigo.etiquetas = patron;
   for (int j = 0; j < variables.numero_de_atributos(); ++j) {
-    if (code.niveles[indice(j)] < code.niveles.back()) {
-      code.niveles[indice(j)] = code.niveles.back();
+    if (codigo.niveles[indice(j)] < codigo.niveles.back()) {
+      codigo.niveles[indice(j)] = codigo.niveles.back();
     }
   }
 }

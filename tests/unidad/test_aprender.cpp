@@ -88,7 +88,7 @@ TEST(Aprender, EscribeElInformeSiSePide) {
   std::ifstream entrada(informe);
   std::string primera_linea;
   std::getline(entrada, primera_linea);
-  EXPECT_EQ(primera_linea, "Experiment: " + informe.string());
+  EXPECT_EQ(primera_linea, "Experimento: " + informe.string());
   std::filesystem::remove(informe);
 }
 

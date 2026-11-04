@@ -65,7 +65,7 @@ double aciertos_por_regla(const reglas::ConjuntoDeReglas& reglas,
   out << "Errores:  " << mal << '\n';
   out << "No clasificados: " << sin_clase << '\n';
   for (int i = 0; i < reglas.numero_de_reglas(); ++i) {
-    out << "\tRule " << i << "(" << reglas.texto_del_consecuente(i)
+    out << "\tRegla " << i << "(" << reglas.texto_del_consecuente(i)
         << "): " << bien_por_regla[indice(i)] << " / " << mal_por_regla[indice(i)] << '\n';
   }
   return acierto;
@@ -194,14 +194,14 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
 
   if (informe) {
     std::ofstream out(fichero);
-    out << "Experiment: " << fichero << '\n';
+    out << "Experimento: " << fichero << '\n';
     const std::time_t ahora = std::time(nullptr);
     out << std::ctime(&ahora);  // NOLINT(concurrency-mt-unsafe)
     out << "===================================================\n\n";
   }
 
   std::srand(opciones.semilla);
-  comun::progreso(Verbosidad::depuracion) << "SEED " << opciones.semilla << '\n';
+  comun::progreso(Verbosidad::depuracion) << "Semilla " << opciones.semilla << '\n';
 
   const int tama_valor = variables.etiquetas_de_atributos();
   const int n_clases = variables.numero_de_etiquetas(variables.consecuente());

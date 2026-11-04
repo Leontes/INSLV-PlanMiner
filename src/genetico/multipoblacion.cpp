@@ -143,10 +143,10 @@ Codigo MultiPoblacion::codigo(int i) const {
   return {etiquetas_.individuo(i), clase(i), niveles_.individuo(i)};
 }
 
-void MultiPoblacion::poner_codigo(int i, const Codigo& code) {
-  etiquetas_.individuo(i) = code.etiquetas;
-  clases_.individuo(i)[0] = code.clase;
-  niveles_.individuo(i) = code.niveles;
+void MultiPoblacion::poner_codigo(int i, const Codigo& codigo) {
+  etiquetas_.individuo(i) = codigo.etiquetas;
+  clases_.individuo(i)[0] = codigo.clase;
+  niveles_.individuo(i) = codigo.niveles;
 }
 
 bool MultiPoblacion::modificado(int i) const { return modificado_[indice(i)]; }
