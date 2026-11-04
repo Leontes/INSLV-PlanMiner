@@ -35,7 +35,7 @@ int Comparar2patrones(const std::string& cad1, const std::string& cad2) {
 }
 
 // Las etiquetas de la regla, con los atributos por debajo del umbral admitiendo todas.
-std::string EtiquetasEfectivas(const genetcode& code, const difuso::Variables& V) {
+std::string EtiquetasEfectivas(const genetico::Codigo& code, const difuso::Variables& V) {
   std::string etiquetas = code.etiquetas;
   std::size_t tama = 0;
   for (int j = 0; j < V.numero_de_atributos(); ++j) {
@@ -77,7 +77,7 @@ void IntersecionReglasDiscriminantes(const difuso::Variables& V, ruleset& R1, in
                                      const ruleset& R2, int r2) {
   const std::string patron = Interseccion(EtiquetasEfectivas(R1.Get_Code_Rule(r1), V),
                                           EtiquetasEfectivas(R2.Get_Code_Rule(r2), V));
-  genetcode& code = R1.Get_Code_Rule(r1);
+  genetico::Codigo& code = R1.Get_Code_Rule(r1);
   code.etiquetas = patron;
   for (int j = 0; j < V.numero_de_atributos(); ++j) {
     if (code.niveles[indice(j)] < code.niveles.back()) {

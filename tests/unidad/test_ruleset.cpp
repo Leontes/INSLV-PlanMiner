@@ -12,7 +12,7 @@
 
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/variables.hpp"
-#include "inslv/genetico/genetcode.h"
+#include "inslv/genetico/codigo.hpp"
 #include "inslv/inslv.hpp"
 #include "inslv/reglas/ruleset.h"
 
@@ -31,7 +31,7 @@ inslv::difuso::Variables variables() {
 
 // Una regla: bits, las etiquetas que admiten a y b, seguidas; niveles, los de a y b (el umbral es
 // 0,5).
-inslv::genetcode regla(const std::string& bits, int clase, double nivel_a, double nivel_b) {
+inslv::genetico::Codigo regla(const std::string& bits, int clase, double nivel_a, double nivel_b) {
   return {bits, clase, {nivel_a, nivel_b, 0.5}};
 }
 

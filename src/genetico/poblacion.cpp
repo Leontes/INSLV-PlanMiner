@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include "inslv/genetico/poblacion.h"
+#include "inslv/genetico/poblacion.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -7,9 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "inslv/genetico/operaciones.h"
+#include "inslv/genetico/azar.hpp"
 
-namespace inslv {
+namespace inslv::genetico {
 
 namespace {
 
@@ -18,41 +18,41 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 }  // namespace
 
 template <typename Cromosoma>
-poblacion<Cromosoma>::poblacion(int n, int tama)
+Poblacion<Cromosoma>::Poblacion(int n, int tama)
     : individuos_(indice(n), Cromosoma(indice(tama), typename Cromosoma::value_type{})) {}
 
 template <typename Cromosoma>
-Cromosoma& poblacion<Cromosoma>::Individuo(int i) {
+Cromosoma& Poblacion<Cromosoma>::individuo(int i) {
   return individuos_[indice(i)];
 }
 
 template <typename Cromosoma>
-const Cromosoma& poblacion<Cromosoma>::Individuo(int i) const {
+const Cromosoma& Poblacion<Cromosoma>::individuo(int i) const {
   return individuos_[indice(i)];
 }
 
 template <typename Cromosoma>
-void poblacion<Cromosoma>::Pasar(int i, int j) {
+void Poblacion<Cromosoma>::copiar(int i, int j) {
   individuos_[indice(i)] = individuos_[indice(j)];
 }
 
 template <typename Cromosoma>
-void poblacion<Cromosoma>::Swap(int i, int j) {
+void Poblacion<Cromosoma>::intercambiar(int i, int j) {
   std::swap(individuos_[indice(i)], individuos_[indice(j)]);
 }
 
 template <typename Cromosoma>
-void poblacion<Cromosoma>::Cruce2puntos_Estacionario(int indiv1, int indiv2) {
+void Poblacion<Cromosoma>::cruzar_en_dos_puntos(int indiv1, int indiv2) {
   Cromosoma& uno = individuos_[indice(indiv1)];
   Cromosoma& otro = individuos_[indice(indiv2)];
   int p1 = 0;
   int p2 = 0;
-  PuntoCorte2(static_cast<int>(uno.size()), p1, p2);
+  dos_puntos_de_corte(static_cast<int>(uno.size()), p1, p2);
   std::swap_ranges(uno.begin() + p1, uno.begin() + p2, otro.begin() + p1);
 }
 
-template class poblacion<std::string>;
-template class poblacion<std::vector<int>>;
-template class poblacion<std::vector<double>>;
+template class Poblacion<std::string>;
+template class Poblacion<std::vector<int>>;
+template class Poblacion<std::vector<double>>;
 
-}  // namespace inslv
+}  // namespace inslv::genetico

@@ -41,7 +41,7 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 double Peso(double mas, double menos) { return (mas + 1) / (mas + menos + 1); }
 
 // Los atributos con nivel por encima del umbral.
-int SobreElUmbral(const genetcode& code) {
+int SobreElUmbral(const genetico::Codigo& code) {
   const std::vector<double>& niveles = code.niveles;
   return static_cast<int>(std::count_if(niveles.begin(), niveles.end() - 1,
                                         [&](double nivel) { return nivel >= niveles.back(); }));
@@ -68,9 +68,11 @@ ruleset::ReglaCodificada& ruleset::Regla_i(int i) {
 
 void ruleset::AddDomain(const difuso::Variables& x) { variables_ = x; }
 
-void ruleset::Add(const genetcode& x, double weight) { reglas_.push_back({x, weight, 0, 0, true}); }
+void ruleset::Add(const genetico::Codigo& x, double weight) {
+  reglas_.push_back({x, weight, 0, 0, true});
+}
 
-void ruleset::Add(const genetcode& x, double mas, double menos, bool modif) {
+void ruleset::Add(const genetico::Codigo& x, double mas, double menos, bool modif) {
   reglas_.push_back({x, Peso(mas, menos), mas, menos, modif});
 }
 
@@ -94,9 +96,9 @@ void ruleset::Remove(int i) {
   }
 }
 
-genetcode& ruleset::Get_Code_Rule(int i) { return Regla_i(i).codigo; }
+genetico::Codigo& ruleset::Get_Code_Rule(int i) { return Regla_i(i).codigo; }
 
-const genetcode& ruleset::Get_Code_Rule(int i) const { return Regla_i(i).codigo; }
+const genetico::Codigo& ruleset::Get_Code_Rule(int i) const { return Regla_i(i).codigo; }
 
 void ruleset::Add_Weight(int i, double mas, double menos) {
   ReglaCodificada& regla = Regla_i(i);
@@ -154,7 +156,7 @@ double ruleset::Variables_per_rule() const {
 int ruleset::Variables_of_rule(int i) const { return SobreElUmbral(Regla_i(i).codigo); }
 
 int ruleset::Numero_Ceros_of_rule(int i) const {
-  const genetcode& code = Regla_i(i).codigo;
+  const genetico::Codigo& code = Regla_i(i).codigo;
   const std::size_t atributos = code.niveles.size() - 1;
   int ceros = 0;
   std::size_t donde = 0;
@@ -169,7 +171,7 @@ int ruleset::Numero_Ceros_of_rule(int i) const {
   return ceros;
 }
 
-std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetcode& code) const {
+std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetico::Codigo& code) const {
   std::vector<AtributoRelevante> relevantes;
   std::size_t donde = 0;
   for (int j = 0; j < variables_.numero_de_atributos(); ++j) {
@@ -313,7 +315,7 @@ std::string ruleset::SPrint_Consequent(int i) const {
 
 std::string ruleset::SPrint(int i) const {
   const ReglaCodificada& regla = Regla_i(i);
-  const genetcode& code = regla.codigo;
+  const genetico::Codigo& code = regla.codigo;
   std::ostringstream buffer;
   buffer << "IF\n";
   for (const AtributoRelevante& relevante : Relevantes(code)) {
@@ -344,7 +346,7 @@ void ruleset::SaveRuleInterpreted_append(const std::string& nomfich) const {
 // La parte general de SplitAntecedent, que estaba en old/: la interpretación de PlanMiner (solo
 // atributos de hasta dos etiquetas, con el nombre de la etiqueta o su centro) se hace fuera.
 std::vector<Condicion> ruleset::Antecedente(int i) const {
-  const genetcode& code = Regla_i(i).codigo;
+  const genetico::Codigo& code = Regla_i(i).codigo;
   std::vector<Condicion> condiciones;
   for (const AtributoRelevante& relevante : Relevantes(code)) {
     Condicion condicion;

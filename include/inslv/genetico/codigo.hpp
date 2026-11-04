@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-namespace inslv {
+namespace inslv::genetico {
 
-struct genetcode {
+struct Codigo {
   /// El nivel de valor: las etiquetas que admite cada atributo, seguidas, con '0' y '1'.
   std::string etiquetas;
   /// El consecuente.
@@ -17,4 +17,4 @@ struct genetcode {
   std::vector<double> niveles;
 };
 
-}  // namespace inslv
+}  // namespace inslv::genetico

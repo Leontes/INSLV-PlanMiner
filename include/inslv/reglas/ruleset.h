@@ -8,12 +8,12 @@
 
 #include "inslv/datos/ejemplo.hpp"
 #include "inslv/difuso/variables.hpp"
-#include "inslv/genetico/genetcode.h"
+#include "inslv/genetico/codigo.hpp"
 #include "inslv/inslv.hpp"
 
 namespace inslv {
 
-/// Las reglas, en orden, codificadas como individuos del genético (genetcode).
+/// Las reglas, en orden, codificadas como individuos del genético (genetico::Codigo).
 ///
 /// Cada regla tiene un peso, que sale de los ejemplos que acierta (N+) y los que falla (N-):
 /// (N+ + 1) / (N+ + N- + 1).
@@ -25,9 +25,9 @@ class ruleset {
   void AddDomain(const difuso::Variables& x);
 
   /// Añade una regla al final, con ese peso (N+ y N- a 0) y como modificada.
-  void Add(const genetcode& x, double weight);
+  void Add(const genetico::Codigo& x, double weight);
   /// Añade una regla al final, con el peso que sale de sus N+ y N-.
-  void Add(const genetcode& x, double mas, double menos, bool modif);
+  void Add(const genetico::Codigo& x, double mas, double menos, bool modif);
   /// Añade al principio una copia de las reglas de r.
   void AddRuleset(const ruleset& r);
   /// Quita la última regla.
@@ -36,8 +36,8 @@ class ruleset {
   void Remove(int i);
 
   /// La regla i (se puede cambiar). La referencia deja de valer al añadir o quitar reglas.
-  [[nodiscard]] genetcode& Get_Code_Rule(int i);
-  [[nodiscard]] const genetcode& Get_Code_Rule(int i) const;
+  [[nodiscard]] genetico::Codigo& Get_Code_Rule(int i);
+  [[nodiscard]] const genetico::Codigo& Get_Code_Rule(int i) const;
 
   /// Suma a N+ y N- de la regla y recalcula su peso.
   void Add_Weight(int i, double mas, double menos);
@@ -94,7 +94,7 @@ class ruleset {
 
  private:
   struct ReglaCodificada {
-    genetcode codigo;
+    genetico::Codigo codigo;
     double peso = 0;
     double n_mas = 0;
     double n_menos = 0;
@@ -113,7 +113,7 @@ class ruleset {
   [[nodiscard]] ReglaCodificada& Regla_i(int i);
   // Lo que se adapta el ejemplo a la regla, por su peso.
   [[nodiscard]] double Adaptacion(const datos::Ejemplo& v, const ReglaCodificada& regla) const;
-  [[nodiscard]] std::vector<AtributoRelevante> Relevantes(const genetcode& code) const;
+  [[nodiscard]] std::vector<AtributoRelevante> Relevantes(const genetico::Codigo& code) const;
 
   std::vector<ReglaCodificada> reglas_;
   difuso::Variables variables_;

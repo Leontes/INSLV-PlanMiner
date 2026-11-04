@@ -2,19 +2,19 @@
 // El azar del algoritmo genético.
 #pragma once
 
-namespace inslv {
+namespace inslv::genetico {
 
 /// Un número al azar de 0 a RAND_MAX: el rand() global del original, hasta que haya un generador
 /// propio (fase B). Las reglas dependen de cuántos se piden y en qué orden.
-int Aleatorio();
+int aleatorio();
 
 /// Cierto con probabilidad x. Con x = 1 siempre es cierto, pero pide un número igualmente.
-[[nodiscard]] bool Probabilidad(double x);
+[[nodiscard]] bool con_probabilidad(double x);
 
-/// Un individuo al azar de 0 a n - 1 que no sea menos_este ni menor que eli.
-[[nodiscard]] int Select_Random_Individuo(int n, int menos_este, int eli);
+/// Un individuo al azar de 0 a n - 1 que no sea menos_este ni menor que minimo.
+[[nodiscard]] int individuo_al_azar(int n, int menos_este, int minimo);
 
 /// Dos puntos al azar de 0 a n - 1, con a <= b.
-void PuntoCorte2(int n, int& a, int& b);
+void dos_puntos_de_corte(int n, int& a, int& b);
 
-}  // namespace inslv
+}  // namespace inslv::genetico

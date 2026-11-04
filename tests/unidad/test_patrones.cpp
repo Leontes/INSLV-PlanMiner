@@ -8,7 +8,7 @@
 
 #include "inslv/aprendizaje/patrones.h"
 #include "inslv/difuso/variables.hpp"
-#include "inslv/genetico/genetcode.h"
+#include "inslv/genetico/codigo.hpp"
 #include "inslv/inslv.hpp"
 #include "inslv/reglas/ruleset.h"
 
@@ -26,7 +26,7 @@ inslv::difuso::Variables variables() {
 }
 
 // Una regla con los dos atributos por encima del umbral.
-inslv::genetcode regla(const std::string& etiquetas, int clase) {
+inslv::genetico::Codigo regla(const std::string& etiquetas, int clase) {
   return {etiquetas, clase, {1, 1, 0.5}};
 }
 

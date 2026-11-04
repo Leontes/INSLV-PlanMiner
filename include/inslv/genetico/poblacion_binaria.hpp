@@ -5,25 +5,24 @@
 #include <string>
 #include <vector>
 
-#include "inslv/genetico/poblacion.h"
+#include "inslv/genetico/poblacion.hpp"
 
-namespace inslv {
+namespace inslv::genetico {
 
-class poblacionbinaria : public poblacion<std::string> {
+class PoblacionBinaria : public Poblacion<std::string> {
  public:
   /// n individuos de tama bits, que mutan con probabilidad mut.
-  poblacionbinaria(double mut, int n, int tama);
+  PoblacionBinaria(double mut, int n, int tama);
 
   /// Cada individuo i, por trozos: el k, de tama_dom[k] bits, todos a 0 salvo el sujeto[i][k] o,
   /// si sujeto[i][k] es -1, a 1 cada uno con probabilidad 0,9.
-  void PoblacionInicial(const std::vector<std::vector<int>>& sujeto,
-                        const std::vector<int>& tama_dom);
+  void inicializar(const std::vector<std::vector<int>>& sujeto, const std::vector<int>& tama_dom);
 
   /// Cambia cada bit de los dos últimos individuos con la probabilidad de mutación.
-  void MutacionUniforme_Estacionario();
+  void mutar();
 
  private:
   double prob_mutacion_;
 };
 
-}  // namespace inslv
+}  // namespace inslv::genetico

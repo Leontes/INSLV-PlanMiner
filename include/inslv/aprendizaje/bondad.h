@@ -7,14 +7,14 @@
 #include "inslv/aprendizaje/tabla.h"
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/variables.hpp"
-#include "inslv/genetico/multipoblacion.h"
+#include "inslv/genetico/multipoblacion.hpp"
 #include "inslv/reglas/ruleset.h"
 
 namespace inslv {
 
 /// Lo que necesita la bondad de un individuo y no cambia durante un genético.
 struct Evaluacion {
-  multipoblacion& G;
+  genetico::MultiPoblacion& G;
   const difuso::Variables& V;
   const datos::Ejemplos& E;
   const ruleset& R;
@@ -31,13 +31,13 @@ struct Evaluacion {
 };
 
 /// El peso del individuo, y en n_mas y n_menos, los ejemplos que acierta y los que falla.
-double Weight_Individual(const multipoblacion& G, const datos::Ejemplos& E,
+double Weight_Individual(const genetico::MultiPoblacion& G, const datos::Ejemplos& E,
                          const TablaDeAdaptaciones& tabla, int elemento_i, double& n_mas,
                          double& n_menos);
 /// Valora el individuo y devuelve su peso. En reglas_a_eliminar, las reglas que puede sustituir (si
 /// la regla no es válida, no lo cambia). Baja el nivel de los atributos que admiten todas sus
 /// etiquetas.
-double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
+double Bondad(const Evaluacion& ev, int elemento_i, genetico::Valoracion& valor,
               std::vector<int>& reglas_a_eliminar);
 /// Valora los individuos modificados.
 void fitness(const Evaluacion& ev);

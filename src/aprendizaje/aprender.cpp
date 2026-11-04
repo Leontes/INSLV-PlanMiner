@@ -16,8 +16,8 @@
 #include "inslv/aprendizaje/patrones.h"
 #include "inslv/aprendizaje/tabla.h"
 #include "inslv/comun/progreso.hpp"
-#include "inslv/genetico/genetcode.h"
-#include "inslv/genetico/multipoblacion.h"
+#include "inslv/genetico/codigo.hpp"
+#include "inslv/genetico/multipoblacion.hpp"
 #include "inslv/reglas/ruleset.h"
 
 namespace inslv {
@@ -162,14 +162,14 @@ std::vector<int> Reglas_Que_Disparan(const ruleset& R, const datos::Ejemplos& E)
   return lista;
 }
 
-void ActualizarPeso(multipoblacion& G, const datos::Ejemplos& E, ruleset& R,
+void ActualizarPeso(genetico::MultiPoblacion& G, const datos::Ejemplos& E, ruleset& R,
                     const TablaDeAdaptaciones& tabla) {
   double n_mas = 0;
   double n_menos = 0;
   for (int i = 0; i < R.N_rule(); ++i) {
     if (R.Get_Modificada(i)) {
-      G.PutCodigo(G.N_individuos() - 1, R.Get_Code_Rule(i));
-      Weight_Individual(G, E, tabla, G.N_individuos() - 1, n_mas, n_menos);
+      G.poner_codigo(G.numero_de_individuos() - 1, R.Get_Code_Rule(i));
+      Weight_Individual(G, E, tabla, G.numero_de_individuos() - 1, n_mas, n_menos);
       R.Add_Weight(i, n_mas, n_menos);
       R.Modificada(i, false);
     }
@@ -213,7 +213,8 @@ std::vector<Regla> Aprender(const difuso::Variables& V, const datos::Ejemplos& E
   ruleset R_mix = R;
   ruleset R_mix_prev = R;
 
-  multipoblacion G(n_clases, n_clases * 10, tama_valor, tama_nivel, 2.0 / tama_valor, 0, 0.01);
+  genetico::MultiPoblacion G(n_clases, n_clases * 10, tama_valor, tama_nivel, 2.0 / tama_valor, 0,
+                             0.01);
 
   const int limite = E.numero_de_ejemplos();
   const int paso = static_cast<int>(options.tamano_episodio);
@@ -392,12 +393,12 @@ std::vector<Regla> Aprender(const difuso::Variables& V, const datos::Ejemplos& E
           Aciertos(R, V, E_Par_Not_Covered);
         }
 
-        if (G.Valoracion(0)[0] > 0 && anterior_n == E_Par_Not_Covered.sin_clasificar_bien()) {
+        if (G.valoracion(0)[0] > 0 && anterior_n == E_Par_Not_Covered.sin_clasificar_bien()) {
           comun::progreso(Verbosidad::detalle)
               << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
         }
 
-        if (G.Valoracion(0)[0] != -2 * E_Par_Not_Covered.numero_de_ejemplos() && !reducir_reglas &&
+        if (G.valoracion(0)[0] != -2 * E_Par_Not_Covered.numero_de_ejemplos() && !reducir_reglas &&
             !Added_Rule) {
           reducir_reglas = true;
           Added_Rule = true;

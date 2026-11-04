@@ -7,7 +7,7 @@
 #include "inslv/aprendizaje/tabla.h"
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/variables.hpp"
-#include "inslv/genetico/multipoblacion.h"
+#include "inslv/genetico/multipoblacion.hpp"
 #include "inslv/inslv.hpp"
 #include "inslv/reglas/ruleset.h"
 
@@ -19,7 +19,7 @@ double Aciertos(const ruleset& R, const difuso::Variables& V, datos::Ejemplos& E
 /// Las reglas que clasifican algún ejemplo, bien o mal.
 [[nodiscard]] std::vector<int> Reglas_Que_Disparan(const ruleset& R, const datos::Ejemplos& E);
 /// Actualiza con esos ejemplos el peso de las reglas modificadas. Usa el último individuo de G.
-void ActualizarPeso(multipoblacion& G, const datos::Ejemplos& E, ruleset& R,
+void ActualizarPeso(genetico::MultiPoblacion& G, const datos::Ejemplos& E, ruleset& R,
                     const TablaDeAdaptaciones& tabla);
 /// Aprende las reglas.
 /// @param V las variables: los atributos y, al final, la clase.

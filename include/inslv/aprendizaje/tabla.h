@@ -21,8 +21,8 @@ class TablaDeAdaptaciones {
   /// La adaptación del ejemplo a las etiquetas de la variable marcadas con '1' a partir de
   /// etiquetas: la de la primera con adaptación positiva o, si son dos, 1.
   [[nodiscard]] double Variable(int ejemplo, int variable, const char* etiquetas) const;
-  /// La adaptación del ejemplo a un antecedente (ver genetcode): la menor de los atributos con
-  /// nivel por encima del umbral.
+  /// La adaptación del ejemplo a un antecedente (ver genetico::Codigo): la menor de los atributos
+  /// con nivel por encima del umbral.
   [[nodiscard]] double Antecedente(int ejemplo, const std::string& etiquetas,
                                    const std::vector<double>& niveles) const;
   /// En pos, la adaptación del ejemplo a una etiqueta del consecuente; en neg, 0 si pos es 1 y 1 si

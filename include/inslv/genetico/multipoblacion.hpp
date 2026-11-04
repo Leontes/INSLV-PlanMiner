@@ -6,15 +6,15 @@
 #include <string>
 #include <vector>
 
-#include "inslv/genetico/genetcode.h"
-#include "inslv/genetico/poblacionbinaria.h"
-#include "inslv/genetico/poblacionentera.h"
-#include "inslv/genetico/poblacionreal.h"
+#include "inslv/genetico/codigo.hpp"
+#include "inslv/genetico/poblacion_binaria.hpp"
+#include "inslv/genetico/poblacion_entera.hpp"
+#include "inslv/genetico/poblacion_real.hpp"
 
-namespace inslv {
+namespace inslv::genetico {
 
 /// La valoración de un individuo: sus valores se comparan en orden.
-using Fitness = std::array<double, 7>;
+using Valoracion = std::array<double, 7>;
 
 /// Cada individuo tiene una parte en cada población y una valoración (su fitness, de varios
 /// valores que se comparan en orden). Es un genético estacionario: cada generación cambia solo
@@ -27,67 +27,67 @@ using Fitness = std::array<double, 7>;
 /// población real de un valor que no se leía. Sus valores no influían en nada, pero mutar y cruzar
 /// esas poblaciones pedía números al azar: hasta que haya un generador propio (fase B), se piden
 /// los mismos, para que las reglas no cambien.
-class multipoblacion {
+class MultiPoblacion {
  public:
   /// n individuos de clases clases, con tama_valor bits en el nivel de valor y tama_nivel valores
   /// en el de variable, con esas probabilidades de mutación.
-  multipoblacion(int clases, int n, int tama_valor, int tama_nivel, double mut_valor,
+  MultiPoblacion(int clases, int n, int tama_valor, int tama_nivel, double mut_valor,
                  double mut_clase, double mut_nivel);
 
-  void Swap(int i, int j);
+  void intercambiar(int i, int j);
   /// Copia el individuo j en el i, sin su valoración.
-  void Pasar(int i, int j);
+  void copiar(int i, int j);
 
   /// La clase del individuo: su consecuente.
-  [[nodiscard]] int ClaseIndividuo(int ind) const;
+  [[nodiscard]] int clase(int ind) const;
   /// El nivel de valor y el de variable del individuo (se pueden cambiar).
-  [[nodiscard]] std::string& Etiquetas(int individuo);
-  [[nodiscard]] const std::string& Etiquetas(int individuo) const;
-  [[nodiscard]] std::vector<double>& Niveles(int individuo);
-  [[nodiscard]] const std::vector<double>& Niveles(int individuo) const;
+  [[nodiscard]] std::string& etiquetas(int individuo);
+  [[nodiscard]] const std::string& etiquetas(int individuo) const;
+  [[nodiscard]] std::vector<double>& niveles(int individuo);
+  [[nodiscard]] const std::vector<double>& niveles(int individuo) const;
 
   /// Ordena de mayor a menor valoración (burbuja: los iguales no cambian de orden).
-  void Sort();
+  void ordenar();
   /// Igual, salvo los dos últimos.
-  void Sort_menos2ultimos();
+  void ordenar_sin_los_dos_ultimos();
   /// Coloca los dos últimos en su sitio. Si uno de los dos es de una clase con pocos individuos
   /// (sin contar los dos últimos), lo cambia por el último de una clase con más, para que no se
   /// pierda.
-  void Sort_4L();
+  void colocar_los_dos_ultimos();
 
-  [[nodiscard]] int N_individuos() const;
-  [[nodiscard]] genetcode Codigo(int i) const;
-  void PutCodigo(int i, const genetcode& code);
+  [[nodiscard]] int numero_de_individuos() const;
+  [[nodiscard]] Codigo codigo(int i) const;
+  void poner_codigo(int i, const Codigo& code);
   /// Si ha cambiado desde que se valoró.
-  [[nodiscard]] bool Modificado(int i) const;
-  void PutModificado(int i);
+  [[nodiscard]] bool modificado(int i) const;
+  void marcar_modificado(int i);
   /// Valora el individuo: deja de estar modificado.
-  void Valorar(int i, const Fitness& valoracion);
-  [[nodiscard]] const Fitness& Valoracion(int i) const;
+  void valorar(int i, const Valoracion& valoracion);
+  [[nodiscard]] const Valoracion& valoracion(int i) const;
 
   /// Inicializa las poblaciones: el nivel de valor, con sujetos (por variable, la etiqueta de un
   /// ejemplo, o -1); las clases, por turnos; el nivel de variable, con I
-  /// (poblacionreal::PoblacionInicial).
-  void PoblacionInicial(const std::vector<std::vector<double>>& I,
-                        const std::vector<std::vector<int>>& sujetos,
-                        const std::vector<int>& n_etiquetas_variable);
+  /// (PoblacionReal::inicializar).
+  void inicializar(const std::vector<std::vector<double>>& I,
+                   const std::vector<std::vector<int>>& sujetos,
+                   const std::vector<int>& n_etiquetas_variable);
 
   /// Con probabilidad 0,25 muta el nivel de variable de los dos últimos.
-  void MutacionUniforme_Estacionario_Especial();
+  void mutar_niveles();
   /// Muta los dos últimos: cada población, con su probabilidad, hasta que le toque a alguna.
-  void MutacionUniforme_Estacionario();
+  void mutar();
   /// Copia en los dos últimos dos individuos al azar (con probabilidad it, el primero y otro) y
   /// los cruza en dos puntos en las poblaciones que toque al azar, al menos en una.
-  void CruceBasedLogical_Estacionario(double it);
+  void cruzar(double it);
 
  private:
   int n_individuos_;
   int n_clases_;
   std::vector<bool> modificado_;
-  std::vector<Fitness> valoracion_;
-  poblacionbinaria valor_;
-  poblacionentera clase_;
-  poblacionreal nivel_;
+  std::vector<Valoracion> valoracion_;
+  PoblacionBinaria etiquetas_;
+  PoblacionEntera clases_;
+  PoblacionReal niveles_;
 };
 
-}  // namespace inslv
+}  // namespace inslv::genetico

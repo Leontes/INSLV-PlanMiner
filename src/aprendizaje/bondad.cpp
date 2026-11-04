@@ -14,13 +14,13 @@ namespace {
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Si la valoración v2 es mejor que la v en sus tres primeros valores.
-bool Mejor(const Fitness& v2, const Fitness& v) {
+bool Mejor(const genetico::Valoracion& v2, const genetico::Valoracion& v) {
   return (v2[0] > v[0]) || (v2[0] == v[0] && v2[1] > v[1]) ||
          (v2[0] == v[0] && v2[1] == v[1] && v2[2] > v[2]);
 }
 
 // Igual, o si es igual de buena.
-bool MejorOIgual(const Fitness& v2, const Fitness& v) {
+bool MejorOIgual(const genetico::Valoracion& v2, const genetico::Valoracion& v) {
   return (v2[0] > v[0]) || (v2[0] == v[0] && v2[1] > v[1]) ||
          (v2[0] == v[0] && v2[1] == v[1] && v2[2] >= v[2]);
 }
@@ -33,24 +33,24 @@ bool Relevante(std::string_view s) {
 }  // namespace
 
 void fitness(const Evaluacion& ev) {
-  multipoblacion& G = ev.G;
+  genetico::MultiPoblacion& G = ev.G;
   // Las reglas que eliminaría cada individuo solo interesan al evaluar la regla que se añade.
   std::vector<int> reglas_a_eliminar;
-  Fitness valor{};
-  for (int i = 0; i < G.N_individuos(); ++i) {
-    if (G.Modificado(i)) {
+  genetico::Valoracion valor{};
+  for (int i = 0; i < G.numero_de_individuos(); ++i) {
+    if (G.modificado(i)) {
       Bondad(ev, i, valor, reglas_a_eliminar);
-      G.Valorar(i, valor);
+      G.valorar(i, valor);
     }
   }
 }
 
 void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
                                  std::vector<int>& reglas_a_eliminar) {
-  multipoblacion& G = ev.G;
+  genetico::MultiPoblacion& G = ev.G;
   const difuso::Variables& V = ev.V;
-  std::string& etiquetas = G.Etiquetas(elemento_i);
-  std::vector<double>& niveles = G.Niveles(elemento_i);
+  std::string& etiquetas = G.etiquetas(elemento_i);
+  std::vector<double>& niveles = G.niveles(elemento_i);
   const std::size_t atributos = niveles.size() - 1;
   const double umbral = niveles.back();
 
@@ -63,10 +63,10 @@ void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
     tama += longitud;
   }
 
-  Fitness valor{};
-  Fitness valor2{};
+  genetico::Valoracion valor{};
+  genetico::Valoracion valor2{};
   Bondad(ev, elemento_i, valor, reglas_a_eliminar);
-  G.Valorar(elemento_i, valor);
+  G.valorar(elemento_i, valor);
 
   // Quita cada atributo relevante si la regla mejora sin él.
   for (std::size_t j = 0; j < atributos; ++j) {
@@ -108,22 +108,22 @@ void Obtener_Regla_Discriminante(const Evaluacion& ev, int elemento_i,
   }
 
   Bondad(ev, elemento_i, valor, reglas_a_eliminar);
-  G.Valorar(elemento_i, valor);
+  G.valorar(elemento_i, valor);
 }
 
 void Obtener_Regla_Descriptiva(const Evaluacion& ev, int elemento_i,
                                std::vector<int>& reglas_a_eliminar) {
-  multipoblacion& G = ev.G;
+  genetico::MultiPoblacion& G = ev.G;
   const difuso::Variables& V = ev.V;
-  std::string& etiquetas = G.Etiquetas(elemento_i);
-  std::vector<double>& niveles = G.Niveles(elemento_i);
+  std::string& etiquetas = G.etiquetas(elemento_i);
+  std::vector<double>& niveles = G.niveles(elemento_i);
   const std::size_t atributos = niveles.size() - 1;
   const double umbral = niveles.back();
 
-  Fitness valor{};
-  Fitness valor2{};
+  genetico::Valoracion valor{};
+  genetico::Valoracion valor2{};
   Bondad(ev, elemento_i, valor, reglas_a_eliminar);
-  G.Valorar(elemento_i, valor);
+  G.valorar(elemento_i, valor);
 
   std::size_t tama = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
@@ -171,15 +171,15 @@ void Obtener_Regla_Descriptiva(const Evaluacion& ev, int elemento_i,
   }
 
   Bondad(ev, elemento_i, valor, reglas_a_eliminar);
-  G.Valorar(elemento_i, valor);
+  G.valorar(elemento_i, valor);
 }
 
-double Weight_Individual(const multipoblacion& G, const datos::Ejemplos& E,
+double Weight_Individual(const genetico::MultiPoblacion& G, const datos::Ejemplos& E,
                          const TablaDeAdaptaciones& tabla, int elemento_i, double& n_mas,
                          double& n_menos) {
-  const std::string& etiquetas = G.Etiquetas(elemento_i);
-  const std::vector<double>& niveles = G.Niveles(elemento_i);
-  const int clase = G.ClaseIndividuo(elemento_i);
+  const std::string& etiquetas = G.etiquetas(elemento_i);
+  const std::vector<double>& niveles = G.niveles(elemento_i);
+  const int clase = G.clase(elemento_i);
 
   double positivos = 0;
   double negativos = 0;
@@ -198,9 +198,9 @@ double Weight_Individual(const multipoblacion& G, const datos::Ejemplos& E,
   return (positivos + 1) / (positivos + negativos + 1);
 }
 
-double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
+double Bondad(const Evaluacion& ev, int elemento_i, genetico::Valoracion& valor,
               std::vector<int>& reglas_a_eliminar) {
-  multipoblacion& G = ev.G;
+  genetico::MultiPoblacion& G = ev.G;
   const difuso::Variables& V = ev.V;
   const datos::Ejemplos& E = ev.E;
   const ruleset& R = ev.R;
@@ -208,11 +208,11 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
 
   const int ne = E.numero_de_ejemplos();
   const int nrule = R.N_rule();
-  const int clase = G.ClaseIndividuo(elemento_i);
+  const int clase = G.clase(elemento_i);
   const int ponderacion = ponderacion_por_clase[indice(clase)];
 
-  const std::string& etiquetas = G.Etiquetas(elemento_i);
-  std::vector<double>& niveles = G.Niveles(elemento_i);
+  const std::string& etiquetas = G.etiquetas(elemento_i);
+  std::vector<double>& niveles = G.niveles(elemento_i);
   const std::size_t atributos = niveles.size() - 1;
   const double umbral = niveles.back();
 

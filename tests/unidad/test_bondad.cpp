@@ -12,8 +12,8 @@
 #include "inslv/aprendizaje/tabla.h"
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/variables.hpp"
-#include "inslv/genetico/genetcode.h"
-#include "inslv/genetico/multipoblacion.h"
+#include "inslv/genetico/codigo.hpp"
+#include "inslv/genetico/multipoblacion.hpp"
 #include "inslv/inslv.hpp"
 #include "inslv/reglas/ruleset.h"
 
@@ -36,13 +36,13 @@ inslv::datos::Ejemplos ejemplos() {
       {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 1, 1, 0, 0, 1, 1}, {0, 1, 0, 1, 0, 1, 0, 1}});
 }
 
-inslv::multipoblacion poblacion() { return {2, 20, 4, 3, 0.5, 0, 0.01}; }
+inslv::genetico::MultiPoblacion poblacion() { return {2, 20, 4, 3, 0.5, 0, 0.01}; }
 
 class Bondad : public testing::Test {
  protected:
   // La bondad de la regla con estos valores en la posición 0 de la población.
-  double valora(const inslv::genetcode& code, inslv::Fitness& valor) {
-    G.PutCodigo(0, code);
+  double valora(const inslv::genetico::Codigo& code, inslv::genetico::Valoracion& valor) {
+    G.poner_codigo(0, code);
     const inslv::Evaluacion ev = evaluacion();
     return inslv::Bondad(ev, 0, valor, eliminables);
   }
@@ -54,7 +54,7 @@ class Bondad : public testing::Test {
   inslv::difuso::Variables V = variables();
   inslv::datos::Ejemplos E = ejemplos();
   inslv::TablaDeAdaptaciones tabla{V, E};
-  inslv::multipoblacion G = poblacion();
+  inslv::genetico::MultiPoblacion G = poblacion();
   inslv::ruleset R;
   std::vector<int> por_clase = E.sin_clasificar_bien_por_clase(2, 2);
   std::vector<int> basica = std::vector<int>(1);
@@ -63,69 +63,69 @@ class Bondad : public testing::Test {
 };
 
 TEST(Multipoblacion, ElCodigoEsElDelIndividuo) {
-  inslv::multipoblacion G = poblacion();
-  const inslv::genetcode code{"0110", 1, {0.1, 0.2, 0.3}};
-  G.PutCodigo(5, code);
-  EXPECT_EQ(G.Etiquetas(5), "0110");
-  EXPECT_EQ(G.ClaseIndividuo(5), 1);
-  EXPECT_EQ(G.Niveles(5), (std::vector<double>{0.1, 0.2, 0.3}));
-  const inslv::genetcode copia = G.Codigo(5);
+  inslv::genetico::MultiPoblacion G = poblacion();
+  const inslv::genetico::Codigo code{"0110", 1, {0.1, 0.2, 0.3}};
+  G.poner_codigo(5, code);
+  EXPECT_EQ(G.etiquetas(5), "0110");
+  EXPECT_EQ(G.clase(5), 1);
+  EXPECT_EQ(G.niveles(5), (std::vector<double>{0.1, 0.2, 0.3}));
+  const inslv::genetico::Codigo copia = G.codigo(5);
   EXPECT_EQ(copia.etiquetas, code.etiquetas);
   EXPECT_EQ(copia.clase, code.clase);
   EXPECT_EQ(copia.niveles, code.niveles);
 }
 
 TEST(Multipoblacion, OrdenaPorValoracionSinCambiarElOrdenDeLosIguales) {
-  inslv::multipoblacion G(2, 4, 4, 3, 0.5, 0, 0.01);
+  inslv::genetico::MultiPoblacion G(2, 4, 4, 3, 0.5, 0, 0.01);
   // Cada individuo se distingue por su clase y su primer bit.
-  const std::vector<inslv::genetcode> codigos = {{"0000", 0, {0, 0, 0}},
-                                                 {"1000", 0, {0, 0, 0}},
-                                                 {"0000", 1, {0, 0, 0}},
-                                                 {"1000", 1, {0, 0, 0}}};
+  const std::vector<inslv::genetico::Codigo> codigos = {{"0000", 0, {0, 0, 0}},
+                                                        {"1000", 0, {0, 0, 0}},
+                                                        {"0000", 1, {0, 0, 0}},
+                                                        {"1000", 1, {0, 0, 0}}};
   const std::vector<double> valor = {1, 3, 1, 2};
   for (std::size_t i = 0; i < codigos.size(); ++i) {
-    G.PutCodigo(static_cast<int>(i), codigos[i]);
-    G.Valorar(static_cast<int>(i), {valor[i]});
+    G.poner_codigo(static_cast<int>(i), codigos[i]);
+    G.valorar(static_cast<int>(i), {valor[i]});
   }
 
-  G.Sort();
+  G.ordenar();
 
-  EXPECT_EQ(G.Valoracion(0)[0], 3);
-  EXPECT_EQ(G.Etiquetas(0), "1000");
-  EXPECT_EQ(G.ClaseIndividuo(0), 0);
-  EXPECT_EQ(G.Valoracion(1)[0], 2);
-  EXPECT_EQ(G.Valoracion(2)[0], 1);
-  EXPECT_EQ(G.ClaseIndividuo(2), 0);
-  EXPECT_EQ(G.Valoracion(3)[0], 1);
-  EXPECT_EQ(G.ClaseIndividuo(3), 1);
+  EXPECT_EQ(G.valoracion(0)[0], 3);
+  EXPECT_EQ(G.etiquetas(0), "1000");
+  EXPECT_EQ(G.clase(0), 0);
+  EXPECT_EQ(G.valoracion(1)[0], 2);
+  EXPECT_EQ(G.valoracion(2)[0], 1);
+  EXPECT_EQ(G.clase(2), 0);
+  EXPECT_EQ(G.valoracion(3)[0], 1);
+  EXPECT_EQ(G.clase(3), 1);
 }
 
 TEST(Multipoblacion, ValorarQuitaLaMarcaDeModificado) {
-  inslv::multipoblacion G = poblacion();
-  EXPECT_TRUE(G.Modificado(0));
-  G.Valorar(0, {1});
-  EXPECT_FALSE(G.Modificado(0));
-  G.PutModificado(0);
-  EXPECT_TRUE(G.Modificado(0));
+  inslv::genetico::MultiPoblacion G = poblacion();
+  EXPECT_TRUE(G.modificado(0));
+  G.valorar(0, {1});
+  EXPECT_FALSE(G.modificado(0));
+  G.marcar_modificado(0);
+  EXPECT_TRUE(G.modificado(0));
 }
 
 TEST_F(Bondad, ElPesoDeUnIndividuo) {
   double n_mas = 0;
   double n_menos = 0;
   // Si a es True, Si: acierta los cuatro ejemplos que cubre.
-  G.PutCodigo(0, {"0111", 1, {1, 0, 0.5}});
+  G.poner_codigo(0, {"0111", 1, {1, 0, 0.5}});
   EXPECT_EQ(inslv::Weight_Individual(G, E, tabla, 0, n_mas, n_menos), 1);
   EXPECT_EQ(n_mas, 4);
   EXPECT_EQ(n_menos, 0);
   // Si a es True, No: los falla.
-  G.PutCodigo(0, {"0111", 0, {1, 0, 0.5}});
+  G.poner_codigo(0, {"0111", 0, {1, 0, 0.5}});
   EXPECT_DOUBLE_EQ(inslv::Weight_Individual(G, E, tabla, 0, n_mas, n_menos), 1.0 / 5.0);
   EXPECT_EQ(n_mas, 0);
   EXPECT_EQ(n_menos, 4);
 }
 
 TEST_F(Bondad, UnaReglaSinAtributosNoEsValida) {
-  inslv::Fitness valor{};
+  inslv::genetico::Valoracion valor{};
   EXPECT_EQ(valora({"1111", 1, {0, 0, 0.5}}, valor), 0);
   for (const double v : valor) {
     EXPECT_EQ(v, -16);
@@ -135,22 +135,22 @@ TEST_F(Bondad, UnaReglaSinAtributosNoEsValida) {
 }
 
 TEST_F(Bondad, UnaReglaQueNoAdmiteNingunaEtiquetaNoEsValida) {
-  inslv::Fitness valor{};
+  inslv::genetico::Valoracion valor{};
   EXPECT_EQ(valora({"0011", 1, {1, 0, 0.5}}, valor), 0);
   EXPECT_EQ(valor[0], -16);
 }
 
 TEST_F(Bondad, UnAtributoQueAdmiteTodasSusEtiquetasNoEsRelevante) {
-  inslv::Fitness valor{};
+  inslv::genetico::Valoracion valor{};
   valora({"0111", 1, {1, 1, 0.5}}, valor);
   // b admite todas: le baja el nivel por debajo del umbral.
-  EXPECT_LT(G.Niveles(0)[1], 0.5);
-  EXPECT_EQ(G.Niveles(0)[0], 1);
+  EXPECT_LT(G.niveles(0)[1], 0.5);
+  EXPECT_EQ(G.niveles(0)[0], 1);
 }
 
 TEST_F(Bondad, UnaReglaQueSoloAciertaEsMejorQueUnaQueTambienFalla) {
-  inslv::Fitness acierta{};
-  inslv::Fitness falla{};
+  inslv::genetico::Valoracion acierta{};
+  inslv::genetico::Valoracion falla{};
   EXPECT_EQ(valora({"0111", 1, {1, 0, 0.5}}, acierta), 1);
   EXPECT_DOUBLE_EQ(valora({"0111", 0, {1, 0, 0.5}}, falla), 1.0 / 5.0);
   EXPECT_GT(acierta[0], falla[0]);
@@ -160,21 +160,21 @@ TEST_F(Bondad, UnaReglaQueSoloAciertaEsMejorQueUnaQueTambienFalla) {
 
 TEST_F(Bondad, GeneralizarQuitaElAtributoQueNoHaceFalta) {
   // Si a es True y b es True, Si: sin b acierta el doble.
-  G.PutCodigo(0, {"0101", 1, {1, 1, 0.5}});
+  G.poner_codigo(0, {"0101", 1, {1, 1, 0.5}});
   const inslv::Evaluacion ev = evaluacion();
   inslv::Obtener_Regla_Discriminante(ev, 0, eliminables);
-  EXPECT_EQ(G.Niveles(0)[0], 1);
-  EXPECT_LT(G.Niveles(0)[1], 0.5);
-  EXPECT_FALSE(G.Modificado(0));
+  EXPECT_EQ(G.niveles(0)[0], 1);
+  EXPECT_LT(G.niveles(0)[1], 0.5);
+  EXPECT_FALSE(G.modificado(0));
 }
 
 TEST_F(Bondad, EspecializarQuitaLasEtiquetasQueNoHacenFalta) {
   // Si a es False o True, Si: acierta la mitad y falla la otra; con a en True solo acierta.
-  G.PutCodigo(0, {"1111", 1, {1, 0, 0.5}});
+  G.poner_codigo(0, {"1111", 1, {1, 0, 0.5}});
   const inslv::Evaluacion ev = evaluacion();
   inslv::Obtener_Regla_Descriptiva(ev, 0, eliminables);
-  EXPECT_EQ(G.Etiquetas(0).substr(0, 2), "01");
-  EXPECT_FALSE(G.Modificado(0));
+  EXPECT_EQ(G.etiquetas(0).substr(0, 2), "01");
+  EXPECT_FALSE(G.modificado(0));
 }
 
 TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {

@@ -8,7 +8,7 @@
 
 #include "inslv/aprendizaje/patrones.h"
 #include "inslv/comun/progreso.hpp"
-#include "inslv/genetico/operaciones.h"
+#include "inslv/genetico/azar.hpp"
 
 namespace inslv {
 
@@ -25,7 +25,7 @@ std::vector<std::vector<int>> Encontrar_Individuos_dados_ejemplos(
                                        std::vector<int>(indice(V.numero_de_atributos()), -1));
   for (int i = 0; i < n_individuos; ++i) {
     if (n_ejemplos_por_clase[indice(i % nclases)] != 0) {
-      int a = Select_Random_Individuo(E.numero_de_ejemplos(), -1, 0);
+      int a = genetico::individuo_al_azar(E.numero_de_ejemplos(), -1, 0);
       while (E.bien_clasificado(a) || tabla.Etiqueta(a, V.consecuente(), i % nclases) == 0) {
         a = (a + 1) % E.numero_de_ejemplos();
       }
@@ -42,7 +42,7 @@ std::vector<std::vector<int>> Encontrar_Individuos_dados_ejemplos(
 void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
         const std::vector<std::vector<double>>& I, bool primeraVez,
         std::vector<int>& reglas_a_eliminar, bool& Added_Rule) {
-  multipoblacion& G = ev.G;
+  genetico::MultiPoblacion& G = ev.G;
   const difuso::Variables& V = ev.V;
   const datos::Ejemplos& E = ev.E;
 
@@ -54,52 +54,52 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
     const std::vector<int> n_ejemplos_por_clase =
         E.sin_clasificar_bien_por_clase(V.consecuente(), n_clases);
     const std::vector<std::vector<int>> sujetos = Encontrar_Individuos_dados_ejemplos(
-        V, E, n_clases, G.N_individuos(), ev.tabla, n_ejemplos_por_clase);
+        V, E, n_clases, G.numero_de_individuos(), ev.tabla, n_ejemplos_por_clase);
     std::vector<int> lista_tamano;
     lista_tamano.reserve(static_cast<std::size_t>(V.numero_de_atributos()));
     for (int i = 0; i < V.numero_de_atributos(); ++i) {
       lista_tamano.push_back(V.numero_de_etiquetas(i));
     }
-    G.PoblacionInicial(I, sujetos, lista_tamano);
+    G.inicializar(I, sujetos, lista_tamano);
   } else {
-    for (int i = 0; i < G.N_individuos(); ++i) {
-      G.PutModificado(i);
+    for (int i = 0; i < G.numero_de_individuos(); ++i) {
+      G.marcar_modificado(i);
     }
   }
 
   fitness(ev);
 
-  for (int ik = G.N_individuos() - 2; ik < G.N_individuos(); ++ik) {
+  for (int ik = G.numero_de_individuos() - 2; ik < G.numero_de_individuos(); ++ik) {
     Obtener_Regla_Descriptiva(ev, ik, reglas_a_eliminar);
   }
 
-  G.Sort();
+  G.ordenar();
 
-  Fitness mejor_anterior = G.Valoracion(0);
+  genetico::Valoracion mejor_anterior = G.valoracion(0);
 
   const int max_iter = 500;
   int sin_cambios = 0;
   while (sin_cambios <= max_iter) {
-    if ((R.N_rule() > 1 && G.Valoracion(0)[0] <= 0 && Probabilidad(0.75)) ||
-        (R.N_rule() > 1 && Probabilidad(0.01))) {
+    if ((R.N_rule() > 1 && G.valoracion(0)[0] <= 0 && genetico::con_probabilidad(0.75)) ||
+        (R.N_rule() > 1 && genetico::con_probabilidad(0.01))) {
       // En el original elegía aquí una regla que luego no usaba. Se mantiene por el número que
       // pide.
-      static_cast<void>(Select_Random_Individuo(R.N_rule(), -1, -1));
-      G.MutacionUniforme_Estacionario_Especial();
+      static_cast<void>(genetico::individuo_al_azar(R.N_rule(), -1, -1));
+      G.mutar_niveles();
     } else {
-      G.CruceBasedLogical_Estacionario((1.0 * sin_cambios) / max_iter);
-      G.MutacionUniforme_Estacionario();
+      G.cruzar((1.0 * sin_cambios) / max_iter);
+      G.mutar();
     }
     fitness(ev);
-    G.Sort_4L();
+    G.colocar_los_dos_ultimos();
 
-    if (G.Valoracion(0) == mejor_anterior) {
+    if (G.valoracion(0) == mejor_anterior) {
       ++sin_cambios;
       if (sin_cambios == 2) {
         const int t = 1;
-        G.PutCodigo(t, G.Codigo(0));
+        G.poner_codigo(t, G.codigo(0));
 
-        if (G.Valoracion(t)[0] != -E.numero_de_ejemplos() || G.Valoracion(t)[1] != 1) {
+        if (G.valoracion(t)[0] != -E.numero_de_ejemplos() || G.valoracion(t)[1] != 1) {
           Obtener_Regla_Discriminante(ev, t, reglas_a_eliminar);
         } else {
           Obtener_Regla_Descriptiva(ev, t, reglas_a_eliminar);
@@ -107,11 +107,11 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
       }
     } else {
       sin_cambios = 0;
-      mejor_anterior = G.Valoracion(0);
+      mejor_anterior = G.valoracion(0);
     }
   }
 
-  const Fitness& mejor = G.Valoracion(0);
+  const genetico::Valoracion& mejor = G.valoracion(0);
   const double menos_ne = -E.numero_de_ejemplos();
 
   if (mejor[0] <= -1 && mejor[1] > 1 && mejor[1] >= (-mejor[0]) + 2) {
@@ -123,9 +123,9 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
       (mejor[0] == menos_ne && mejor[1] == 1 && mejor[2] > 0) ||
       (mejor[0] == menos_ne && mejor[1] == 1 && mejor[2] == 0 && mejor[3] > 0) ||
       (mejor[0] == menos_ne && mejor[1] == 1 && mejor[2] == 0 && mejor[3] == 0 && mejor[4] > 0)) {
-    genetcode code1;
-    genetcode code2;
-    Fitness valor{};
+    genetico::Codigo code1;
+    genetico::Codigo code2;
+    genetico::Valoracion valor{};
     std::array<double, 2> esp{};
     std::array<double, 2> gen{};
     double peso = 0;
@@ -136,7 +136,7 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
 
     do {
       Obtener_Regla_Discriminante(ev, 0, reglas_a_eliminar);
-      code1 = G.Codigo(0);
+      code1 = G.codigo(0);
       Bondad(ev, 0, valor, reglas_a_eliminar);
       Weight_Individual(G, E, ev.tabla, 0, nmas1, nmenos1);
       gen = {valor[0], valor[1]};
@@ -145,7 +145,7 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
       Bondad(ev, 0, valor, reglas_a_eliminar);
       peso = Weight_Individual(G, E, ev.tabla, 0, nmas2, nmenos2);
       esp = {valor[0], valor[1]};
-      code2 = G.Codigo(0);
+      code2 = G.codigo(0);
     } while (esp != gen || !ComprobacionEspGen(code2.etiquetas, code1.etiquetas));
 
     R.Add(code2, nmas2, nmenos2, false);
@@ -171,13 +171,13 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
     // Pongo la regla por defecto para la clase obtenida en la posición penultima de la poblacion
     code1.etiquetas.assign(code1.etiquetas.size(), '1');
 
-    G.PutCodigo(0, code2);
+    G.poner_codigo(0, code2);
 
     // Pongo la regla por defecto para otra clase en la ultima posicion de la poblacion
     code1.clase = (code1.clase + 1) % n_clases;
-    G.PutCodigo(G.N_individuos() - 1, code1);
+    G.poner_codigo(G.numero_de_individuos() - 1, code1);
     code1.clase = (code1.clase + 1) % n_clases;
-    G.PutCodigo(G.N_individuos() - 2, code1);
+    G.poner_codigo(G.numero_de_individuos() - 2, code1);
   }
 }
 
