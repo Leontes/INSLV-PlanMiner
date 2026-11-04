@@ -11,7 +11,9 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   message(FATAL_ERROR "Compila fuera del código fuente, por ejemplo: cmake --preset debug")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+# Delante: si INSLV es un subproyecto, un módulo del padre con el mismo nombre (Sanitizers...) no
+# debe tapar al de aquí. El cambio solo afecta a este directorio, no al padre.
+list(PREPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Opciones. Los tests solo se compilan por defecto si INSLV es el proyecto principal, no si otro
 # lo incluye con add_subdirectory o FetchContent.
