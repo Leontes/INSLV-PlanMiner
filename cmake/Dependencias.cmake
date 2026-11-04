@@ -20,3 +20,10 @@ FetchContent_Declare(
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
+
+# Si se ha descargado, se compila aquí, pero clang-tidy es solo para el código de INSLV.
+foreach(objetivo gtest gtest_main)
+  if(TARGET ${objetivo})
+    set_target_properties(${objetivo} PROPERTIES CXX_CLANG_TIDY "")
+  endif()
+endforeach()
