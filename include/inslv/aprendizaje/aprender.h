@@ -9,18 +9,19 @@
 #include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/multipoblacion.hpp"
 #include "inslv/inslv.hpp"
-#include "inslv/reglas/ruleset.h"
+#include "inslv/reglas/conjunto_de_reglas.hpp"
 
 namespace inslv {
 
 /// La proporción de ejemplos que clasifican bien las reglas. Anota en E lo que da cada uno
 /// (datos::Ejemplos::Mark).
-double Aciertos(const ruleset& R, const difuso::Variables& V, datos::Ejemplos& E);
+double Aciertos(const reglas::ConjuntoDeReglas& R, const difuso::Variables& V, datos::Ejemplos& E);
 /// Las reglas que clasifican algún ejemplo, bien o mal.
-[[nodiscard]] std::vector<int> Reglas_Que_Disparan(const ruleset& R, const datos::Ejemplos& E);
+[[nodiscard]] std::vector<int> Reglas_Que_Disparan(const reglas::ConjuntoDeReglas& R,
+                                                   const datos::Ejemplos& E);
 /// Actualiza con esos ejemplos el peso de las reglas modificadas. Usa el último individuo de G.
-void ActualizarPeso(genetico::MultiPoblacion& G, const datos::Ejemplos& E, ruleset& R,
-                    const TablaDeAdaptaciones& tabla);
+void ActualizarPeso(genetico::MultiPoblacion& G, const datos::Ejemplos& E,
+                    reglas::ConjuntoDeReglas& R, const TablaDeAdaptaciones& tabla);
 /// Aprende las reglas.
 /// @param V las variables: los atributos y, al final, la clase.
 /// @param E los ejemplos.

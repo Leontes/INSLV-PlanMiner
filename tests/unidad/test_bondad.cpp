@@ -15,7 +15,7 @@
 #include "inslv/genetico/codigo.hpp"
 #include "inslv/genetico/multipoblacion.hpp"
 #include "inslv/inslv.hpp"
-#include "inslv/reglas/ruleset.h"
+#include "inslv/reglas/conjunto_de_reglas.hpp"
 
 namespace {
 
@@ -55,7 +55,7 @@ class Bondad : public testing::Test {
   inslv::datos::Ejemplos E = ejemplos();
   inslv::TablaDeAdaptaciones tabla{V, E};
   inslv::genetico::MultiPoblacion G = poblacion();
-  inslv::ruleset R;
+  inslv::reglas::ConjuntoDeReglas R;
   std::vector<int> por_clase = E.sin_clasificar_bien_por_clase(2, 2);
   std::vector<int> basica = std::vector<int>(1);
   std::vector<int> errores = std::vector<int>(1);
@@ -180,10 +180,10 @@ TEST_F(Bondad, EspecializarQuitaLasEtiquetasQueNoHacenFalta) {
 TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
   const inslv::difuso::Variables V = variables();
   inslv::datos::Ejemplos E = ejemplos();
-  inslv::ruleset R;
-  R.AddDomain(V);
+  inslv::reglas::ConjuntoDeReglas R;
+  R.poner_variables(V);
   // Si a es True, Si: acierta los cuatro con a a 1 y no dice nada de los otros.
-  R.Add({"0111", 1, {1, 0, 0.5}}, 0.5);
+  R.anadir({"0111", 1, {1, 0, 0.5}}, 0.5);
 
   EXPECT_EQ(inslv::Aciertos(R, V, E), 0.5);
 
@@ -198,11 +198,11 @@ TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
 TEST(Aciertos, LasReglasQueDisparan) {
   const inslv::difuso::Variables V = variables();
   const inslv::datos::Ejemplos E = ejemplos();
-  inslv::ruleset R;
-  R.AddDomain(V);
-  R.Add({"0111", 1, {1, 0, 0.5}}, 0.5);   // Cubre la mitad.
-  R.Add({"0111", 0, {1, 0, 0.5}}, 0.25);  // Cubre lo mismo, con menos peso: nunca gana.
-  R.Add({"1011", 0, {1, 0, 0.5}}, 0.5);   // Cubre la otra mitad.
+  inslv::reglas::ConjuntoDeReglas R;
+  R.poner_variables(V);
+  R.anadir({"0111", 1, {1, 0, 0.5}}, 0.5);   // Cubre la mitad.
+  R.anadir({"0111", 0, {1, 0, 0.5}}, 0.25);  // Cubre lo mismo, con menos peso: nunca gana.
+  R.anadir({"1011", 0, {1, 0, 0.5}}, 0.5);   // Cubre la otra mitad.
   EXPECT_EQ(inslv::Reglas_Que_Disparan(R, E), (std::vector<int>{0, 2}));
 }
 

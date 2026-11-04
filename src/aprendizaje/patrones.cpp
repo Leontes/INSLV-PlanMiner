@@ -65,19 +65,19 @@ std::string Interseccion(const std::string& cad1, const std::string& cad2) {
 }
 
 // Hace la union de las dos reglas y la operacion la almacena en la regla r1
-void UnionReglasDescriptivas(const difuso::Variables& V, ruleset& R1, int r1, const ruleset& R2,
-                             int r2) {
-  const std::string patron = Union(EtiquetasEfectivas(R1.Get_Code_Rule(r1), V),
-                                   EtiquetasEfectivas(R2.Get_Code_Rule(r2), V));
-  R1.Get_Code_Rule(r1).etiquetas = patron;
+void UnionReglasDescriptivas(const difuso::Variables& V, reglas::ConjuntoDeReglas& R1, int r1,
+                             const reglas::ConjuntoDeReglas& R2, int r2) {
+  const std::string patron =
+      Union(EtiquetasEfectivas(R1.codigo(r1), V), EtiquetasEfectivas(R2.codigo(r2), V));
+  R1.codigo(r1).etiquetas = patron;
 }
 
 // Hace la interseccion de las dos reglas y la operacion la almacena en la regla r1
-void IntersecionReglasDiscriminantes(const difuso::Variables& V, ruleset& R1, int r1,
-                                     const ruleset& R2, int r2) {
-  const std::string patron = Interseccion(EtiquetasEfectivas(R1.Get_Code_Rule(r1), V),
-                                          EtiquetasEfectivas(R2.Get_Code_Rule(r2), V));
-  genetico::Codigo& code = R1.Get_Code_Rule(r1);
+void IntersecionReglasDiscriminantes(const difuso::Variables& V, reglas::ConjuntoDeReglas& R1,
+                                     int r1, const reglas::ConjuntoDeReglas& R2, int r2) {
+  const std::string patron =
+      Interseccion(EtiquetasEfectivas(R1.codigo(r1), V), EtiquetasEfectivas(R2.codigo(r2), V));
+  genetico::Codigo& code = R1.codigo(r1);
   code.etiquetas = patron;
   for (int j = 0; j < V.numero_de_atributos(); ++j) {
     if (code.niveles[indice(j)] < code.niveles.back()) {
@@ -142,19 +142,19 @@ bool ComprobacionEspGen(const std::string& esp, const std::string& gen) {
   return true;
 }
 
-std::string Patron1Regla(const ruleset& R_1, int pos) {
+std::string Patron1Regla(const reglas::ConjuntoDeReglas& R_1, int pos) {
   // Sin esa regla, un patrón vacío. En el original leía la regla -1 cuando el genético no
   // añadía ninguna en la primera vuelta (R_mix vacío) y el programa reventaba (HALLAZGOS).
-  if (pos < 0 || pos >= R_1.N_rule()) {
+  if (pos < 0 || pos >= R_1.numero_de_reglas()) {
     return "";
   }
-  return R_1.Get_Code_Rule(pos).etiquetas;
+  return R_1.codigo(pos).etiquetas;
 }
 
-std::string Patron2Reglas(const ruleset& R_1, const ruleset& R_2, const difuso::Variables& V,
-                          int pos) {
-  const std::string regla1 = EtiquetasEfectivas(R_1.Get_Code_Rule(pos), V);
-  const std::string regla2 = EtiquetasEfectivas(R_2.Get_Code_Rule(pos), V);
+std::string Patron2Reglas(const reglas::ConjuntoDeReglas& R_1, const reglas::ConjuntoDeReglas& R_2,
+                          const difuso::Variables& V, int pos) {
+  const std::string regla1 = EtiquetasEfectivas(R_1.codigo(pos), V);
+  const std::string regla2 = EtiquetasEfectivas(R_2.codigo(pos), V);
   std::string regla3 = regla1;
   for (std::size_t i = 0; i < regla1.size(); ++i) {
     if (regla1[i] != regla2[i]) {
@@ -164,18 +164,20 @@ std::string Patron2Reglas(const ruleset& R_1, const ruleset& R_2, const difuso::
   return regla3;
 }
 
-void Filtrar_Reglas_New(ruleset& R, ruleset& R_dis, ruleset& R_mix,
+void Filtrar_Reglas_New(reglas::ConjuntoDeReglas& R, reglas::ConjuntoDeReglas& R_dis,
+                        reglas::ConjuntoDeReglas& R_mix,
                         const std::vector<int>& reglas_a_eliminar) {
   for (const int regla : std::views::reverse(reglas_a_eliminar)) {
-    R.Remove(regla);
-    R_dis.Remove(regla);
-    R_mix.Remove(regla);
+    R.quitar(regla);
+    R_dis.quitar(regla);
+    R_mix.quitar(regla);
   }
 }
 
-void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& R_Descrip,
-                               ruleset& R_mix, int nuevas) {
-  std::vector<bool> eliminar(indice(R.N_rule()), false);
+void AnalizarConjuntosDeReglas(const difuso::Variables& V, reglas::ConjuntoDeReglas& R,
+                               reglas::ConjuntoDeReglas& R_Descrip, reglas::ConjuntoDeReglas& R_mix,
+                               int nuevas) {
+  std::vector<bool> eliminar(indice(R.numero_de_reglas()), false);
 
   for (int i = 0; i < nuevas; ++i) {
     if (eliminar[indice(i)]) {
@@ -184,7 +186,7 @@ void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& 
     const std::string res = Patron2Reglas(R_Descrip, R, V, i);
     const std::string res3 = Patron1Regla(R_Descrip, i);
     const std::string res4 = Patron1Regla(R, i);
-    const std::string patr = R_mix.Get_Code_Rule(i).etiquetas;
+    const std::string patr = R_mix.codigo(i).etiquetas;
 
     if (res != patr) {
       comun::progreso(Verbosidad::depuracion)
@@ -210,21 +212,21 @@ void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& 
       Pausa();
     }
 
-    for (int j = i + 1; j < R.N_rule() && !eliminar[indice(i)]; ++j) {
+    for (int j = i + 1; j < R.numero_de_reglas() && !eliminar[indice(i)]; ++j) {
       if (eliminar[indice(j)]) {
         continue;
       }
       const std::string res2 = Patron2Reglas(R_Descrip, R, V, j);
       const int iguales = Comparar2patrones(res2, patr);
 
-      if (R.Class_of_rule(i) != R.Class_of_rule(j)) {
+      if (R.clase(i) != R.clase(j)) {
         if (iguales == 0) {
           comun::progreso(Verbosidad::detalle)
               << "las reglas " << i << " y " << j << " son contradictorias\n";
-          R.Add_N_Menos(i, R.Get_N_Mas(i));
-          R.Recalculate_Weight(i);
-          R_Descrip.Add_N_Menos(i, R_Descrip.Get_N_Mas(i));
-          R_Descrip.Recalculate_Weight(i);
+          R.sumar_fallos(i, R.aciertos(i));
+          R.recalcular_peso(i);
+          R_Descrip.sumar_fallos(i, R_Descrip.aciertos(i));
+          R_Descrip.recalcular_peso(i);
         } else if (iguales == 1) {
           comun::progreso(Verbosidad::detalle)
               << "las reglas " << i << " y " << j << " entran en conflicto\n";
@@ -251,7 +253,7 @@ void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& 
       } else if (iguales == 1) {
         // Los dos patrones son compatibles
         comun::progreso(Verbosidad::detalle) << "\t\t\t\t\tCombinando Reglas " << i << " y " << j
-                                             << " de la clase " << R.Class_of_rule(i) << '\n';
+                                             << " de la clase " << R.clase(i) << '\n';
 
         const std::string patron_i = Patron2Reglas(R_Descrip, R, V, i);
         const std::string patron_j = Patron2Reglas(R_Descrip, R, V, j);
@@ -268,13 +270,13 @@ void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& 
           Pausa();
         }
 
-        R_mix.Get_Code_Rule(j).etiquetas = combinado;
+        R_mix.codigo(j).etiquetas = combinado;
         std::string discriminante = combinado;
         std::replace(discriminante.begin(), discriminante.end(), '?', '1');
-        R.Get_Code_Rule(j).etiquetas = discriminante;
+        R.codigo(j).etiquetas = discriminante;
         std::string descriptiva = combinado;
         std::replace(descriptiva.begin(), descriptiva.end(), '?', '0');
-        R_Descrip.Get_Code_Rule(j).etiquetas = descriptiva;
+        R_Descrip.codigo(j).etiquetas = descriptiva;
 
         if (Patron2Reglas(R_Descrip, R, V, j) != combinado) {
           comun::progreso(Verbosidad::depuracion)
@@ -283,21 +285,21 @@ void AnalizarConjuntosDeReglas(const difuso::Variables& V, ruleset& R, ruleset& 
         }
 
         eliminar[indice(i)] = true;
-        R_Descrip.Modificada(j, true);
-        R.Modificada(j, true);
+        R_Descrip.marcar_modificada(j, true);
+        R.marcar_modificada(j, true);
 
         if (Grados_Libertad(res2) >= Grados_Libertad(patr)) {
-          R_Descrip.Add_N_Mas(j, R_Descrip.Get_N_Mas(i));
-          R_Descrip.Add_N_Menos(j, R_Descrip.Get_N_Menos(i));
-          R.Add_N_Mas(j, R.Get_N_Mas(i));
-          R.Add_N_Menos(j, R.Get_N_Menos(i));
+          R_Descrip.sumar_aciertos(j, R_Descrip.aciertos(i));
+          R_Descrip.sumar_fallos(j, R_Descrip.fallos(i));
+          R.sumar_aciertos(j, R.aciertos(i));
+          R.sumar_fallos(j, R.fallos(i));
         }
       }
     }
   }
 
   std::vector<int> eliminables;
-  for (int i = 0; i < R.N_rule() - 1; ++i) {
+  for (int i = 0; i < R.numero_de_reglas() - 1; ++i) {
     if (eliminar[indice(i)]) {
       eliminables.push_back(i);
     }

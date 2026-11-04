@@ -203,11 +203,11 @@ double Bondad(const Evaluacion& ev, int elemento_i, genetico::Valoracion& valor,
   genetico::MultiPoblacion& G = ev.G;
   const difuso::Variables& V = ev.V;
   const datos::Ejemplos& E = ev.E;
-  const ruleset& R = ev.R;
+  const reglas::ConjuntoDeReglas& R = ev.R;
   const std::vector<int>& ponderacion_por_clase = ev.ponderacion_por_clase;
 
   const int ne = E.numero_de_ejemplos();
-  const int nrule = R.N_rule();
+  const int nrule = R.numero_de_reglas();
   const int clase = G.clase(elemento_i);
   const int ponderacion = ponderacion_por_clase[indice(clase)];
 
@@ -236,7 +236,7 @@ double Bondad(const Evaluacion& ev, int elemento_i, genetico::Valoracion& valor,
 
   const int variables_relevantes = static_cast<int>(atributos - variables_irrelevantes);
 
-  // Comprobar que es una regla valida
+  // comprobar que es una regla valida
   if (!V.es_valida(etiquetas, niveles) || variables_irrelevantes >= atributos) {
     valor.fill(-2 * ne);
     return 0;
@@ -328,8 +328,8 @@ double Bondad(const Evaluacion& ev, int elemento_i, genetico::Valoracion& valor,
       reglas_a_eliminar.push_back(i);
       ++reglas_eliminables;
       aciertos_adicionales += ganancia;
-      ganancia_en_variables = R.Variables_of_rule(i) - ganancia_en_variables;
-      diferencia_peso -= R.Get_Weight(i);
+      ganancia_en_variables = R.atributos_sobre_el_umbral(i) - ganancia_en_variables;
+      diferencia_peso -= R.peso(i);
     }
   }
 
@@ -376,7 +376,7 @@ double Bondad(const Evaluacion& ev, int elemento_i, genetico::Valoracion& valor,
     // inicializar o de una regla ya quitada. No decide nada: dos individuos solo empatan hasta
     // aquí si los dos pasan por esta rama, y entonces leen el mismo valor (y forzándolo a 0, 1e9 y
     // -1e9, las reglas de los conjuntos de prueba no cambian).
-    valor[6] = reglas_eliminables < nrule ? -R.Get_Weight(reglas_eliminables) : 0;
+    valor[6] = reglas_eliminables < nrule ? -R.peso(reglas_eliminables) : 0;
   }
 
   return peso;

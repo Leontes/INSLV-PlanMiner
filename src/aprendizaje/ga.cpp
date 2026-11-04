@@ -39,8 +39,8 @@ std::vector<std::vector<int>> Encontrar_Individuos_dados_ejemplos(
 
 }  // namespace
 
-void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
-        const std::vector<std::vector<double>>& I, bool primeraVez,
+void GA(const Evaluacion& ev, reglas::ConjuntoDeReglas& R, reglas::ConjuntoDeReglas& R_dis,
+        reglas::ConjuntoDeReglas& R_mix, const std::vector<std::vector<double>>& I, bool primeraVez,
         std::vector<int>& reglas_a_eliminar, bool& Added_Rule) {
   genetico::MultiPoblacion& G = ev.G;
   const difuso::Variables& V = ev.V;
@@ -50,7 +50,7 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
 
   const int n_clases = V.numero_de_etiquetas(V.consecuente());
 
-  if (R.N_rule() == 0 || primeraVez) {
+  if (R.numero_de_reglas() == 0 || primeraVez) {
     const std::vector<int> n_ejemplos_por_clase =
         E.sin_clasificar_bien_por_clase(V.consecuente(), n_clases);
     const std::vector<std::vector<int>> sujetos = Encontrar_Individuos_dados_ejemplos(
@@ -80,11 +80,11 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
   const int max_iter = 500;
   int sin_cambios = 0;
   while (sin_cambios <= max_iter) {
-    if ((R.N_rule() > 1 && G.valoracion(0)[0] <= 0 && genetico::con_probabilidad(0.75)) ||
-        (R.N_rule() > 1 && genetico::con_probabilidad(0.01))) {
+    if ((R.numero_de_reglas() > 1 && G.valoracion(0)[0] <= 0 && genetico::con_probabilidad(0.75)) ||
+        (R.numero_de_reglas() > 1 && genetico::con_probabilidad(0.01))) {
       // En el original elegía aquí una regla que luego no usaba. Se mantiene por el número que
       // pide.
-      static_cast<void>(genetico::individuo_al_azar(R.N_rule(), -1, -1));
+      static_cast<void>(genetico::individuo_al_azar(R.numero_de_reglas(), -1, -1));
       G.mutar_niveles();
     } else {
       G.cruzar((1.0 * sin_cambios) / max_iter);
@@ -148,13 +148,13 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
       code2 = G.codigo(0);
     } while (esp != gen || !ComprobacionEspGen(code2.etiquetas, code1.etiquetas));
 
-    R.Add(code2, nmas2, nmenos2, false);
-    R_dis.Add(code1, nmas1, nmenos1, false);
+    R.anadir(code2, nmas2, nmenos2, false);
+    R_dis.anadir(code1, nmas1, nmenos1, false);
 
-    const std::string patron = Patron2Reglas(R, R_dis, V, R.N_rule() - 1);
+    const std::string patron = Patron2Reglas(R, R_dis, V, R.numero_de_reglas() - 1);
 
-    const std::string especifica = Patron1Regla(R, R.N_rule() - 1);
-    const std::string general = Patron1Regla(R_dis, R_dis.N_rule() - 1);
+    const std::string especifica = Patron1Regla(R, R.numero_de_reglas() - 1);
+    const std::string general = Patron1Regla(R_dis, R_dis.numero_de_reglas() - 1);
     if (!ComprobacionEspGen(especifica, general)) {
       comun::progreso(Verbosidad::depuracion) << "esp: \n"
                                               << especifica << '\n'
@@ -164,7 +164,7 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
     }
 
     code1.etiquetas = patron;
-    R_mix.Add(code1, peso);
+    R_mix.anadir(code1, peso);
 
     Added_Rule = true;
 

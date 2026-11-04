@@ -8,7 +8,7 @@
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/multipoblacion.hpp"
-#include "inslv/reglas/ruleset.h"
+#include "inslv/reglas/conjunto_de_reglas.hpp"
 
 namespace inslv {
 
@@ -17,7 +17,7 @@ struct Evaluacion {
   genetico::MultiPoblacion& G;
   const difuso::Variables& V;
   const datos::Ejemplos& E;
-  const ruleset& R;
+  const reglas::ConjuntoDeReglas& R;
   /// Si solo se añaden reglas que eliminen a otras.
   bool reducir_reglas;
   /// Los ejemplos de cada clase sin clasificar bien.

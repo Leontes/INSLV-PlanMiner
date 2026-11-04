@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// La clasificación con las reglas: la inferencia de NSLV (ruleset::InferenceC en old/), con los
-// mismos cálculos para dar las mismas clases bit a bit.
+// La clasificación con las reglas: la inferencia de NSLV (reglas::ConjuntoDeReglas::inferir en
+// old/), con los mismos cálculos para dar las mismas clases bit a bit.
 
 #include <algorithm>
 #include <cmath>
@@ -116,8 +116,8 @@ std::vector<std::optional<std::size_t>> clasificar(const std::vector<Regla>& reg
   const std::size_t ejemplos = datos.valores.empty() ? 0 : datos.valores[0].size();
   std::vector<std::optional<std::size_t>> clases(ejemplos);
   for (std::size_t e = 0; e < ejemplos; ++e) {
-    // Como ruleset::InferenceC: la primera con la mayor adaptación por peso, salvo que otra con
-    // la misma y más peso.
+    // Como reglas::ConjuntoDeReglas::inferir: la primera con la mayor adaptación por peso, salvo
+    // que otra con la misma y más peso.
     double mejor = 0;
     const Regla* ganadora = nullptr;
     for (const Regla& regla : reglas) {
