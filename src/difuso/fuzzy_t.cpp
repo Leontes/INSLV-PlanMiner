@@ -31,8 +31,9 @@ double fuzzy_t::Adaptacion(double x) const {
 }
 
 void fuzzy_t::Pinta() const {
-  progreso(Verbosidad::depuracion) << "Nombre: " << nombre_ << '\n'
-                                   << "[" << a_ << "," << b_ << "," << c_ << "," << d_ << "]\n";
+  comun::progreso(Verbosidad::depuracion)
+      << "Nombre: " << nombre_ << '\n'
+      << "[" << a_ << "," << b_ << "," << c_ << "," << d_ << "]\n";
 }
 
 std::string fuzzy_t::SPrint() const { return nombre_; }

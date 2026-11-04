@@ -33,13 +33,13 @@ poblacionreal::poblacionreal(double mut, int n, int tama)
 
 void poblacionreal::PoblacionInicial(const std::vector<std::vector<double>>& I, int clases) {
   const std::size_t atributos = individuos_[0].size() - 1;
-  progreso(Verbosidad::depuracion) << "CL " << atributos << '\n';
+  comun::progreso(Verbosidad::depuracion) << "CL " << atributos << '\n';
   // Si I[j][c + 1] es el mismo para todos los atributos j.
   std::vector<bool> constante;
   for (std::size_t c = 1; c <= static_cast<std::size_t>(clases); ++c) {
     double mayor = I[0][c];
     double menor = I[0][c];
-    progreso(Verbosidad::depuracion) << "I " << I[0][c] << '\n';
+    comun::progreso(Verbosidad::depuracion) << "I " << I[0][c] << '\n';
     for (std::size_t j = 1; j < atributos; ++j) {
       mayor = std::max(mayor, I[j][c]);
       menor = std::min(menor, I[j][c]);

@@ -110,13 +110,13 @@ std::string Patron2Patrones(const std::string& pat1, const std::string& pat2) {
 // En el original esperaba una tecla tras los avisos de consistencia del análisis de patrones.
 // Como librería no puede bloquearse esperando la entrada estándar: solo avisa.
 void Pausa() {
-  progreso(Verbosidad::detalle)
+  comun::progreso(Verbosidad::detalle)
       << "INSLV: aviso de consistencia en el análisis de patrones (ver la salida anterior)\n";
 }
 
 // Las diferencias entre dos patrones, a la depuración.
 void Comparar2patronesPinta(const std::string& cad1, const std::string& cad2) {
-  std::ostream& salida = progreso(Verbosidad::depuracion);
+  std::ostream& salida = comun::progreso(Verbosidad::depuracion);
   for (std::size_t s = 0; s < cad1.size(); ++s) {
     if (cad1[s] == cad2[s]) {
       salida << '_';
@@ -185,14 +185,15 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
     const std::string patr = R_mix.Get_Code_Rule(i).etiquetas;
 
     if (res != patr) {
-      progreso(Verbosidad::depuracion) << "No coinciden los patrones para la regla " << i << '\n'
-                                       << res << '\n'
-                                       << patr << '\n';
+      comun::progreso(Verbosidad::depuracion)
+          << "No coinciden los patrones para la regla " << i << '\n'
+          << res << '\n'
+          << patr << '\n';
       Pausa();
     }
 
     if (res4 != patr && Comparar2patrones(patr, res4) != 1) {
-      progreso(Verbosidad::depuracion)
+      comun::progreso(Verbosidad::depuracion)
           << "La regla discriminante " << i << " no coincide con su patron\n"
           << res4 << '\n'
           << patr << '\n';
@@ -200,7 +201,7 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
     }
 
     if (res3 != patr && Comparar2patrones(patr, res3) != 1) {
-      progreso(Verbosidad::depuracion)
+      comun::progreso(Verbosidad::depuracion)
           << "La regla descriptiva " << i << " no coincide con su patron\n"
           << res3 << '\n'
           << patr << '\n';
@@ -216,14 +217,14 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
 
       if (R.Class_of_rule(i) != R.Class_of_rule(j)) {
         if (iguales == 0) {
-          progreso(Verbosidad::detalle)
+          comun::progreso(Verbosidad::detalle)
               << "las reglas " << i << " y " << j << " son contradictorias\n";
           R.Add_N_Menos(i, R.Get_N_Mas(i));
           R.Recalculate_Weight(i);
           R_Descrip.Add_N_Menos(i, R_Descrip.Get_N_Mas(i));
           R_Descrip.Recalculate_Weight(i);
         } else if (iguales == 1) {
-          progreso(Verbosidad::detalle)
+          comun::progreso(Verbosidad::detalle)
               << "las reglas " << i << " y " << j << " entran en conflicto\n";
         }
         continue;
@@ -231,7 +232,7 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
 
       // El caso raro de compatibilidades entre patrones
       if (iguales > 1 && Comparar2patrones(res3, res2) != 2 && Comparar2patrones(res4, res2) != 2) {
-        progreso(Verbosidad::depuracion)
+        comun::progreso(Verbosidad::depuracion)
             << "Caso especial de incompatibilidades entre patrones y si entre reglas\n"
             << res3 << '\n'
             << res4 << '\n'
@@ -247,8 +248,8 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
         eliminar[indice(i)] = true;
       } else if (iguales == 1) {
         // Los dos patrones son compatibles
-        progreso(Verbosidad::detalle) << "\t\t\t\t\tCombinando Reglas " << i << " y " << j
-                                      << " de la clase " << R.Class_of_rule(i) << '\n';
+        comun::progreso(Verbosidad::detalle) << "\t\t\t\t\tCombinando Reglas " << i << " y " << j
+                                             << " de la clase " << R.Class_of_rule(i) << '\n';
 
         const std::string patron_i = Patron2Reglas(R_Descrip, R, V, i);
         const std::string patron_j = Patron2Reglas(R_Descrip, R, V, j);
@@ -258,9 +259,9 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
 
         const std::string resultado = Patron2Reglas(R_Descrip, R, V, j);
         const std::string combinado = Patron2Patrones(patron_i, patron_j);
-        progreso(Verbosidad::depuracion) << combinado << '\n';
+        comun::progreso(Verbosidad::depuracion) << combinado << '\n';
         if (Comparar2patrones(resultado, combinado) != 0) {
-          progreso(Verbosidad::depuracion) << resultado << '\n' << combinado << '\n';
+          comun::progreso(Verbosidad::depuracion) << resultado << '\n' << combinado << '\n';
           Comparar2patronesPinta(resultado, combinado);
           Pausa();
         }
@@ -274,7 +275,7 @@ void AnalizarConjuntosDeReglas(const VectorVar& V, ruleset& R, ruleset& R_Descri
         R_Descrip.Get_Code_Rule(j).etiquetas = descriptiva;
 
         if (Patron2Reglas(R_Descrip, R, V, j) != combinado) {
-          progreso(Verbosidad::depuracion)
+          comun::progreso(Verbosidad::depuracion)
               << "Error al componer la descrip. y la predic. en la regla " << j << '\n';
           Pausa();
         }

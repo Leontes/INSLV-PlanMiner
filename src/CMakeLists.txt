@@ -1,8 +1,9 @@
 # La librería INSLV: la interfaz pública (include/inslv/inslv.hpp, inslv.cpp) sobre las
 # sublibrerías de la implementación, de la base a lo que la usa:
 #
-#   comun ← datos, genetico
-#   datos ← difuso
+#   datos
+#   comun ← genetico
+#   comun, datos ← difuso
 #   datos, difuso, genetico ← reglas ← aprendizaje ← inslv
 #
 # Aparte, formatos: la lectura del formato de NSLV, que solo usa los tipos de la interfaz.

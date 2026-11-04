@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "inslv/aprendizaje/tabla.h"
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/genetico/multipoblacion.h"
 #include "inslv/reglas/ruleset.h"
@@ -16,7 +16,7 @@ namespace inslv {
 struct Evaluacion {
   multipoblacion& G;
   const VectorVar& V;
-  const example_set& E;
+  const datos::Ejemplos& E;
   const ruleset& R;
   /// Si solo se añaden reglas que eliminen a otras.
   bool reducir_reglas;
@@ -31,7 +31,7 @@ struct Evaluacion {
 };
 
 /// El peso del individuo, y en n_mas y n_menos, los ejemplos que acierta y los que falla.
-double Weight_Individual(const multipoblacion& G, const example_set& E,
+double Weight_Individual(const multipoblacion& G, const datos::Ejemplos& E,
                          const TablaDeAdaptaciones& tabla, int elemento_i, double& n_mas,
                          double& n_menos);
 /// Valora el individuo y devuelve su peso. En reglas_a_eliminar, las reglas que puede sustituir (si

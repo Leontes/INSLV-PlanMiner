@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/inslv.hpp"
@@ -42,7 +42,7 @@ inslv::ruleset conjunto() {
 }
 
 // El ejemplo (a, b).
-inslv::vectordouble ejemplo(double a, double b) { return inslv::vectordouble({a, b}); }
+inslv::datos::Ejemplo ejemplo(double a, double b) { return inslv::datos::Ejemplo({a, b}); }
 
 TEST(Ruleset, ElPesoSaleDeLosAciertosYLosFallos) {
   inslv::ruleset reglas = conjunto();

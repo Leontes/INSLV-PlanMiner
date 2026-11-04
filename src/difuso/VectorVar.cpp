@@ -65,9 +65,9 @@ void VectorVar::Encode(int& tb, int& te) const {
 
 void VectorVar::Pinta() const {
   for (const variable_t& variable : lista_) {
-    progreso(Verbosidad::depuracion) << '\n';
+    comun::progreso(Verbosidad::depuracion) << '\n';
     variable.Pinta();
-    progreso(Verbosidad::depuracion) << "----------\n";
+    comun::progreso(Verbosidad::depuracion) << "----------\n";
   }
 }
 
@@ -112,7 +112,7 @@ bool VectorVar::Es_Valida(const std::string& etiquetas, const std::vector<double
   return true;
 }
 
-double VectorVar::Adaptacion(const vectordouble& x, const std::string& etiquetas,
+double VectorVar::Adaptacion(const datos::Ejemplo& x, const std::string& etiquetas,
                              const std::vector<double>& niveles) const {
   double max = 1;
   std::size_t trozo = 0;
@@ -128,7 +128,7 @@ double VectorVar::Adaptacion(const vectordouble& x, const std::string& etiquetas
       if (unos == 0) {
         max = 0;
       } else if (unos < tam) {
-        const double aux = variable.Adaptacion(x.At(static_cast<int>(i)), sub);
+        const double aux = variable.Adaptacion(x.valor(static_cast<int>(i)), sub);
         if (aux < max) {
           max = aux;
         }
@@ -149,7 +149,7 @@ int VectorVar::Consecuente() const {
       return static_cast<int>(i);
     }
   }
-  progreso(Verbosidad::depuracion) << "No hay variable consecuente\n";
+  comun::progreso(Verbosidad::depuracion) << "No hay variable consecuente\n";
   return -1;
 }
 

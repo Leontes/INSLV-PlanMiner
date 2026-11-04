@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/VectorVar.h"
 
 namespace inslv {
@@ -12,6 +12,6 @@ namespace inslv {
 /// Una matriz con una fila por atributo y una columna por clase más una: la información mutua
 /// normalizada entre el atributo y cada clase y, en la columna 0, con todas.
 [[nodiscard]] std::vector<std::vector<double>> MedidasDeInformacion(const VectorVar& V,
-                                                                    const example_set& E);
+                                                                    const datos::Ejemplos& E);
 
 }  // namespace inslv

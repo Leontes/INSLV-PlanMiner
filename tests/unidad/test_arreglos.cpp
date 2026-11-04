@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "inslv/aprendizaje/patrones.h"
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/inslv.hpp"
 
 namespace {
@@ -86,17 +86,17 @@ TEST(Arreglos, LosErroresInternosSonExcepciones) {
   // En el original, exit(1).
   const inslv::domain_t vacio;
   EXPECT_THROW(static_cast<void>(vacio.Adaptacion(0.5, 0)), std::logic_error);
-  EXPECT_THROW(const inslv::example_set conjunto(-1, 3), std::logic_error);
+  EXPECT_THROW(const inslv::datos::Ejemplos conjunto(-1, 3), std::logic_error);
 }
 
 TEST(Arreglos, ConjuntosSinEjemplos) {
   // Con 0 ejemplos, los vectores se reservan y ahora también se liberan (asan lo comprueba).
-  const inslv::example_set vacio(0, 3);
-  inslv::example_set copia;
+  const inslv::datos::Ejemplos vacio(0, 3);
+  inslv::datos::Ejemplos copia;
   copia = vacio;
-  const inslv::example_set& misma = copia;
+  const inslv::datos::Ejemplos& misma = copia;
   copia = misma;
-  EXPECT_EQ(copia.N_Examples(), 0);
+  EXPECT_EQ(copia.numero_de_ejemplos(), 0);
 }
 
 TEST(Arreglos, UnSoloAtributo) {

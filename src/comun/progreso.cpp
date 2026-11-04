@@ -3,7 +3,7 @@
 
 #include <streambuf>
 
-namespace inslv {
+namespace inslv::comun {
 
 namespace {
 
@@ -39,4 +39,4 @@ DestinoDelProgreso::~DestinoDelProgreso() {
   verbosidad = verbosidad_anterior_;
 }
 
-}  // namespace inslv
+}  // namespace inslv::comun

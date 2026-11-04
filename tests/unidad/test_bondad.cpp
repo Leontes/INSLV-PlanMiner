@@ -10,7 +10,7 @@
 #include "inslv/aprendizaje/aprender.h"
 #include "inslv/aprendizaje/bondad.h"
 #include "inslv/aprendizaje/tabla.h"
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/genetico/multipoblacion.h"
@@ -31,8 +31,8 @@ inslv::VectorVar variables() {
 }
 
 // 8 ejemplos: la clase es el valor de a; b no tiene relación con ella.
-inslv::example_set ejemplos() {
-  return inslv::example_set(
+inslv::datos::Ejemplos ejemplos() {
+  return inslv::datos::Ejemplos(
       {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 1, 1, 0, 0, 1, 1}, {0, 1, 0, 1, 0, 1, 0, 1}});
 }
 
@@ -52,11 +52,11 @@ class Bondad : public testing::Test {
   }
 
   inslv::VectorVar V = variables();
-  inslv::example_set E = ejemplos();
+  inslv::datos::Ejemplos E = ejemplos();
   inslv::TablaDeAdaptaciones tabla{V, E};
   inslv::multipoblacion G = poblacion();
   inslv::ruleset R;
-  std::vector<int> por_clase = E.Examples_per_Class(2, 2);
+  std::vector<int> por_clase = E.sin_clasificar_bien_por_clase(2, 2);
   std::vector<int> basica = std::vector<int>(1);
   std::vector<int> errores = std::vector<int>(1);
   std::vector<int> eliminables = {7};
@@ -179,7 +179,7 @@ TEST_F(Bondad, EspecializarQuitaLasEtiquetasQueNoHacenFalta) {
 
 TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
   const inslv::VectorVar V = variables();
-  inslv::example_set E = ejemplos();
+  inslv::datos::Ejemplos E = ejemplos();
   inslv::ruleset R;
   R.AddDomain(V);
   // Si a es True, Si: acierta los cuatro con a a 1 y no dice nada de los otros.
@@ -187,17 +187,17 @@ TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
 
   EXPECT_EQ(inslv::Aciertos(R, V, E), 0.5);
 
-  EXPECT_EQ(E.Not_Covered_Examples(), 4);
-  EXPECT_FALSE(E.Is_Covered(0));
-  EXPECT_EQ(E.Rule_Used(0), -1);
-  EXPECT_TRUE(E.Is_Covered(1));
-  EXPECT_EQ(E.Rule_Used(1), 0);
-  EXPECT_EQ(E.Grade_Is_Positive_Covered(1), 0.5);
+  EXPECT_EQ(E.sin_clasificar_bien(), 4);
+  EXPECT_FALSE(E.bien_clasificado(0));
+  EXPECT_EQ(E.regla_usada(0), -1);
+  EXPECT_TRUE(E.bien_clasificado(1));
+  EXPECT_EQ(E.regla_usada(1), 0);
+  EXPECT_EQ(E.grado_positivo(1), 0.5);
 }
 
 TEST(Aciertos, LasReglasQueDisparan) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E = ejemplos();
+  const inslv::datos::Ejemplos E = ejemplos();
   inslv::ruleset R;
   R.AddDomain(V);
   R.Add({"0111", 1, {1, 0, 0.5}}, 0.5);   // Cubre la mitad.

@@ -174,7 +174,7 @@ void Obtener_Regla_Descriptiva(const Evaluacion& ev, int elemento_i,
   G.Valorar(elemento_i, valor);
 }
 
-double Weight_Individual(const multipoblacion& G, const example_set& E,
+double Weight_Individual(const multipoblacion& G, const datos::Ejemplos& E,
                          const TablaDeAdaptaciones& tabla, int elemento_i, double& n_mas,
                          double& n_menos) {
   const std::string& etiquetas = G.Etiquetas(elemento_i);
@@ -183,7 +183,7 @@ double Weight_Individual(const multipoblacion& G, const example_set& E,
 
   double positivos = 0;
   double negativos = 0;
-  for (int j = 0; j < E.N_Examples(); ++j) {
+  for (int j = 0; j < E.numero_de_ejemplos(); ++j) {
     double aux_p = 0;
     double aux_n = 0;
     tabla.Consecuente(j, clase, aux_p, aux_n);
@@ -202,11 +202,11 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
               std::vector<int>& reglas_a_eliminar) {
   multipoblacion& G = ev.G;
   const VectorVar& V = ev.V;
-  const example_set& E = ev.E;
+  const datos::Ejemplos& E = ev.E;
   const ruleset& R = ev.R;
   const std::vector<int>& ponderacion_por_clase = ev.ponderacion_por_clase;
 
-  const int ne = E.N_Examples();
+  const int ne = E.numero_de_ejemplos();
   const int nrule = R.N_rule();
   const int clase = G.ClaseIndividuo(elemento_i);
   const int ponderacion = ponderacion_por_clase[indice(clase)];
@@ -274,9 +274,9 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
   std::vector<int> basica_esta_regla(indice(nrule));
   std::vector<int> errores_esta_regla(indice(nrule));
   const auto anota = [&](std::vector<int>& cuenta, int ejemplo, int aislada) {
-    if (E.Rule_Aislada(ejemplo) == aislada && E.Rule_Used(ejemplo) >= 0 &&
-        E.Rule_Used(ejemplo) < nrule) {
-      ++cuenta[indice(E.Rule_Used(ejemplo))];
+    if (E.regla_aislada(ejemplo) == aislada && E.regla_usada(ejemplo) >= 0 &&
+        E.regla_usada(ejemplo) < nrule) {
+      ++cuenta[indice(E.regla_usada(ejemplo))];
     }
   };
   double aciertos = 0;
@@ -287,9 +287,9 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
     const double a = adaptacion[indice(j)];
     if (a > 0) {
       // La regla gana a la mejor de otra clase.
-      if (a * peso > E.Grade_Is_Negative_Covered(j) ||
-          (a * peso == E.Grade_Is_Negative_Covered(j) && peso > E.Peso_Is_Negative_Covered(j))) {
-        if (!E.Is_Covered(j)) {
+      if (a * peso > E.grado_negativo(j) ||
+          (a * peso == E.grado_negativo(j) && peso > E.peso_negativo(j))) {
+        if (!E.bien_clasificado(j)) {
           positivos = positivos + (a * peso);
           ++aciertos;
           anota(errores_esta_regla, j, -1);
@@ -299,12 +299,11 @@ double Bondad(const Evaluacion& ev, int elemento_i, Fitness& valor,
       }
     } else if (a < 0) {
       // La regla gana a la mejor de la clase del ejemplo.
-      if (-a * peso > E.Grade_Is_Positive_Covered(j) ||
-          (-a * peso == E.Grade_Is_Positive_Covered(j) && peso > E.Peso_Is_Positive_Covered(j))) {
+      if (-a * peso > E.grado_positivo(j) ||
+          (-a * peso == E.grado_positivo(j) && peso > E.peso_positivo(j))) {
         negativos =
-            negativos +
-            ((-a * peso) / ponderacion_por_clase[indice(E.Class_of_example(V.Consecuente(), j))]);
-        if (!E.Is_Covered(j)) {
+            negativos + ((-a * peso) / ponderacion_por_clase[indice(E.clase(V.Consecuente(), j))]);
+        if (!E.bien_clasificado(j)) {
           anota(errores_esta_regla, j, -1);
         } else {
           ++fallos;

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/datos/vectordouble.h"
+#include "inslv/datos/ejemplo.hpp"
 #include "inslv/difuso/domain_t.h"
 #include "inslv/difuso/fuzzy_t.h"
 #include "inslv/difuso/variable_t.h"
@@ -41,7 +41,7 @@ class VectorVar {
                                const std::vector<double>& niveles) const;
   /// La adaptación del ejemplo a la regla: la menor de los atributos relevantes que no admiten
   /// todas sus etiquetas (0 si alguno no admite ninguna).
-  [[nodiscard]] double Adaptacion(const vectordouble& x, const std::string& etiquetas,
+  [[nodiscard]] double Adaptacion(const datos::Ejemplo& x, const std::string& etiquetas,
                                   const std::vector<double>& niveles) const;
   [[nodiscard]] const domain_t& Domain(int var) const;
   [[nodiscard]] const variable_t& Variable(int var) const;

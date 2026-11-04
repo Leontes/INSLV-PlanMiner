@@ -11,7 +11,7 @@
 
 #include "inslv/aprendizaje/medidas.h"
 #include "inslv/aprendizaje/tabla.h"
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/inslv.hpp"
 
@@ -31,7 +31,7 @@ inslv::VectorVar variables() {
 
 TEST(Tabla, LaAdaptacionDeCadaEtiqueta) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E({{0.25}, {1}, {0}});
+  const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
   const inslv::TablaDeAdaptaciones tabla(V, E);
   EXPECT_DOUBLE_EQ(tabla.Etiqueta(0, 0, 0), 0.75);
   EXPECT_DOUBLE_EQ(tabla.Etiqueta(0, 0, 1), 0.25);
@@ -41,7 +41,7 @@ TEST(Tabla, LaAdaptacionDeCadaEtiqueta) {
 
 TEST(Tabla, LaAdaptacionAVariasEtiquetas) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E({{0.25}, {1}, {0}});
+  const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
   const inslv::TablaDeAdaptaciones tabla(V, E);
   EXPECT_DOUBLE_EQ(tabla.Variable(0, 0, "10"), 0.75);
   EXPECT_DOUBLE_EQ(tabla.Variable(0, 0, "01"), 0.25);
@@ -52,7 +52,7 @@ TEST(Tabla, LaAdaptacionAVariasEtiquetas) {
 
 TEST(Tabla, ElAntecedenteEsElMenorDeLosAtributosRelevantes) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E({{0.25}, {1}, {0}});
+  const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
   const inslv::TablaDeAdaptaciones tabla(V, E);
   // Los dos relevantes: t en Alto (0,25) y c en True (1).
   EXPECT_DOUBLE_EQ(tabla.Antecedente(0, "0101", {1, 1, 0.5}), 0.25);
@@ -64,7 +64,7 @@ TEST(Tabla, ElAntecedenteEsElMenorDeLosAtributosRelevantes) {
 
 TEST(Tabla, ElConsecuenteEsPositivoONegativo) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E({{0.25}, {1}, {0}});
+  const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
   const inslv::TablaDeAdaptaciones tabla(V, E);
   double pos = -1;
   double neg = -1;
@@ -78,7 +78,7 @@ TEST(Tabla, ElConsecuenteEsPositivoONegativo) {
 
 TEST(Tabla, LaMejorEtiqueta) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E({{0.25, 0.75}, {1, 1}, {0, 0}});
+  const inslv::datos::Ejemplos E({{0.25, 0.75}, {1, 1}, {0, 0}});
   const inslv::TablaDeAdaptaciones tabla(V, E);
   EXPECT_EQ(tabla.MejorEtiqueta(0, 0), 0);
   EXPECT_EQ(tabla.MejorEtiqueta(1, 0), 1);
@@ -87,7 +87,7 @@ TEST(Tabla, LaMejorEtiqueta) {
 
 TEST(Tabla, UnValorQueNoSeAdaptaEsUnError) {
   const inslv::VectorVar V = variables();
-  const inslv::example_set E({{5}, {1}, {0}});
+  const inslv::datos::Ejemplos E({{5}, {1}, {0}});
   EXPECT_THROW(const inslv::TablaDeAdaptaciones tabla(V, E), std::invalid_argument);
 }
 
@@ -97,7 +97,7 @@ TEST(Medidas, InformacionMutuaNormalizada) {
   datos.clase = logica("Clase");
   const inslv::VectorVar V(datos);
   // decide es la clase; ruido es independiente de ella.
-  const inslv::example_set E({{0, 0, 1, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}});
+  const inslv::datos::Ejemplos E({{0, 0, 1, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}});
 
   const std::vector<std::vector<double>> I = inslv::MedidasDeInformacion(V, E);
 

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "inslv/aprendizaje/tabla.h"
-#include "inslv/datos/example_set.h"
+#include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/genetico/multipoblacion.h"
 #include "inslv/inslv.hpp"
@@ -14,18 +14,18 @@
 namespace inslv {
 
 /// La proporción de ejemplos que clasifican bien las reglas. Anota en E lo que da cada uno
-/// (example_set::Mark).
-double Aciertos(const ruleset& R, const VectorVar& V, example_set& E);
+/// (datos::Ejemplos::Mark).
+double Aciertos(const ruleset& R, const VectorVar& V, datos::Ejemplos& E);
 /// Las reglas que clasifican algún ejemplo, bien o mal.
-[[nodiscard]] std::vector<int> Reglas_Que_Disparan(const ruleset& R, const example_set& E);
+[[nodiscard]] std::vector<int> Reglas_Que_Disparan(const ruleset& R, const datos::Ejemplos& E);
 /// Actualiza con esos ejemplos el peso de las reglas modificadas. Usa el último individuo de G.
-void ActualizarPeso(multipoblacion& G, const example_set& E, ruleset& R,
+void ActualizarPeso(multipoblacion& G, const datos::Ejemplos& E, ruleset& R,
                     const TablaDeAdaptaciones& tabla);
 /// Aprende las reglas.
 /// @param V las variables: los atributos y, al final, la clase.
 /// @param E los ejemplos.
 /// @param options ver inslv.hpp.
-[[nodiscard]] std::vector<Regla> Aprender(const VectorVar& V, const example_set& E,
+[[nodiscard]] std::vector<Regla> Aprender(const VectorVar& V, const datos::Ejemplos& E,
                                           const Opciones& options);
 
 }  // namespace inslv

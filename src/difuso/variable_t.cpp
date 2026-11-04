@@ -33,12 +33,12 @@ double variable_t::Adaptacion(double x, const std::string& etiquetas) const {
 
 void variable_t::Pinta() const {
   const domain_t& dominio = Domain();
-  progreso(Verbosidad::depuracion) << "Variable: " << nombre_ << '\n'
-                                   << "========================\n";
+  comun::progreso(Verbosidad::depuracion) << "Variable: " << nombre_ << '\n'
+                                          << "========================\n";
   dominio.Pinta();
 }
 
-void variable_t::PrintVar() const { progreso(Verbosidad::depuracion) << nombre_; }
+void variable_t::PrintVar() const { comun::progreso(Verbosidad::depuracion) << nombre_; }
 
 std::string variable_t::SPrintVar() const { return nombre_; }
 

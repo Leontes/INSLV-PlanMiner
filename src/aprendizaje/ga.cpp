@@ -19,15 +19,15 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 // Un individuo por cada elemento de la población: un ejemplo al azar de su clase sin clasificar
 // bien, como la mejor etiqueta de cada atributo; -1 si no quedan ejemplos de la clase.
 std::vector<std::vector<int>> Encontrar_Individuos_dados_ejemplos(
-    const VectorVar& V, const example_set& E, int nclases, int n_individuos,
+    const VectorVar& V, const datos::Ejemplos& E, int nclases, int n_individuos,
     const TablaDeAdaptaciones& tabla, const std::vector<int>& n_ejemplos_por_clase) {
   std::vector<std::vector<int>> matriz(indice(n_individuos),
                                        std::vector<int>(indice(V.N_Antecedente()), -1));
   for (int i = 0; i < n_individuos; ++i) {
     if (n_ejemplos_por_clase[indice(i % nclases)] != 0) {
-      int a = Select_Random_Individuo(E.N_Examples(), -1, 0);
-      while (E.Is_Covered(a) || tabla.Etiqueta(a, V.Consecuente(), i % nclases) == 0) {
-        a = (a + 1) % E.N_Examples();
+      int a = Select_Random_Individuo(E.numero_de_ejemplos(), -1, 0);
+      while (E.bien_clasificado(a) || tabla.Etiqueta(a, V.Consecuente(), i % nclases) == 0) {
+        a = (a + 1) % E.numero_de_ejemplos();
       }
       for (int j = 0; j < V.N_Antecedente(); ++j) {
         matriz[indice(i)][indice(j)] = tabla.MejorEtiqueta(a, j);
@@ -44,14 +44,15 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
         std::vector<int>& reglas_a_eliminar, bool& Added_Rule) {
   multipoblacion& G = ev.G;
   const VectorVar& V = ev.V;
-  const example_set& E = ev.E;
+  const datos::Ejemplos& E = ev.E;
 
   Added_Rule = false;
 
   const int n_clases = V.SizeDomain(V.Consecuente());
 
   if (R.N_rule() == 0 || primeraVez) {
-    const std::vector<int> n_ejemplos_por_clase = E.Examples_per_Class(V.Consecuente(), n_clases);
+    const std::vector<int> n_ejemplos_por_clase =
+        E.sin_clasificar_bien_por_clase(V.Consecuente(), n_clases);
     const std::vector<std::vector<int>> sujetos = Encontrar_Individuos_dados_ejemplos(
         V, E, n_clases, G.N_individuos(), ev.tabla, n_ejemplos_por_clase);
     std::vector<int> lista_tamano;
@@ -98,7 +99,7 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
         const int t = 1;
         G.PutCodigo(t, G.Codigo(0));
 
-        if (G.Valoracion(t)[0] != -E.N_Examples() || G.Valoracion(t)[1] != 1) {
+        if (G.Valoracion(t)[0] != -E.numero_de_ejemplos() || G.Valoracion(t)[1] != 1) {
           Obtener_Regla_Discriminante(ev, t, reglas_a_eliminar);
         } else {
           Obtener_Regla_Descriptiva(ev, t, reglas_a_eliminar);
@@ -111,10 +112,10 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
   }
 
   const Fitness& mejor = G.Valoracion(0);
-  const double menos_ne = -E.N_Examples();
+  const double menos_ne = -E.numero_de_ejemplos();
 
   if (mejor[0] <= -1 && mejor[1] > 1 && mejor[1] >= (-mejor[0]) + 2) {
-    progreso(Verbosidad::depuracion) << "->->->->->-> El nuevo caso especial\n";
+    comun::progreso(Verbosidad::depuracion) << "->->->->->-> El nuevo caso especial\n";
   }
 
   if ((mejor[0] > -1) || (mejor[0] <= -1 && mejor[1] > 1 && mejor[1] >= (-mejor[0]) + 2) ||
@@ -155,7 +156,9 @@ void GA(const Evaluacion& ev, ruleset& R, ruleset& R_dis, ruleset& R_mix,
     const std::string especifica = Patron1Regla(R, R.N_rule() - 1);
     const std::string general = Patron1Regla(R_dis, R_dis.N_rule() - 1);
     if (!ComprobacionEspGen(especifica, general)) {
-      progreso(Verbosidad::depuracion) << "esp: \n" << especifica << '\n' << general << "\n:gen\n";
+      comun::progreso(Verbosidad::depuracion) << "esp: \n"
+                                              << especifica << '\n'
+                                              << general << "\n:gen\n";
       Comparar2patronesPinta(especifica, general);
       Pausa();
     }

@@ -11,7 +11,7 @@
 
 #include "inslv/inslv.hpp"
 
-namespace inslv {
+namespace inslv::comun {
 
 /// El flujo para un mensaje de ese nivel en este hilo: el del destino si la verbosidad llega al
 /// nivel; si no, uno que lo descarta.
@@ -36,4 +36,4 @@ class DestinoDelProgreso {
   Verbosidad verbosidad_anterior_;
 };
 
-}  // namespace inslv
+}  // namespace inslv::comun

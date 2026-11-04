@@ -14,10 +14,10 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 }  // namespace
 
-TablaDeAdaptaciones::TablaDeAdaptaciones(const VectorVar& V, const example_set& E)
+TablaDeAdaptaciones::TablaDeAdaptaciones(const VectorVar& V, const datos::Ejemplos& E)
     : n_antecedente_(V.N_Antecedente()), consecuente_(V.Consecuente()) {
   const int n = V.TotalVariables();
-  const int m = E.N_Examples();
+  const int m = E.numero_de_ejemplos();
 
   adaptaciones_.resize(indice(n));
   for (int v = 0; v < n; ++v) {
@@ -26,7 +26,7 @@ TablaDeAdaptaciones::TablaDeAdaptaciones(const VectorVar& V, const example_set& 
 
   for (int e = 0; e < m; ++e) {
     for (int v = 0; v < n; ++v) {
-      const double valor = E.Data(e, v);
+      const double valor = E.valor(e, v);
       std::vector<std::vector<double>>& etiquetas = adaptaciones_[indice(v)];
       int valores_distinto_cero = 0;
       for (std::size_t j = 0; j < etiquetas.size(); ++j) {

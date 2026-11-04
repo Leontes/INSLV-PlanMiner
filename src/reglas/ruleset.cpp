@@ -204,11 +204,11 @@ int ruleset::Condiciones_per_RB() const {
   return static_cast<int>(condiciones);
 }
 
-double ruleset::Adaptacion(const vectordouble& v, const ReglaCodificada& regla) const {
+double ruleset::Adaptacion(const datos::Ejemplo& v, const ReglaCodificada& regla) const {
   return domain_.Adaptacion(v, regla.codigo.etiquetas, regla.codigo.niveles) * regla.peso;
 }
 
-int ruleset::InferenceC(const vectordouble& v, double& grado, int& regla_disparada) const {
+int ruleset::InferenceC(const datos::Ejemplo& v, double& grado, int& regla_disparada) const {
   double max = 0;
   int re = -1;
   for (int i = 0; i < N_rule(); ++i) {
@@ -224,7 +224,7 @@ int ruleset::InferenceC(const vectordouble& v, double& grado, int& regla_dispara
   return re != -1 ? Class_of_rule(re) : -1;
 }
 
-int ruleset::InferenceC(const vectordouble& v, int clase, double& grado_p, double& peso_p,
+int ruleset::InferenceC(const datos::Ejemplo& v, int clase, double& grado_p, double& peso_p,
                         double& grado_n, double& peso_n, int& regla_disparada, int& aislada) const {
   const int n_rule = N_rule();
   // Lo que se adapta a cada regla: en positivo, las de su clase; en negativo, las de otra.
@@ -281,7 +281,7 @@ int ruleset::InferenceC(const vectordouble& v, int clase, double& grado_p, doubl
       }
     }
     if (aislada == 0) {
-      std::ostream& salida = progreso(Verbosidad::depuracion);
+      std::ostream& salida = comun::progreso(Verbosidad::depuracion);
       salida << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p
              << " Grado Neg: " << grado_n << "  Regla: " << re << '\n';
       for (const double aux : adaptacion_particular) {
@@ -335,7 +335,7 @@ std::string ruleset::SPrint(int i) const {
 
 void ruleset::SaveRuleInterpreted_append(const std::string& nomfich) const {
   std::ofstream fichero(nomfich, std::ios::app);
-  progreso(Verbosidad::depuracion) << "Numero de reglas =" << N_rule() << '\n';
+  comun::progreso(Verbosidad::depuracion) << "Numero de reglas =" << N_rule() << '\n';
   for (int i = 0; i < N_rule(); ++i) {
     fichero << SPrint(i) << '\n';
   }

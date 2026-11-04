@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/datos/vectordouble.h"
+#include "inslv/datos/ejemplo.hpp"
 #include "inslv/difuso/VectorVar.h"
 #include "inslv/genetico/genetcode.h"
 #include "inslv/inslv.hpp"
@@ -73,13 +73,13 @@ class ruleset {
   /// La regla con más adaptación al ejemplo por su peso (a igualdad, la de más peso y, si no, la
   /// primera), en regla_disparada, y su clase. Si no se adapta ninguna, -1 en las dos; en grado,
   /// esa adaptación, y si no se adapta ninguna, no lo cambia.
-  int InferenceC(const vectordouble& v, double& grado, int& regla_disparada) const;
+  int InferenceC(const datos::Ejemplo& v, double& grado, int& regla_disparada) const;
   /// Igual, para un ejemplo de esa clase. Además, en grado_p y peso_p, la adaptación y el peso de
   /// la mejor regla de su clase; en grado_n y peso_n, los de la mejor de otra. Y en aislada, si lo
   /// clasifica bien, cuántas reglas de su clase ganan a las de otra; si no, cuántas de otra ganan
   /// a las de su clase, en negativo (-1000 si no se le adapta ninguna de su clase).
-  int InferenceC(const vectordouble& v, int clase, double& grado_p, double& peso_p, double& grado_n,
-                 double& peso_n, int& regla_disparada, int& aislada) const;
+  int InferenceC(const datos::Ejemplo& v, int clase, double& grado_p, double& peso_p,
+                 double& grado_n, double& peso_n, int& regla_disparada, int& aislada) const;
 
   [[nodiscard]] int Class_of_rule(int i) const;
   /// El texto de la regla, para el informe, o el de su consecuente.
@@ -112,7 +112,7 @@ class ruleset {
   [[nodiscard]] const ReglaCodificada& Regla_i(int i) const;
   [[nodiscard]] ReglaCodificada& Regla_i(int i);
   // Lo que se adapta el ejemplo a la regla, por su peso.
-  [[nodiscard]] double Adaptacion(const vectordouble& v, const ReglaCodificada& regla) const;
+  [[nodiscard]] double Adaptacion(const datos::Ejemplo& v, const ReglaCodificada& regla) const;
   [[nodiscard]] std::vector<AtributoRelevante> Relevantes(const genetcode& code) const;
 
   std::vector<ReglaCodificada> reglas_;

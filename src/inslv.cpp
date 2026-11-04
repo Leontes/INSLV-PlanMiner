@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// La interfaz (inslv.hpp) sobre la implementación (VectorVar, example_set y Aprender).
+// La interfaz (inslv.hpp) sobre la implementación (VectorVar, datos::Ejemplos y Aprender).
 
 #include "inslv/inslv.hpp"
 
@@ -20,7 +20,7 @@ namespace inslv {
 
 namespace {
 
-// El valor que marca un dato desconocido en la implementación (example_set::MISSING y
+// El valor que marca un dato desconocido en la implementación (datos::Ejemplos::MISSING y
 // fuzzy_t::MISSING, privados): se adapta por completo a todas las etiquetas.
 constexpr double desconocido = -999999999;
 
@@ -111,7 +111,7 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
                                 std::to_string(std::numeric_limits<int>::max()));
   }
 
-  // example_set recibe las columnas de todas las variables, con la clase al final. Los
+  // datos::Ejemplos recibe las columnas de todas las variables, con la clase al final. Los
   // desconocidos se marcan con su valor y cada clase, con el centro de su etiqueta.
   std::vector<std::vector<double>> columnas = datos.valores;
   for (std::vector<double>& columna : columnas) {
@@ -129,11 +129,11 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
   }
   columnas.push_back(std::move(clases));
 
-  const DestinoDelProgreso destino(opciones.progreso != nullptr ? opciones.progreso : &std::cout,
-                                   opciones.verbosidad);
+  const comun::DestinoDelProgreso destino(
+      opciones.progreso != nullptr ? opciones.progreso : &std::cout, opciones.verbosidad);
   const std::size_t episodios =
       (datos.clases.size() + opciones.tamano_episodio - 1) / opciones.tamano_episodio;
-  progreso(Verbosidad::resumen) << std::format(
+  comun::progreso(Verbosidad::resumen) << std::format(
       "INSLV: {} ejemplos, {} atributos y {} clases; {} {} de hasta {} ejemplos; reglas {}\n",
       datos.clases.size(), datos.atributos.size(), datos.clase.etiquetas.size(), episodios,
       episodios == 1 ? "episodio" : "episodios", opciones.tamano_episodio,
@@ -141,12 +141,12 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
 
   const auto inicio = std::chrono::steady_clock::now();
   const VectorVar variables(datos);
-  const example_set ejemplos(columnas);
+  const datos::Ejemplos ejemplos(columnas);
   std::vector<Regla> reglas = Aprender(variables, ejemplos, opciones);
   const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - inicio;
 
-  progreso(Verbosidad::resumen) << std::format("INSLV: {} reglas en {:.2f} s\n", reglas.size(),
-                                               segundos.count());
+  comun::progreso(Verbosidad::resumen)
+      << std::format("INSLV: {} reglas en {:.2f} s\n", reglas.size(), segundos.count());
   return reglas;
 }
 

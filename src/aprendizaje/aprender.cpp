@@ -27,20 +27,20 @@ namespace {
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Por regla, los ejemplos que solo ella clasifica bien y los que clasifica mal por poco.
-void Obtener_Aciertos_y_Errores_Reglas_Aprendidas(const example_set& E,
+void Obtener_Aciertos_y_Errores_Reglas_Aprendidas(const datos::Ejemplos& E,
                                                   std::vector<int>& basica_para_regla,
                                                   std::vector<int>& errores_para_regla) {
-  for (int j = 0; j < E.N_Examples(); ++j) {
-    if (E.Rule_Aislada(j) == 1 && E.Rule_Used(j) >= 0) {
-      ++basica_para_regla[indice(E.Rule_Used(j))];
-    } else if (E.Rule_Aislada(j) == -1 && E.Rule_Used(j) >= 0) {
-      ++errores_para_regla[indice(E.Rule_Used(j))];
+  for (int j = 0; j < E.numero_de_ejemplos(); ++j) {
+    if (E.regla_aislada(j) == 1 && E.regla_usada(j) >= 0) {
+      ++basica_para_regla[indice(E.regla_usada(j))];
+    } else if (E.regla_aislada(j) == -1 && E.regla_usada(j) >= 0) {
+      ++errores_para_regla[indice(E.regla_usada(j))];
     }
   }
 }
 
 // Los aciertos de cada regla, para el informe (marca los ejemplos, como Aciertos).
-double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, example_set& E,
+double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, datos::Ejemplos& E,
                           const std::string& nomfich) {
   const double acierto = Aciertos(R, V, E);
   std::vector<int> bien_clas(indice(R.N_rule()));
@@ -48,15 +48,15 @@ double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, example_set& E,
   int bien = 0;
   int mal = 0;
   int nosesabe = 0;
-  for (int i = 0; i < E.N_Examples(); ++i) {
-    if (E.Rule_Used(i) == -1) {
+  for (int i = 0; i < E.numero_de_ejemplos(); ++i) {
+    if (E.regla_usada(i) == -1) {
       ++nosesabe;
-    } else if (E.Is_Covered(i)) {
+    } else if (E.bien_clasificado(i)) {
       ++bien;
-      ++bien_clas[indice(E.Rule_Used(i))];
+      ++bien_clas[indice(E.regla_usada(i))];
     } else {
       ++mal;
-      ++mal_clas[indice(E.Rule_Used(i))];
+      ++mal_clas[indice(E.regla_usada(i))];
     }
   }
 
@@ -71,7 +71,7 @@ double Aciertos_Por_Regla(const ruleset& R, const VectorVar& V, example_set& E,
   return acierto;
 }
 
-void Escribir_Informe(const std::string& task_res, const VectorVar& V, example_set& E,
+void Escribir_Informe(const std::string& task_res, const VectorVar& V, datos::Ejemplos& E,
                       const ruleset& R_prev, const ruleset& R_prev_dis, const ruleset& R_mix_prev,
                       double tiempo) {
   const double aciertos_discriminantes = Aciertos_Por_Regla(R_prev_dis, V, E, task_res);
@@ -117,38 +117,38 @@ void Escribir_Informe(const std::string& task_res, const VectorVar& V, example_s
 
 }  // namespace
 
-double Aciertos(const ruleset& R, const VectorVar& V, example_set& E) {
-  const int n = E.N_Examples();
+double Aciertos(const ruleset& R, const VectorVar& V, datos::Ejemplos& E) {
+  const int n = E.numero_de_ejemplos();
   const int conse = V.Consecuente();
   double bien = 0;
 
   for (int i = 0; i < n; ++i) {
-    const vectordouble w = E.Data(i);
+    const datos::Ejemplo w = E.ejemplo(i);
     double g_pos_grado = 0;
     double peso_pos = 0;
     double g_neg_grado = 0;
     double peso_neg = 0;
     int regla_disparada = 0;
     int aislada = 0;
-    const int clase = R.InferenceC(w, static_cast<int>(w.At(conse)), g_pos_grado, peso_pos,
+    const int clase = R.InferenceC(w, static_cast<int>(w.valor(conse)), g_pos_grado, peso_pos,
                                    g_neg_grado, peso_neg, regla_disparada, aislada);
-    const bool acierta = clase != -1 && clase == w.At(conse);
+    const bool acierta = clase != -1 && clase == w.valor(conse);
     if (acierta) {
       ++bien;
     }
-    E.Mark(i, acierta, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
+    E.anotar(i, acierta, g_pos_grado, peso_pos, g_neg_grado, peso_neg, regla_disparada, aislada);
   }
 
   return bien / n;
 }
 
-std::vector<int> Reglas_Que_Disparan(const ruleset& R, const example_set& E) {
+std::vector<int> Reglas_Que_Disparan(const ruleset& R, const datos::Ejemplos& E) {
   std::vector<bool> usada(indice(R.N_rule()));
 
-  for (int i = 0; i < E.N_Examples(); ++i) {
+  for (int i = 0; i < E.numero_de_ejemplos(); ++i) {
     double grado = 0;
     int regla_disparada = -1;
-    if (R.InferenceC(E.Data(i), grado, regla_disparada) != -1) {
+    if (R.InferenceC(E.ejemplo(i), grado, regla_disparada) != -1) {
       usada[indice(regla_disparada)] = true;
     }
   }
@@ -162,7 +162,7 @@ std::vector<int> Reglas_Que_Disparan(const ruleset& R, const example_set& E) {
   return lista;
 }
 
-void ActualizarPeso(multipoblacion& G, const example_set& E, ruleset& R,
+void ActualizarPeso(multipoblacion& G, const datos::Ejemplos& E, ruleset& R,
                     const TablaDeAdaptaciones& tabla) {
   double n_mas = 0;
   double n_menos = 0;
@@ -176,7 +176,7 @@ void ActualizarPeso(multipoblacion& G, const example_set& E, ruleset& R,
   }
 }
 
-std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opciones& options) {
+std::vector<Regla> Aprender(const VectorVar& V, const datos::Ejemplos& E, const Opciones& options) {
   // El informe (el antiguo <tarea>.res) solo se escribe si se pide.
   const bool informe = !options.informe.empty();
   const std::string task_res = options.informe.string();
@@ -192,7 +192,7 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
   }
 
   std::srand(options.semilla);
-  progreso(Verbosidad::depuracion) << "SEED " << options.semilla << '\n';
+  comun::progreso(Verbosidad::depuracion) << "SEED " << options.semilla << '\n';
 
   // El tamano del nivel de valor y el numero de clases
   int tama_valor = 0;
@@ -201,10 +201,10 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
   // El nivel de variable: el de cada atributo y el umbral
   const int tama_nivel = V.N_Antecedente() + 1;
 
-  progreso(Verbosidad::detalle) << "Calculando medidas de informacion\n";
+  comun::progreso(Verbosidad::detalle) << "Calculando medidas de informacion\n";
   const std::vector<std::vector<double>> Med_Inform =
-      MedidasDeInformacion(V, E.N_Examples() > 10000 ? E.SubSet(1000) : E);
-  progreso(Verbosidad::detalle) << "Terminado el calculo de las medidas de informacion\n";
+      MedidasDeInformacion(V, E.numero_de_ejemplos() > 10000 ? E.primeros(1000) : E);
+  comun::progreso(Verbosidad::detalle) << "Terminado el calculo de las medidas de informacion\n";
 
   ruleset R;
   R.AddDomain(V);
@@ -216,7 +216,7 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
 
   multipoblacion G(n_clases, n_clases * 10, tama_valor, tama_nivel, 2.0 / tama_valor, 0, 0.01);
 
-  const int limite = E.N_Examples();
+  const int limite = E.numero_de_ejemplos();
   const int paso = static_cast<int>(options.tamano_episodio);
   // Para la línea de cada episodio (Verbosidad::episodios).
   const int total_episodios = (limite + paso - 1) / paso;
@@ -232,7 +232,7 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
   int inicio = 0;
   bool salir = false;
   const std::clock_t tiempo0 = std::clock();
-  example_set E_Par;
+  datos::Ejemplos E_Par;
 
   while (!salir) {
     int fin = inicio + paso;
@@ -242,9 +242,9 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
       salir = true;
     }
 
-    E_Par = E.SubSet(inicio, fin - 1);
+    E_Par = E.subconjunto(inicio, fin - 1);
 
-    progreso(Verbosidad::detalle)
+    comun::progreso(Verbosidad::detalle)
         << "\n=================================================== Episodio de " << inicio << " a "
         << fin << " ====================================\n";
     const int episodio = it2 + 1;
@@ -254,33 +254,33 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
     const auto empieza_el_episodio = std::chrono::steady_clock::now();
 
     const double consumido = static_cast<double>(std::clock() - tiempo0) / CLOCKS_PER_SEC;
-    progreso(Verbosidad::detalle) << "===================== Tiempo Consumido: " << consumido
-                                  << "      ETA: "
-                                  << (consumido / (it2 + 1)) * (total_episodios - it2) << '\n';
-    progreso(Verbosidad::detalle) << "=================================================== Tamano "
-                                  << E_Par.N_Examples()
-                                  << " ====================================\n\n";
-    progreso(Verbosidad::depuracion) << "[Paso: " << paso << "]\n";
+    comun::progreso(Verbosidad::detalle)
+        << "===================== Tiempo Consumido: " << consumido
+        << "      ETA: " << (consumido / (it2 + 1)) * (total_episodios - it2) << '\n';
+    comun::progreso(Verbosidad::detalle)
+        << "=================================================== Tamano "
+        << E_Par.numero_de_ejemplos() << " ====================================\n\n";
+    comun::progreso(Verbosidad::depuracion) << "[Paso: " << paso << "]\n";
     inicio = fin;
 
-    progreso(Verbosidad::depuracion) << "Creando la tabla de adaptaciones.....\n";
+    comun::progreso(Verbosidad::depuracion) << "Creando la tabla de adaptaciones.....\n";
     const TablaDeAdaptaciones Tabla(V, E_Par);
-    progreso(Verbosidad::depuracion) << "Tabla de adaptaciones creada!\n";
+    comun::progreso(Verbosidad::depuracion) << "Tabla de adaptaciones creada!\n";
 
-    progreso(Verbosidad::detalle) << "  Numero de Reglas: " << R_prev.N_rule() << "("
-                                  << R_prev.N_rule(0.5) << ")\n";
+    comun::progreso(Verbosidad::detalle)
+        << "  Numero de Reglas: " << R_prev.N_rule() << "(" << R_prev.N_rule(0.5) << ")\n";
 
     const double last_accuracy = accuracy_old;
     acumulado += last_accuracy;
     if (acumulado == 0) {
       umbral_acierto = 1;
     }
-    progreso(Verbosidad::detalle)
+    comun::progreso(Verbosidad::detalle)
         << "Aciertos de la descriptiva sobre el anterior conjunto de ejemplos : " << last_accuracy
         << '\n';
 
     accuracy_old = Aciertos(R_prev, V, E_Par);
-    progreso(Verbosidad::detalle)
+    comun::progreso(Verbosidad::detalle)
         << "Aciertos de la descriptiva sobre el nuevo conjunto de ejemplos : " << accuracy_old
         << '\n';
     const double acierto_al_empezar = accuracy_old;
@@ -288,11 +288,11 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
     // El umbral sale del acierto sobre un episodio anterior: el de hace 10 cada 10 episodios y el
     // primero hasta el décimo. Los dos primeros episodios, sin anterior que mirar, 1.
     if (it2 >= 10 && it2 % 10 == 0) {
-      example_set E_Anteriores = E.SubSet((it2 - 10) * paso, (it2 - 9) * paso - 1);
+      datos::Ejemplos E_Anteriores = E.subconjunto((it2 - 10) * paso, (it2 - 9) * paso - 1);
       const double acierto = Aciertos(R_prev, V, E_Anteriores);
       umbral_acierto = acierto - percent * acierto;
     } else if (it2 < 10 && it2 > 1) {
-      example_set E_Anteriores = E.SubSet(0, paso - 1);
+      datos::Ejemplos E_Anteriores = E.subconjunto(0, paso - 1);
       const double acierto = Aciertos(R_prev, V, E_Anteriores);
       umbral_acierto = acierto - percent * acierto;
     } else if (it2 < 10) {
@@ -301,13 +301,14 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
 
     ++it2;
 
-    progreso(Verbosidad::detalle) << "Diferencia de acierto entre los dos últimos episodios: "
-                                  << acierto_anterior - last_accuracy << '\n';
+    comun::progreso(Verbosidad::detalle)
+        << "Diferencia de acierto entre los dos últimos episodios: "
+        << acierto_anterior - last_accuracy << '\n';
     acierto_anterior = last_accuracy;
 
-    progreso(Verbosidad::detalle) << "En la iteración " << it << " el umbral se ha fijado a "
-                                  << umbral_acierto << " (" << umbral_acierto * (1 + percent)
-                                  << ")\n";
+    comun::progreso(Verbosidad::detalle)
+        << "En la iteración " << it << " el umbral se ha fijado a " << umbral_acierto << " ("
+        << umbral_acierto * (1 + percent) << ")\n";
 
     R_prev.FixModifyToTrue();
     R_prev_dis.FixModifyToTrue();
@@ -319,12 +320,12 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
     R_prev.Recalculate_Weight();
 
     accuracy_old = Aciertos(R_prev, V, E_Par);
-    progreso(Verbosidad::detalle) << "Aciertos despues de ajustar los pesos de las reglas: "
-                                  << accuracy_old << '\n';
+    comun::progreso(Verbosidad::detalle)
+        << "Aciertos despues de ajustar los pesos de las reglas: " << accuracy_old << '\n';
     const double acierto_despuesAjustarPeso = accuracy_old;
 
     if (accuracy_old < umbral_acierto) {
-      example_set E_Par_Not_Covered = E_Par;
+      datos::Ejemplos E_Par_Not_Covered = E_Par;
 
       for (const int regla : Reglas_Que_Disparan(R_prev, E_Par_Not_Covered)) {
         R.Add(R_prev.Get_Code_Rule(regla), R_prev.Get_N_Mas(regla), R_prev.Get_N_Menos(regla),
@@ -336,17 +337,17 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
         R_mix.Add(R_mix_prev.Get_Code_Rule(regla), nmas, nmenos, false);
       }
 
-      progreso(Verbosidad::detalle)
+      comun::progreso(Verbosidad::detalle)
           << "Reglas no filtradas: " << R.N_rule() << "(" << R.N_rule(0.5) << ")\n";
 
       const TablaDeAdaptaciones Tabla1(V, E_Par_Not_Covered);
 
-      progreso(Verbosidad::detalle)
+      comun::progreso(Verbosidad::detalle)
           << "\n-------------------------------------------> Nuevo numero de ejemplos: "
-          << E_Par_Not_Covered.N_Examples() << '\n';
+          << E_Par_Not_Covered.numero_de_ejemplos() << '\n';
 
       accuracy_old = Aciertos(R, V, E_Par_Not_Covered);
-      progreso(Verbosidad::detalle)
+      comun::progreso(Verbosidad::detalle)
           << "Aciertos de la descriptiva antes de lanzar el genetico: " << accuracy_old << '\n';
 
       const int initial_size_of_rule = R.N_rule();
@@ -357,9 +358,9 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
       std::vector<int> reglas_a_eliminar;
 
       do {
-        const int anterior_n = E_Par_Not_Covered.Not_Covered_Examples();
+        const int anterior_n = E_Par_Not_Covered.sin_clasificar_bien();
         const std::vector<int> ejemplos_por_clase =
-            E_Par_Not_Covered.Examples_per_Class(V.Consecuente(), n_clases);
+            E_Par_Not_Covered.sin_clasificar_bien_por_clase(V.Consecuente(), n_clases);
 
         std::vector<int> basica_para_regla(indice(R.N_rule() + 1));
         std::vector<int> errores_para_regla(indice(R.N_rule() + 1));
@@ -392,11 +393,12 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
           Aciertos(R, V, E_Par_Not_Covered);
         }
 
-        if (G.Valoracion(0)[0] > 0 && anterior_n == E_Par_Not_Covered.Not_Covered_Examples()) {
-          progreso(Verbosidad::detalle) << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
+        if (G.Valoracion(0)[0] > 0 && anterior_n == E_Par_Not_Covered.sin_clasificar_bien()) {
+          comun::progreso(Verbosidad::detalle)
+              << "+++++++++++++++++++++ ERROR ++++++++++++++++++++++\n";
         }
 
-        if (G.Valoracion(0)[0] != -2 * E_Par_Not_Covered.N_Examples() && !reducir_reglas &&
+        if (G.Valoracion(0)[0] != -2 * E_Par_Not_Covered.numero_de_ejemplos() && !reducir_reglas &&
             !Added_Rule) {
           reducir_reglas = true;
           Added_Rule = true;
@@ -406,7 +408,8 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
       ++it;
 
       if (it2 > 1) {
-        const example_set E_Anteriores = E.SubSet(it2 > 10 ? (it2 - 10) * paso : 0, inicio - 1);
+        const datos::Ejemplos E_Anteriores =
+            E.subconjunto(it2 > 10 ? (it2 - 10) * paso : 0, inicio - 1);
         const TablaDeAdaptaciones Tabla2(V, E_Anteriores);
         ActualizarPeso(G, E_Anteriores, R, Tabla2);
         ActualizarPeso(G, E_Anteriores, R_dis, Tabla2);
@@ -415,19 +418,19 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
       R_prev.AddRuleset(R);
       R_prev_dis.AddRuleset(R_dis);
       R_mix_prev.AddRuleset(R_mix);
-      progreso(Verbosidad::detalle)
+      comun::progreso(Verbosidad::detalle)
           << "Aniadidas " << R.N_rule() - initial_size_of_rule << " reglas\n";
 
       accuracy_old = Aciertos(R_prev, V, E_Par);
-      progreso(Verbosidad::detalle)
+      comun::progreso(Verbosidad::detalle)
           << "Acierto antes de analizar patrones: " << accuracy_old << '\n';
 
       if (acierto_despuesAjustarPeso < accuracy_old) {
-        progreso(Verbosidad::detalle) << "............................. Analizando patrones "
-                                         "entre reglas .......................\n";
+        comun::progreso(Verbosidad::detalle) << "............................. Analizando patrones "
+                                                "entre reglas .......................\n";
         AnalizarConjuntosDeReglas(V, R_prev_dis, R_prev, R_mix_prev, R.N_rule());
         accuracy_old = Aciertos(R_prev, V, E_Par);
-        progreso(Verbosidad::detalle)
+        comun::progreso(Verbosidad::detalle)
             << "Acierto despues de analizar patrones: " << accuracy_old << '\n';
       } else {
         for (int i = 0; i < R.N_rule(); ++i) {
@@ -441,10 +444,10 @@ std::vector<Regla> Aprender(const VectorVar& V, const example_set& E, const Opci
 
     // Una línea por episodio. Solo con lo que ya se ha calculado: Aciertos marca los ejemplos y
     // llamarlo aquí cambiaría las reglas.
-    if (se_escribe(Verbosidad::episodios)) {
+    if (comun::se_escribe(Verbosidad::episodios)) {
       const std::chrono::duration<double> segundos =
           std::chrono::steady_clock::now() - empieza_el_episodio;
-      progreso(Verbosidad::episodios) << std::format(
+      comun::progreso(Verbosidad::episodios) << std::format(
           "INSLV: episodio {} de {} (ejemplos {} a {}): reglas {} -> {}, acierto {:.3f} -> "
           "{:.3f}, {:.2f} s\n",
           episodio, total_episodios, primer_ejemplo, ultimo_ejemplo, reglas_al_empezar,
