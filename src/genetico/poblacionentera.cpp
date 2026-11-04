@@ -9,7 +9,7 @@
 namespace inslv {
 
 poblacionentera::poblacionentera(int rango, double mut, int n, int tama)
-    : poblacion<int>(n, tama), prob_mutacion_(mut), rango_(rango) {}
+    : poblacion<std::vector<int>>(n, tama), prob_mutacion_(mut), rango_(rango) {}
 
 void poblacionentera::PoblacionInicialAleatoria() {
   for (std::size_t i = 0; i < individuos_.size(); ++i) {

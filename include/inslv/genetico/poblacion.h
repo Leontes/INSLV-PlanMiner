@@ -2,24 +2,21 @@
 // Lo común a las poblaciones binaria, entera y real.
 #pragma once
 
-#include <span>
+#include <string>
 #include <vector>
 
 namespace inslv {
 
-/// Una población de n individuos, cada uno con el mismo número de valores de tipo T. Es la de un
-/// genético estacionario: los operadores cambian solo los dos últimos individuos.
-template <typename T>
+/// Una población de n individuos del mismo tamaño. Es la de un genético estacionario: los
+/// operadores cambian solo los dos últimos individuos.
+template <typename Cromosoma>
 class poblacion {
  public:
   /// n individuos de tama valores, a 0 hasta que se inicializan.
   poblacion(int n, int tama);
 
-  /// Los valores del individuo i (se pueden cambiar).
-  [[nodiscard]] std::span<T> Individuo(int i);
-  [[nodiscard]] std::span<const T> Individuo(int i) const;
-  [[nodiscard]] T GetValue(int indiv, int bit) const;
-  void PutValue(int indiv, int bit, T value);
+  [[nodiscard]] Cromosoma& Individuo(int i);
+  [[nodiscard]] const Cromosoma& Individuo(int i) const;
   /// Copia el individuo j en el i.
   void Pasar(int i, int j);
   void Swap(int i, int j);
@@ -29,11 +26,11 @@ class poblacion {
   void Cruce2puntos_Estacionario(int indiv1, int indiv2);
 
  protected:
-  std::vector<std::vector<T>> individuos_;
+  std::vector<Cromosoma> individuos_;
 };
 
-extern template class poblacion<char>;
-extern template class poblacion<int>;
-extern template class poblacion<double>;
+extern template class poblacion<std::string>;
+extern template class poblacion<std::vector<int>>;
+extern template class poblacion<std::vector<double>>;
 
 }  // namespace inslv

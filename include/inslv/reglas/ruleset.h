@@ -13,12 +13,7 @@
 
 namespace inslv {
 
-/// Las reglas, en orden, codificadas como individuos del genético (genetcode):
-///
-/// - Binary(0): las etiquetas que admite cada atributo, seguidas.
-/// - Integer(0)[0]: la clase.
-/// - Real(0): el nivel de cada atributo y, al final, el umbral. Solo cuentan los atributos cuyo
-///   nivel llega al umbral.
+/// Las reglas, en orden, codificadas como individuos del genético (genetcode).
 ///
 /// Cada regla tiene un peso, que sale de los ejemplos que acierta (N+) y los que falla (N-):
 /// (N+ + 1) / (N+ + N- + 1).
@@ -40,8 +35,9 @@ class ruleset {
   /// Quita la regla i, si existe.
   void Remove(int i);
 
-  /// La regla i (se puede cambiar). El puntero deja de valer al añadir o quitar reglas.
-  genetcode* Get_Code_Rule(int i);
+  /// La regla i (se puede cambiar). La referencia deja de valer al añadir o quitar reglas.
+  [[nodiscard]] genetcode& Get_Code_Rule(int i);
+  [[nodiscard]] const genetcode& Get_Code_Rule(int i) const;
 
   /// Suma a N+ y N- de la regla y recalcula su peso.
   void Add_Weight(int i, double mas, double menos);
@@ -70,7 +66,7 @@ class ruleset {
   [[nodiscard]] int Numero_Ceros_of_rule(int i) const;
   /// En frec[atributo], en cuántas reglas es relevante (ver Antecedente). Devuelve la proporción
   /// de atributos que lo son en alguna.
-  double Frecuence_each_Variables(int* frec) const;
+  double Frecuence_each_Variables(std::vector<int>& frec) const;
   /// El total de condiciones de las reglas (ver Antecedente).
   [[nodiscard]] int Condiciones_per_RB() const;
 

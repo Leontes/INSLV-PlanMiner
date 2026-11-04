@@ -60,30 +60,26 @@ int example_set::Not_Covered_Examples() const {
   return numero;
 }
 
-void example_set::Examples_per_Class(int VarClass, int nclasses, int* n_examples_in_class) const {
-  for (int i = 0; i < nclasses; ++i) {
-    n_examples_in_class[i] = 0;
-  }
+std::vector<int> example_set::Examples_per_Class(int VarClass, int nclasses) const {
+  std::vector<int> por_clase(indice(nclasses), 0);
   for (std::size_t i = 0; i < data.size(); ++i) {
     if (!covered[i]) {
-      ++n_examples_in_class[static_cast<int>(data[i][indice(VarClass)])];
+      ++por_clase[static_cast<std::size_t>(data[i][indice(VarClass)])];
     }
   }
+  return por_clase;
 }
 
-void example_set::Mark(const int* v, int tama, const double* grado_p, const double* peso_p,
-                       const double* grado_n, const double* peso_n, const int* rule,
-                       const int* r_aislada) {
-  for (int i = 0; i < tama; ++i) {
-    const std::size_t e = indice(i);
-    covered[e] = v[i] == 1;
-    g_positive_covered[e] = grado_p[i];
-    peso_positive[e] = peso_p[i];
-    g_negative_covered[e] = grado_n[i];
-    peso_negative[e] = peso_n[i];
-    rule_used[e] = rule[i];
-    rule_aislada[e] = r_aislada[i];
-  }
+void example_set::Mark(int i, bool bien_clasificado, double grado_p, double peso_p, double grado_n,
+                       double peso_n, int rule, int r_aislada) {
+  const std::size_t e = indice(i);
+  covered[e] = bien_clasificado;
+  g_positive_covered[e] = grado_p;
+  peso_positive[e] = peso_p;
+  g_negative_covered[e] = grado_n;
+  peso_negative[e] = peso_n;
+  rule_used[e] = rule;
+  rule_aislada[e] = r_aislada;
 }
 
 void example_set::UnMarkAll() {

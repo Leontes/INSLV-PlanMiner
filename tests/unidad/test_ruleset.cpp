@@ -32,11 +32,7 @@ inslv::VectorVar variables() {
 // Una regla: bits, las etiquetas que admiten a y b, seguidas; niveles, los de a y b (el umbral es
 // 0,5).
 inslv::genetcode regla(const std::string& bits, int clase, double nivel_a, double nivel_b) {
-  inslv::genetcode code;
-  code.PutBinary({{bits.begin(), bits.end()}});
-  code.PutInteger({{clase}});
-  code.PutReal({{nivel_a, nivel_b, 0.5}});
-  return code;
+  return {bits, clase, {nivel_a, nivel_b, 0.5}};
 }
 
 inslv::ruleset conjunto() {
@@ -68,12 +64,12 @@ TEST(Ruleset, CopiarNoComparteLasReglas) {
   inslv::ruleset reglas = conjunto();
   reglas.Add(regla("0111", 1, 1, 0), 0.5);
   inslv::ruleset copia(reglas);
-  copia.Get_Code_Rule(0)->PutValueBinary(0, 0, '1');
+  copia.Get_Code_Rule(0).etiquetas[0] = '1';
   copia.Add(regla("1011", 0, 1, 0), 0.5);
 
   EXPECT_EQ(reglas.N_rule(), 1);
-  EXPECT_EQ(reglas.Get_Code_Rule(0)->GetValueBinary(0, 0), '0');
-  EXPECT_EQ(copia.Get_Code_Rule(0)->GetValueBinary(0, 0), '1');
+  EXPECT_EQ(reglas.Get_Code_Rule(0).etiquetas[0], '0');
+  EXPECT_EQ(copia.Get_Code_Rule(0).etiquetas[0], '1');
 }
 
 TEST(Ruleset, AsignarSinDominioNoFalla) {
@@ -141,7 +137,7 @@ TEST(Ruleset, SinReglasNoSeLeeNinguna) {
   // En el original, leían la regla 0 aunque no hubiera ninguna.
   const inslv::ruleset reglas = conjunto();
   std::vector<int> frecuencia(2, 7);
-  EXPECT_EQ(reglas.Frecuence_each_Variables(frecuencia.data()), 0);
+  EXPECT_EQ(reglas.Frecuence_each_Variables(frecuencia), 0);
   EXPECT_EQ(frecuencia, (std::vector<int>{0, 0}));
   EXPECT_EQ(reglas.Condiciones_per_RB(), 0);
 }
@@ -165,7 +161,7 @@ TEST(Ruleset, SoloCuentanLosAtributosRelevantes) {
 
   EXPECT_EQ(reglas.Condiciones_per_RB(), 2);
   std::vector<int> frecuencia(2);
-  EXPECT_EQ(reglas.Frecuence_each_Variables(frecuencia.data()), 1);
+  EXPECT_EQ(reglas.Frecuence_each_Variables(frecuencia), 1);
   EXPECT_EQ(frecuencia, (std::vector<int>{1, 1}));
 
   EXPECT_EQ(reglas.Variables_of_rule(0), 1);

@@ -28,12 +28,12 @@ class example_set {
 
   /// Cuántos ejemplos no están bien clasificados (Mark).
   [[nodiscard]] int Not_Covered_Examples() const;
-  /// Cuántos ejemplos de cada clase no están bien clasificados, en n_examples_in_class[clase].
-  void Examples_per_Class(int VarClass, int nclasses, int* n_examples_in_class) const;
+  /// Cuántos ejemplos de cada clase no están bien clasificados.
+  [[nodiscard]] std::vector<int> Examples_per_Class(int VarClass, int nclasses) const;
 
-  /// Anota lo que da clasificar los tama primeros ejemplos (ver la clase).
-  void Mark(const int* v, int tama, const double* grado_p, const double* peso_p,
-            const double* grado_n, const double* peso_n, const int* rule, const int* r_aislada);
+  /// Anota lo que da clasificar el ejemplo i (ver la clase).
+  void Mark(int i, bool bien_clasificado, double grado_p, double peso_p, double grado_n,
+            double peso_n, int rule, int r_aislada);
   void UnMarkAll();
   [[nodiscard]] bool Is_Covered(int i) const;
   [[nodiscard]] double Grade_Is_Positive_Covered(int i) const;

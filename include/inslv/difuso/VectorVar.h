@@ -34,13 +34,15 @@ class VectorVar {
   [[nodiscard]] int SizeDomain(int variable) const;
   /// La adaptación del valor a una etiqueta de la variable. Lanza std::logic_error si no existe.
   [[nodiscard]] double Adaptacion(double x, int variable, int dominio) const;
-  /// Si la regla (las etiquetas de cada atributo, en 0 y 1) es válida: cada atributo relevante
-  /// (var[i] >= umbral) admite alguna etiqueta.
-  [[nodiscard]] bool Es_Valida(const std::string& regla, const double* var, double umbral) const;
+  /// Si la regla es válida: cada atributo relevante admite alguna etiqueta. etiquetas: las de cada
+  /// atributo, seguidas, en 0 y 1; niveles: el de cada atributo y, al final, el umbral. Un atributo
+  /// es relevante si su nivel llega al umbral.
+  [[nodiscard]] bool Es_Valida(const std::string& etiquetas,
+                               const std::vector<double>& niveles) const;
   /// La adaptación del ejemplo a la regla: la menor de los atributos relevantes que no admiten
   /// todas sus etiquetas (0 si alguno no admite ninguna).
-  [[nodiscard]] double Adaptacion(const vectordouble& x, const std::string& regla,
-                                  const double* var, double umbral) const;
+  [[nodiscard]] double Adaptacion(const vectordouble& x, const std::string& etiquetas,
+                                  const std::vector<double>& niveles) const;
   [[nodiscard]] const domain_t& Domain(int var) const;
   [[nodiscard]] const variable_t& Variable(int var) const;
   /// La posición del consecuente, o -1 si no hay.

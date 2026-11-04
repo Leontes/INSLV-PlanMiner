@@ -29,31 +29,30 @@
 namespace inslv {
 
 poblacionreal::poblacionreal(double mut, int n, int tama)
-    : poblacion<double>(n, tama), prob_mutacion_(mut) {}
+    : poblacion<std::vector<double>>(n, tama), prob_mutacion_(mut) {}
 
-void poblacionreal::PoblacionInicial(const double* const* I, int clases) {
+void poblacionreal::PoblacionInicial(const std::vector<std::vector<double>>& I, int clases) {
   const std::size_t atributos = individuos_[0].size() - 1;
   progreso(Verbosidad::depuracion) << "CL " << atributos << '\n';
   // Si I[j][c + 1] es el mismo para todos los atributos j.
   std::vector<bool> constante;
-  for (int c = 0; c < clases; ++c) {
-    double mayor = I[0][c + 1];
-    double menor = I[0][c + 1];
-    progreso(Verbosidad::depuracion) << "I " << I[0][c + 1] << '\n';
+  for (std::size_t c = 1; c <= static_cast<std::size_t>(clases); ++c) {
+    double mayor = I[0][c];
+    double menor = I[0][c];
+    progreso(Verbosidad::depuracion) << "I " << I[0][c] << '\n';
     for (std::size_t j = 1; j < atributos; ++j) {
-      mayor = std::max(mayor, I[j][c + 1]);
-      menor = std::min(menor, I[j][c + 1]);
+      mayor = std::max(mayor, I[j][c]);
+      menor = std::min(menor, I[j][c]);
     }
     // En el original, con un solo atributo, mayor y menor se quedaban sin guardar y se
     // comparaban sin inicializar.
     constante.push_back(menor == mayor);
   }
   for (std::size_t i = 0; i < individuos_.size(); ++i) {
-    const int c = static_cast<int>(i) % clases;
+    const std::size_t c = i % static_cast<std::size_t>(clases);
     std::vector<double>& individuo = individuos_[i];
     for (std::size_t j = 0; j < atributos; ++j) {
-      individuo[j] =
-          constante[static_cast<std::size_t>(c)] ? Aleatorio() / (RAND_MAX + 1.0) : I[j][c + 1];
+      individuo[j] = constante[c] ? Aleatorio() / (RAND_MAX + 1.0) : I[j][c + 1];
     }
     individuo.back() = 0.2;
   }

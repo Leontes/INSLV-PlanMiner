@@ -2,11 +2,13 @@
 // Una población de individuos enteros, con valores de 0 a rango - 1.
 #pragma once
 
+#include <vector>
+
 #include "inslv/genetico/poblacion.h"
 
 namespace inslv {
 
-class poblacionentera : public poblacion<int> {
+class poblacionentera : public poblacion<std::vector<int>> {
  public:
   /// n individuos de tama valores de 0 a rango - 1, que mutan con probabilidad mut.
   poblacionentera(int rango, double mut, int n, int tama);

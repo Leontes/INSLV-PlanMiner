@@ -76,10 +76,9 @@ TEST(Arreglos, LosDesconocidosNoSeComprueban) {
 
 TEST(Arreglos, Patron1ReglaSinEsaRegla) {
   // En el original, con R_mix vacío se leía la regla -1 y el programa reventaba.
-  inslv::ruleset reglas;
-  const inslv::VectorVar variables;
-  EXPECT_EQ(inslv::Patron1Regla(reglas, variables, -1), "");
-  EXPECT_EQ(inslv::Patron1Regla(reglas, variables, 0), "");
+  const inslv::ruleset reglas;
+  EXPECT_EQ(inslv::Patron1Regla(reglas, -1), "");
+  EXPECT_EQ(inslv::Patron1Regla(reglas, 0), "");
 }
 
 TEST(Arreglos, LosErroresInternosSonExcepciones) {

@@ -2,6 +2,7 @@
 #include "inslv/genetico/poblacionbinaria.h"
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 #include "inslv/genetico/operaciones.h"
@@ -15,21 +16,14 @@ char BitAleatorio() { return Probabilidad(0.9) ? '1' : '0'; }
 }  // namespace
 
 poblacionbinaria::poblacionbinaria(double mut, int n, int tama)
-    : poblacion<char>(n, tama), prob_mutacion_(mut) {}
+    : poblacion<std::string>(n, tama), prob_mutacion_(mut) {}
 
-void poblacionbinaria::PoblacionInicialAleatoria() {
-  for (std::vector<char>& individuo : individuos_) {
-    for (char& bit : individuo) {
-      bit = BitAleatorio();
-    }
-  }
-}
-
-void poblacionbinaria::PoblacionInicial(const int* const* sujeto, int tama, const int* tama_dom) {
+void poblacionbinaria::PoblacionInicial(const std::vector<std::vector<int>>& sujeto,
+                                        const std::vector<int>& tama_dom) {
   for (std::size_t i = 0; i < individuos_.size(); ++i) {
-    std::vector<char>& individuo = individuos_[i];
+    std::string& individuo = individuos_[i];
     std::size_t j = 0;
-    for (int k = 0; k < tama; ++k) {
+    for (std::size_t k = 0; k < tama_dom.size(); ++k) {
       const auto bits = static_cast<std::size_t>(tama_dom[k]);
       if (sujeto[i][k] == -1) {
         for (std::size_t l = 0; l < bits; ++l) {

@@ -96,7 +96,7 @@ double VectorVar::Adaptacion(double x, int variable, int dominio) const {
   return lista_[indice(variable)].Adaptacion(x, dominio);
 }
 
-bool VectorVar::Es_Valida(const std::string& regla, const double* var, double umbral) const {
+bool VectorVar::Es_Valida(const std::string& etiquetas, const std::vector<double>& niveles) const {
   std::size_t trozo = 0;
   for (std::size_t i = 0; i < lista_.size(); ++i) {
     const variable_t& variable = lista_[i];
@@ -104,7 +104,7 @@ bool VectorVar::Es_Valida(const std::string& regla, const double* var, double um
       continue;
     }
     const auto tam = indice(variable.N_etiquetas());
-    if (var[i] >= umbral && NumeroEtiquetasActivas(regla.substr(trozo, tam)) == 0) {
+    if (niveles[i] >= niveles.back() && NumeroEtiquetasActivas(etiquetas.substr(trozo, tam)) == 0) {
       return false;
     }
     trozo += tam;
@@ -112,8 +112,8 @@ bool VectorVar::Es_Valida(const std::string& regla, const double* var, double um
   return true;
 }
 
-double VectorVar::Adaptacion(const vectordouble& x, const std::string& regla, const double* var,
-                             double umbral) const {
+double VectorVar::Adaptacion(const vectordouble& x, const std::string& etiquetas,
+                             const std::vector<double>& niveles) const {
   double max = 1;
   std::size_t trozo = 0;
   for (std::size_t i = 0; i < lista_.size() && max > 0; ++i) {
@@ -122,8 +122,8 @@ double VectorVar::Adaptacion(const vectordouble& x, const std::string& regla, co
       continue;
     }
     const int tam = variable.N_etiquetas();
-    if (var[i] >= umbral) {
-      const std::string sub = regla.substr(trozo, indice(tam));
+    if (niveles[i] >= niveles.back()) {
+      const std::string sub = etiquetas.substr(trozo, indice(tam));
       const int unos = NumeroEtiquetasActivas(sub);
       if (unos == 0) {
         max = 0;

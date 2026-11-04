@@ -2,7 +2,7 @@
 #include "inslv/genetico/multipoblacion.h"
 
 #include <cstddef>
-#include <span>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -16,7 +16,7 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Si la valoración v1 es mejor que la v2: en el primer valor en el que no son iguales, el de v1
 // es mayor.
-bool Mayor(const std::vector<double>& v1, const std::vector<double>& v2) {
+bool Mayor(const Fitness& v1, const Fitness& v2) {
   std::size_t k = 0;
   while (k < v1.size() && v1[k] == v2[k]) {
     ++k;
@@ -36,23 +36,14 @@ void Gastar(int numeros) {
 constexpr int bits_de_funciones = 40;
 constexpr int puntos_de_cruce = 2;
 
-// Una parte de un individuo, para un genetcode.
-template <typename Poblacion>
-auto Fila(const Poblacion& poblacion, int i) {
-  const auto parte = poblacion.Individuo(i);
-  using T = typename decltype(parte)::value_type;
-  return std::vector<std::vector<T>>{std::vector<T>(parte.begin(), parte.end())};
-}
-
 }  // namespace
 
 multipoblacion::multipoblacion(int clases, int n, int tama_valor, int tama_nivel, double mut_valor,
-                               double mut_clase, double mut_nivel, int n_val)
+                               double mut_clase, double mut_nivel)
     : n_individuos_(n),
       n_clases_(clases),
-      n_valoracion_(n_val),
       modificado_(indice(n), true),
-      valoracion_(indice(n), std::vector<double>(indice(n_val))),
+      valoracion_(indice(n), Fitness{}),
       valor_(mut_valor, n, tama_valor),
       clase_(clases, mut_clase, n, 1),
       nivel_(mut_nivel, n, tama_nivel) {}
@@ -71,18 +62,18 @@ void multipoblacion::Pasar(int i, int j) {
   nivel_.Pasar(i, j);
 }
 
-int multipoblacion::ClaseIndividuo(int ind) const { return clase_.GetValue(ind, 0); }
+int multipoblacion::ClaseIndividuo(int ind) const { return clase_.Individuo(ind)[0]; }
 
-char* multipoblacion::Subpoblacion_Binaria(int individuo, int& tama) {
-  const std::span<char> parte = valor_.Individuo(individuo);
-  tama = static_cast<int>(parte.size());
-  return parte.data();
+std::string& multipoblacion::Etiquetas(int individuo) { return valor_.Individuo(individuo); }
+
+const std::string& multipoblacion::Etiquetas(int individuo) const {
+  return valor_.Individuo(individuo);
 }
 
-double* multipoblacion::Subpoblacion_Real(int individuo, int& tama) {
-  const std::span<double> parte = nivel_.Individuo(individuo);
-  tama = static_cast<int>(parte.size());
-  return parte.data();
+std::vector<double>& multipoblacion::Niveles(int individuo) { return nivel_.Individuo(individuo); }
+
+const std::vector<double>& multipoblacion::Niveles(int individuo) const {
+  return nivel_.Individuo(individuo);
 }
 
 void multipoblacion::Sort() {
@@ -146,52 +137,36 @@ void multipoblacion::Sort_4L() {
 
 int multipoblacion::N_individuos() const { return n_individuos_; }
 
-int multipoblacion::N_Valoracion() const { return n_valoracion_; }
-
-void multipoblacion::Codigo(int i, genetcode& code) const {
-  code.PutBinary(Fila(valor_, i));
-  code.PutInteger(Fila(clase_, i));
-  code.PutReal(Fila(nivel_, i));
+genetcode multipoblacion::Codigo(int i) const {
+  return {valor_.Individuo(i), ClaseIndividuo(i), nivel_.Individuo(i)};
 }
 
 void multipoblacion::PutCodigo(int i, const genetcode& code) {
-  for (int k = 0; k < code.TamaBinary(0); ++k) {
-    valor_.PutValue(i, k, code.GetValueBinary(0, k));
-  }
-  for (int k = 0; k < code.TamaInteger(0); ++k) {
-    clase_.PutValue(i, k, code.GetValueInteger(0, k));
-  }
-  for (int k = 0; k < code.TamaReal(0); ++k) {
-    nivel_.PutValue(i, k, code.GetValueReal(0, k));
-  }
+  valor_.Individuo(i) = code.etiquetas;
+  clase_.Individuo(i)[0] = code.clase;
+  nivel_.Individuo(i) = code.niveles;
 }
 
 bool multipoblacion::Modificado(int i) const { return modificado_[indice(i)]; }
 
 void multipoblacion::PutModificado(int i) { modificado_[indice(i)] = true; }
 
-void multipoblacion::Valoracion(int i, const double* dato) {
-  std::vector<double>& valoracion = valoracion_[indice(i)];
-  valoracion.assign(dato, dato + n_valoracion_);
+void multipoblacion::Valorar(int i, const Fitness& valoracion) {
+  valoracion_[indice(i)] = valoracion;
   modificado_[indice(i)] = false;
 }
 
-double multipoblacion::ValorFitness(int i) const { return valoracion_[indice(i)][0]; }
+const Fitness& multipoblacion::Valoracion(int i) const { return valoracion_[indice(i)]; }
 
-double multipoblacion::ValorFitness(int i, int j) const {
-  return valoracion_[indice(i)][indice(j)];
-}
-
-void multipoblacion::PoblacionInicial(const double* const* I, const int* const* sujetos, int n_var,
-                                      const int* n_etiquetas_variable) {
-  valor_.PoblacionInicial(sujetos, n_var, n_etiquetas_variable);
+void multipoblacion::PoblacionInicial(const std::vector<std::vector<double>>& I,
+                                      const std::vector<std::vector<int>>& sujetos,
+                                      const std::vector<int>& n_etiquetas_variable) {
+  valor_.PoblacionInicial(sujetos, n_etiquetas_variable);
   Gastar(n_individuos_ * bits_de_funciones);
   clase_.PoblacionInicialAleatoria();
   nivel_.PoblacionInicial(I, n_clases_);
   modificado_.assign(modificado_.size(), true);
-  for (std::vector<double>& valoracion : valoracion_) {
-    valoracion.assign(valoracion.size(), 0);
-  }
+  valoracion_.assign(valoracion_.size(), Fitness{});
 }
 
 void multipoblacion::MutacionUniforme_Estacionario_Especial() {

@@ -23,10 +23,10 @@
 #include <fstream>
 #include <iterator>
 #include <ostream>
-#include <span>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -40,15 +40,9 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 double Peso(double mas, double menos) { return (mas + 1) / (mas + menos + 1); }
 
-// Una fila de la parte binaria, como cadena.
-std::string Cadena(const genetcode& code, int fila) {
-  const std::vector<char>& bits = code.Binary(fila);
-  return {bits.begin(), bits.end()};
-}
-
 // Los atributos con nivel por encima del umbral.
 int SobreElUmbral(const genetcode& code) {
-  const std::vector<double>& niveles = code.Real(0);
+  const std::vector<double>& niveles = code.niveles;
   return static_cast<int>(std::count_if(niveles.begin(), niveles.end() - 1,
                                         [&](double nivel) { return nivel >= niveles.back(); }));
 }
@@ -100,7 +94,9 @@ void ruleset::Remove(int i) {
   }
 }
 
-genetcode* ruleset::Get_Code_Rule(int i) { return &Regla_i(i).codigo; }
+genetcode& ruleset::Get_Code_Rule(int i) { return Regla_i(i).codigo; }
+
+const genetcode& ruleset::Get_Code_Rule(int i) const { return Regla_i(i).codigo; }
 
 void ruleset::Add_Weight(int i, double mas, double menos) {
   ReglaCodificada& regla = Regla_i(i);
@@ -159,15 +155,13 @@ int ruleset::Variables_of_rule(int i) const { return SobreElUmbral(Regla_i(i).co
 
 int ruleset::Numero_Ceros_of_rule(int i) const {
   const genetcode& code = Regla_i(i).codigo;
-  const std::vector<double>& niveles = code.Real(0);
-  const std::vector<char>& bits = code.Binary(0);
-  const std::size_t atributos = niveles.size() - 1;
+  const std::size_t atributos = code.niveles.size() - 1;
   int ceros = 0;
   std::size_t donde = 0;
   for (std::size_t j = 0; j < atributos; ++j) {
     const auto n_casos = indice(domain_.SizeDomain(static_cast<int>(j)));
-    if (niveles[j] >= niveles.back()) {
-      const std::span<const char> etiquetas = std::span(bits).subspan(donde, n_casos);
+    if (code.niveles[j] >= code.niveles.back()) {
+      const std::string_view etiquetas = std::string_view(code.etiquetas).substr(donde, n_casos);
       ceros += static_cast<int>(std::count(etiquetas.begin(), etiquetas.end(), '0'));
     }
     donde += n_casos;
@@ -176,14 +170,12 @@ int ruleset::Numero_Ceros_of_rule(int i) const {
 }
 
 std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetcode& code) const {
-  const std::vector<double>& niveles = code.Real(0);
-  const std::vector<char>& bits = code.Binary(0);
   std::vector<AtributoRelevante> relevantes;
   std::size_t donde = 0;
   for (int j = 0; j < domain_.N_Antecedente(); ++j) {
     const auto n_casos = indice(domain_.SizeDomain(j));
-    const std::span<const char> etiquetas = std::span(bits).subspan(donde, n_casos);
-    if (niveles[indice(j)] >= niveles.back() &&
+    const std::string_view etiquetas = std::string_view(code.etiquetas).substr(donde, n_casos);
+    if (code.niveles[indice(j)] >= code.niveles.back() &&
         !std::all_of(etiquetas.begin(), etiquetas.end(), [](char bit) { return bit == '1'; })) {
       relevantes.push_back({j, donde, n_casos});
     }
@@ -192,17 +184,16 @@ std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetcode& cod
   return relevantes;
 }
 
-double ruleset::Frecuence_each_Variables(int* frec) const {
+double ruleset::Frecuence_each_Variables(std::vector<int>& frec) const {
   // En el original leía la regla 0 para saber cuántos atributos hay, aunque no hubiera reglas.
-  const int atributos = domain_.N_Antecedente();
-  std::fill(frec, frec + atributos, 0);
+  frec.assign(indice(domain_.N_Antecedente()), 0);
   for (const ReglaCodificada& regla : reglas_) {
     for (const AtributoRelevante& relevante : Relevantes(regla.codigo)) {
-      ++frec[relevante.atributo];
+      ++frec[indice(relevante.atributo)];
     }
   }
-  const auto usados = std::count_if(frec, frec + atributos, [](int veces) { return veces > 0; });
-  return static_cast<double>(usados) / atributos;
+  const auto usados = std::count_if(frec.begin(), frec.end(), [](int veces) { return veces > 0; });
+  return static_cast<double>(usados) / static_cast<double>(frec.size());
 }
 
 int ruleset::Condiciones_per_RB() const {
@@ -214,9 +205,7 @@ int ruleset::Condiciones_per_RB() const {
 }
 
 double ruleset::Adaptacion(const vectordouble& v, const ReglaCodificada& regla) const {
-  const genetcode& code = regla.codigo;
-  const std::vector<double>& niveles = code.Real(0);
-  return domain_.Adaptacion(v, Cadena(code, 0), niveles.data(), niveles.back()) * regla.peso;
+  return domain_.Adaptacion(v, regla.codigo.etiquetas, regla.codigo.niveles) * regla.peso;
 }
 
 int ruleset::InferenceC(const vectordouble& v, double& grado, int& regla_disparada) const {
@@ -316,7 +305,7 @@ int ruleset::InferenceC(const vectordouble& v, int clase, double& grado_p, doubl
   return re != -1 ? Class_of_rule(re) : -1;
 }
 
-int ruleset::Class_of_rule(int i) const { return Regla_i(i).codigo.GetValueInteger(0, 0); }
+int ruleset::Class_of_rule(int i) const { return Regla_i(i).codigo.clase; }
 
 std::string ruleset::SPrint_Consequent(int i) const {
   return domain_.SPrintDomain(domain_.Consecuente(), Class_of_rule(i));
@@ -325,13 +314,12 @@ std::string ruleset::SPrint_Consequent(int i) const {
 std::string ruleset::SPrint(int i) const {
   const ReglaCodificada& regla = Regla_i(i);
   const genetcode& code = regla.codigo;
-  const std::vector<char>& bits = code.Binary(0);
   std::ostringstream buffer;
   buffer << "IF\n";
   for (const AtributoRelevante& relevante : Relevantes(code)) {
     buffer << '\t' << domain_.SPrintVar(relevante.atributo) << " = {";
     for (std::size_t t = 0; t < relevante.n_casos; ++t) {
-      if (bits[relevante.donde + t] == '1') {
+      if (code.etiquetas[relevante.donde + t] == '1') {
         buffer << ' ' << domain_.SPrintDomain(relevante.atributo, static_cast<int>(t));
       }
     }
@@ -357,13 +345,12 @@ void ruleset::SaveRuleInterpreted_append(const std::string& nomfich) const {
 // atributos de hasta dos etiquetas, con el nombre de la etiqueta o su centro) se hace fuera.
 std::vector<Condicion> ruleset::Antecedente(int i) const {
   const genetcode& code = Regla_i(i).codigo;
-  const std::vector<char>& bits = code.Binary(0);
   std::vector<Condicion> condiciones;
   for (const AtributoRelevante& relevante : Relevantes(code)) {
     Condicion condicion;
     condicion.atributo = indice(relevante.atributo);
     for (std::size_t t = 0; t < relevante.n_casos; ++t) {
-      if (bits[relevante.donde + t] == '1') {
+      if (code.etiquetas[relevante.donde + t] == '1') {
         condicion.etiquetas.push_back(t);
       }
     }

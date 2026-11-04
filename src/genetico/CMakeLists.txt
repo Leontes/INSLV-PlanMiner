@@ -1,9 +1,8 @@
-# genetico: el algoritmo genético. El código genético de un individuo (genetcode), las
-# poblaciones binaria, entera y real (con lo común en poblacion), la multipoblación que las junta
-# y el azar que comparten (operaciones).
+# genetico: el algoritmo genético. El código genético de un individuo (genetcode, solo cabecera),
+# las poblaciones binaria, entera y real (con lo común en poblacion), la multipoblación que las
+# junta y el azar que comparten (operaciones).
 inslv_anadir_sublibreria(
   genetico
-  genetcode.cpp
   multipoblacion.cpp
   operaciones.cpp
   poblacion.cpp
