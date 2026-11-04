@@ -33,6 +33,10 @@ class genetcode {
   [[nodiscard]] char GetValueBinary(int fila, int columna) const;
   [[nodiscard]] int GetValueInteger(int fila, int columna) const;
   [[nodiscard]] double GetValueReal(int fila, int columna) const;
+  /// Una fila entera.
+  [[nodiscard]] const std::vector<char>& Binary(int fila) const;
+  [[nodiscard]] const std::vector<int>& Integer(int fila) const;
+  [[nodiscard]] const std::vector<double>& Real(int fila) const;
 
  private:
   // Filas de distinto tamaño y, para GetBinary y compañía, sus tamaños y punteros a ellas.

@@ -20,5 +20,5 @@ Checks: >
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-function-cognitive-complexity
-HeaderFilterRegex: '(include/inslv/inslv\.hpp|include/inslv/(comun|datos|difuso|formatos|genetico)/|tests/)'
+HeaderFilterRegex: '(include/inslv/inslv\.hpp|include/inslv/(comun|datos|difuso|formatos|genetico|reglas)/|tests/)'
 FormatStyle: file

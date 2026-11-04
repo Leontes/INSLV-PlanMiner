@@ -117,4 +117,10 @@ double genetcode::GetValueReal(int fila, int columna) const {
   return real_.filas[indice(fila)][indice(columna)];
 }
 
+const std::vector<char>& genetcode::Binary(int fila) const { return binario_.filas[indice(fila)]; }
+
+const std::vector<int>& genetcode::Integer(int fila) const { return entero_.filas[indice(fila)]; }
+
+const std::vector<double>& genetcode::Real(int fila) const { return real_.filas[indice(fila)]; }
+
 }  // namespace inslv

@@ -1,278 +1,132 @@
 // SPDX-License-Identifier: GPL-3.0-only
-/***************************************************************************
-                          ruleset.h  -  description
-                             -------------------
-    begin                : Mon May 6 2002
-    copyright            : (C) 2002 by Ral P�ez
-    email                : fgr@decsai.ugr.es
- ***************************************************************************/
+// Un conjunto de reglas, con su inferencia. Parte de NSLV, de Raúl Pérez (2002).
+#pragma once
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-#ifndef _RULESETH_
-#define _RULESETH_
-
-#include <fstream>
-#include <list>
+#include <cstddef>
 #include <string>
-#include <utility>
+#include <vector>
 
-#include "inslv/genetico/genetcode.h"
-#include "inslv/difuso/VectorVar.h"
 #include "inslv/datos/vectordouble.h"
+#include "inslv/difuso/VectorVar.h"
+#include "inslv/genetico/genetcode.h"
+#include "inslv/inslv.hpp"
 
 namespace inslv {
 
-// Código heredado: usa string, cout... sin std:: (hasta que se modernice reglas).
-using namespace std;
+/// Las reglas, en orden, codificadas como individuos del genético (genetcode):
+///
+/// - Binary(0): las etiquetas que admite cada atributo, seguidas.
+/// - Binary(1) e Integer(1): las variables de funciones.
+/// - Integer(0)[0]: la clase.
+/// - Real(0): el nivel de cada atributo y, al final, el umbral. Solo cuentan los atributos cuyo
+///   nivel llega al umbral.
+///
+/// Cada regla tiene un peso, que sale de los ejemplos que acierta (N+) y los que falla (N-):
+/// (N+ + 1) / (N+ + N- + 1).
+///
+/// Todo lo que recibe una regla lanza std::logic_error si no existe, salvo Remove(i).
 class ruleset {
-  private:
-    int reservado;
-    int n_rule;
-    genetcode **rule;
-    VectorVar *domain;
-    VectorVar *domain_funcion;
-    double *peso;
-    double *n_mas;
-    double *n_menos;
-    bool *modificada;
-    void Realloc();
-
-  public:
-    /**
-    @brief Constructor sin argumentos de un objeto de la clase ruleset.
-    @post Construye un conjunto de reglas vacio.
-    */
-    ruleset();
-    /**
-    @brief Constructor de un objeto de la clase ruleset con un dominio
-           asociado.
-    @param x (VectorVar) es un objeto que contiene el conjunto de
-           variables que describen la sem�tica de las reglas.
-    @pre  El objeto x debe estar creado.
-    @post Se vincula al objeto creado la sem�tica de las reglas.
-
-    Construye un conjunto de reglas vacio al que se le
-          asocia el dominio sobre el que las variables que
-          conforman el antecedente y consecuente de las regla
-          tomar� sus valores.
-    */
-
-
-    /**
-    @brief Constructor de un objeto de la clase ruleset a partir
-           de un fichero que contiene un conjunto de reglas.
-    @param nomfich (string) es el nombre del fichero de reglas.
-
-    Construye un objeto ruleset a partir de un fichero que
-    contiene un conjunto de reglas.
-    */
-    //ruleset(string nomfich);
-
-    /**
-    @brief Constructor de copia de los objetos ruleset.
-    */
-
-    /**
-    @brief Redefinici� del operador de asignaci� entre objetos de
-           la clase ruleset.
-    @param x (ruleset) el objeto que desea ser asignado.
-    @return una copia del objeto x.
-	  */
-    ruleset &operator=(const ruleset &x);
-
-
-
-    /**
-    @brief Destructor de objetos ruleset.
-    */
-    ~ruleset();
-
-   /**
-   @brief Añade el dominio x a un objeto de la clase ruleset
-   */
-    void AddDomain(const VectorVar &x);
-
-    /**
-    @brief Permite a�dir una nueva regla a un objeto ruleset.
-    @param x (genetcode) representa la regla que se desea a�dir. Esta
-           regla se expresa mediante un objeto de la clase genetcode.
-           Para m� informaci� ver la especificaci� de esta clase.
-    */
-
-    void AddDomain_Funcion(const VectorVar &x);
-
-
-    void Add(const genetcode &x, double weight);
-
-    void Add(const genetcode &x, double mas, double menos, bool modif);
-
-
-    void Add_Weight(int rule, double mas, double menos);
-
-
-    double Get_Weight(int rule) const;
-
-    void Recalculate_Weight(int i);
-
-    void Recalculate_Weight();
-
-    void Add_N_Mas(int rule, double value);
-
-    double Get_N_Mas(int rule) const;
-
-
-
-    void Add_N_Menos(int rule, double value);
-
-    double Get_N_Menos(int rule) const;
-
-
-    void Modificada(int rule, bool value);
-
-    double Get_Modificada(int rule) const;
-
-    void FixModifyToTrue();
-
-
-
-
-
-    void Remove();
-
-    genetcode *Extract(int i, double &weight);
-
-
-
-
-
-    genetcode *Get_Code_Rule(int i) const;
-
-    void AddRuleset(ruleset &r);
-
-
-    /**
-      @brief Devuelve el numero de reglas que contiene el conjunto de reglas.
-    */
-    int N_rule() const;
-
-
-    /**
-      @brief Devuelve el numero de reglas del conjunto de reglas con peso superior a weight.
-    */
-    int N_rule(double weight) const;
-
-    /**
-      @brief Devuelve el numero medio de variables por regla
-    */
-    double Variables_per_rule() const;
-    int Variables_of_rule(int i) const;
-    int New_Atributes_of_rule(int i) const;
-
-
-    int Numero_Ceros_of_rule(int i) const;
-
-    /**
-      @brief Devuelve la proporcion de variables usadas en relacion a las variables involucradas
-    */
-
-
-    /**
-      @brief Devuelve la proporcion de variables usadas en relacion a las variables involucradas y ademas en frec devuelve las veces que cada variable aparece en la base de reglas.
-      @param frec (vector de enteros) cuya reserva debe hacerse antes de llamar a la funcion.
-    */
-    double Frecuence_each_Variables(int *frec) const;
-
-    int Condiciones_per_RB() const;
-
-    /**
-    @brief Devuelve la clase a la que pertenece un ejemplo.
-    @param v (vectordouble) es un vector de reales que representa
-           un ejemplo que se desea clasificar.
-    @return el ordinal de la clase a la que pertenece.
-    */
-
-
-
-    /**
-    @brief Devuelve la clase a la que pertenece un ejemplo.
-    @param v (vectordouble) es un vector de reales que representa
-           un ejemplo que se desea clasificar.
-    @return el ordinal de la clase a la que pertenece.
-    */
-
-
-    /**
-    @brief Devuelve la clase a la que pertenece un ejemplo.
-    @param v (vectordouble) es un vector de reales que representa
-           un ejemplo que se desea clasificar.
-    @param grado (real) es el grado de adaptacion con el mejor antecedente
-           de las reglas existentes en la base de datos.
-    @return el ordinal de la clase a la que pertenece.
-    */
-
-    int InferenceC(const vectordouble &v, double &grado, int &regla_disparada) const;
-
-    int InferenceC(const vectordouble &v, int clase, double &grado_p, double &peso_p, double &grado_n, double &peso_n, int &regla_disparada, int &aislada) const;
-
-
-    /**
-    @brief Devuelve el valor que resulta de aplicar el ejemplo al
-           objeto ruleset.
-    @param v (vectordouble) es un vector de reales que representa
-           un ejemplo que se desea clasificar.
-    @return el valor resultante de la inferencia del ejemplo.
-    */
-
-    /**
-    @brief Devuelve un objeto de tipo VectorVar que contiene el nmero
-           de variables que estan relacionados con el conjunto de reglas
-           as�como la sem�ica de los valores que puede tomar
-           cada una de las variables.
-    @return Devuelve un objeto de tipo VectorVar que es una copia de
-            la informaci� contenida dentro del objeto ruleset.
-    */
-
-    /**
-    @brief Guarda en un archivo la informaci� contenida en un
-           objeto ruleset.
-    @param nomfich (string) nombre del fichero donde se desea
-			     almacenar el conjunto de reglas.
-    */
-
-    int Class_of_rule (int i) const;
-
-
-    /**
-    @brief Carga desde un archivo un conjunto de reglas.
-    @param nomfich (string) nombre del fichero donde se encuentra
-			     almacenado un conjunto de reglas.
-    */
-
-
-
-    string SPrint(int i) const;
-
-    string SPrint_Consequent(int i) const;
-
-
-
-    void SaveRuleInterpreted_append(const char *nomfich) const;
-
-
-
-
-
-
-    std::vector<Condicion> Antecedente(int i) const;
-
+ public:
+  /// Las variables de los atributos y la clase.
+  void AddDomain(const VectorVar& x);
+  /// Las variables de funciones.
+  void AddDomain_Funcion(const VectorVar& x);
+
+  /// Añade una regla al final, con ese peso (N+ y N- a 0) y como modificada.
+  void Add(const genetcode& x, double weight);
+  /// Añade una regla al final, con el peso que sale de sus N+ y N-.
+  void Add(const genetcode& x, double mas, double menos, bool modif);
+  /// Añade al principio una copia de las reglas de r.
+  void AddRuleset(const ruleset& r);
+  /// Quita la última regla.
+  void Remove();
+  /// Quita la regla i, si existe.
+  void Remove(int i);
+
+  /// La regla i (se puede cambiar). El puntero deja de valer al añadir o quitar reglas.
+  genetcode* Get_Code_Rule(int i);
+
+  /// Suma a N+ y N- de la regla y recalcula su peso.
+  void Add_Weight(int i, double mas, double menos);
+  [[nodiscard]] double Get_Weight(int i) const;
+  /// Recalcula el peso de una regla, o de todas, con sus N+ y N-.
+  void Recalculate_Weight(int i);
+  void Recalculate_Weight();
+  /// Suman a N+ y a N- de la regla, sin recalcular su peso.
+  void Add_N_Mas(int i, double value);
+  void Add_N_Menos(int i, double value);
+  [[nodiscard]] double Get_N_Mas(int i) const;
+  [[nodiscard]] double Get_N_Menos(int i) const;
+  /// Si la regla ha cambiado y hay que volver a calcular su peso.
+  void Modificada(int i, bool value);
+  [[nodiscard]] bool Get_Modificada(int i) const;
+  void FixModifyToTrue();
+
+  [[nodiscard]] int N_rule() const;
+  /// Cuántas reglas tienen un peso de al menos weight.
+  [[nodiscard]] int N_rule(double weight) const;
+  /// La media de atributos con nivel por encima del umbral por regla.
+  [[nodiscard]] double Variables_per_rule() const;
+  /// Los atributos con nivel por encima del umbral y las variables de funciones de la regla.
+  [[nodiscard]] int Variables_of_rule(int i) const;
+  /// Las variables de funciones de la regla.
+  [[nodiscard]] int New_Atributes_of_rule(int i) const;
+  /// Las etiquetas que no admiten los atributos con nivel por encima del umbral de la regla.
+  [[nodiscard]] int Numero_Ceros_of_rule(int i) const;
+  /// En frec[atributo], en cuántas reglas es relevante (ver Antecedente). Devuelve la proporción
+  /// de atributos que lo son en alguna.
+  double Frecuence_each_Variables(int* frec) const;
+  /// El total de condiciones de las reglas (ver Antecedente).
+  [[nodiscard]] int Condiciones_per_RB() const;
+
+  /// La regla con más adaptación al ejemplo por su peso (a igualdad, la de más peso y, si no, la
+  /// primera), en regla_disparada, y su clase. Si no se adapta ninguna, -1 en las dos; en grado,
+  /// esa adaptación, y si no se adapta ninguna, no lo cambia.
+  int InferenceC(const vectordouble& v, double& grado, int& regla_disparada) const;
+  /// Igual, para un ejemplo de esa clase. Además, en grado_p y peso_p, la adaptación y el peso de
+  /// la mejor regla de su clase; en grado_n y peso_n, los de la mejor de otra. Y en aislada, si lo
+  /// clasifica bien, cuántas reglas de su clase ganan a las de otra; si no, cuántas de otra ganan
+  /// a las de su clase, en negativo (-1000 si no se le adapta ninguna de su clase).
+  int InferenceC(const vectordouble& v, int clase, double& grado_p, double& peso_p, double& grado_n,
+                 double& peso_n, int& regla_disparada, int& aislada) const;
+
+  [[nodiscard]] int Class_of_rule(int i) const;
+  /// El texto de la regla, para el informe, o el de su consecuente.
+  [[nodiscard]] std::string SPrint(int i) const;
+  [[nodiscard]] std::string SPrint_Consequent(int i) const;
+  /// Añade el texto de las reglas al final del fichero.
+  void SaveRuleInterpreted_append(const std::string& nomfich) const;
+
+  /// Las condiciones de la regla: los atributos relevantes (con nivel por encima del umbral y sin
+  /// admitir todas sus etiquetas) con las etiquetas que admiten.
+  [[nodiscard]] std::vector<Condicion> Antecedente(int i) const;
+
+ private:
+  struct ReglaCodificada {
+    genetcode codigo;
+    double peso = 0;
+    double n_mas = 0;
+    double n_menos = 0;
+    bool modificada = true;
+  };
+
+  // Un atributo relevante de una regla: dónde empiezan sus etiquetas en Binary(0) y cuántas son.
+  struct AtributoRelevante {
+    int atributo;
+    std::size_t donde;
+    std::size_t n_casos;
+  };
+
+  void Comprobar(int i) const;
+  [[nodiscard]] const ReglaCodificada& Regla_i(int i) const;
+  [[nodiscard]] ReglaCodificada& Regla_i(int i);
+  // Lo que se adapta el ejemplo a la regla, por su peso.
+  [[nodiscard]] double Adaptacion(const vectordouble& v, const ReglaCodificada& regla) const;
+  [[nodiscard]] std::vector<AtributoRelevante> Relevantes(const genetcode& code) const;
+
+  std::vector<ReglaCodificada> reglas_;
+  VectorVar domain_;
+  VectorVar domain_funcion_;
 };
-}  // namespace inslv
 
-#endif
+}  // namespace inslv

@@ -23,6 +23,9 @@
 
 namespace inslv {
 
+// Código heredado: usa string, cout... sin std:: (hasta que se modernice aprendizaje).
+using namespace std;
+
 
 //Funciones de SLAVE...
 double Weight_Individual(multipoblacion &G, const VectorVar &V, const example_set &E, VectorVar &F, double ***Tabla, double ***Tabla_Nuevas, int elemento_i,

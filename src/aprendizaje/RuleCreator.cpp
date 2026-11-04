@@ -2570,7 +2570,10 @@ valida = (variables_irrelevantes < r1-1);
        valor[5]=ceros_variables;
        //valor[5]=diferencia_estables;
        //valor[6]=max_porcen;
-       valor[6]=-R.Get_Weight(reglas_eliminables);
+       // En el original, con una sola regla leía el peso de una regla que no existe (aquí
+       // reglas_eliminables es 1): memoria sin inicializar o de una regla ya quitada. No cambia las
+       // reglas de ningún conjunto de prueba, ni forzando ese valor a 0, 1e9 o -1e9.
+       valor[6]= reglas_eliminables<R.N_rule() ? -R.Get_Weight(reglas_eliminables) : 0;
        //valor[2]=balance;
      }
    }
@@ -3066,15 +3069,11 @@ double Filtrar_Reglas_New(ruleset &R, ruleset &R_dis, ruleset &R_mix, int *regla
     /*if (!Specific_Rule){*/
 
       for (int i=n_reglas_a_eliminar-1; i>=0; i--){
-	genetcode *aux;
 	//regla_escrita = R.SPrint(reglas_a_eliminar[i]);
 	//cout << regla_escrita << endl;
-	aux = R.Extract(reglas_a_eliminar[i],peso);
-	delete aux;
-	aux = R_dis.Extract(reglas_a_eliminar[i],peso);
-	delete aux;
-	aux = R_mix.Extract(reglas_a_eliminar[i],peso);
-	delete aux;
+	R.Remove(reglas_a_eliminar[i]);
+	R_dis.Remove(reglas_a_eliminar[i]);
+	R_mix.Remove(reglas_a_eliminar[i]);
       }
     /*}
     else {
@@ -4387,15 +4386,10 @@ std::vector<Regla> Aprender(VectorVar &V, example_set &E, const Opciones &option
 
         else {
           int m=R[par].N_rule();
-          genetcode *aux;
-          double valor;
           for (int i=0; i<m; i++){
-            aux=R_prev[par].Extract(0,valor);
-            delete aux;
-            aux=R_prev_dis[par].Extract(0,valor);
-            delete aux;
-            aux=R_mix_prev[par].Extract(0,valor);
-            delete aux;
+            R_prev[par].Remove(0);
+            R_prev_dis[par].Remove(0);
+            R_mix_prev[par].Remove(0);
           }
           accuracy_old= Aciertos(R_prev[par],V,E_Par,F);
         }

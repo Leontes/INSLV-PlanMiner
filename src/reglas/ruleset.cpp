@@ -3,7 +3,7 @@
                           ruleset.cpp  -  description
                              -------------------
     begin                : Mon May 6 2002
-    copyright            : (C) 2002 by Ral P�ez
+    copyright            : (C) 2002 by Raúl Pérez
     email                : fgr@decsai.ugr.es
  ***************************************************************************/
 
@@ -15,965 +15,393 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include <iostream>
-#include <sstream>
-#include <cmath>
-#include <algorithm>
+
 #include "inslv/reglas/ruleset.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <fstream>
+#include <iterator>
+#include <ostream>
+#include <span>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "inslv/comun/progreso.hpp"
 
 namespace inslv {
 
-using namespace std;
+namespace {
 
+std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
-// Constructor por defecto de la clase
-ruleset::ruleset(){
- reservado=10;
- n_rule=0;
- rule= new genetcode *[reservado];
- peso= new double[reservado];
- domain=0;
- domain_funcion=0;
- n_mas = new double[reservado];
- n_menos= new double[reservado];
- modificada = new bool [reservado];
+double Peso(double mas, double menos) { return (mas + 1) / (mas + menos + 1); }
+
+// Una fila de la parte binaria, como cadena.
+std::string Cadena(const genetcode& code, int fila) {
+  const std::vector<char>& bits = code.Binary(fila);
+  return {bits.begin(), bits.end()};
 }
 
-
-
-
-
-// Destructor de la clase
-ruleset::~ruleset(){
- for (int i=0; i<n_rule; i++)
-   delete rule[i];
-
- delete [] rule;
- delete [] peso;
- delete [] n_mas;
- delete [] n_menos;
- delete [] modificada;
- if (domain!=0)
-    delete domain;
- if (domain_funcion!=0)
-    delete domain_funcion;
- reservado=n_rule=0;
+// Los atributos con nivel por encima del umbral.
+int SobreElUmbral(const genetcode& code) {
+  const std::vector<double>& niveles = code.Real(0);
+  return static_cast<int>(std::count_if(niveles.begin(), niveles.end() - 1,
+                                        [&](double nivel) { return nivel >= niveles.back(); }));
 }
 
-
-ruleset& ruleset::operator=(const ruleset& x)
-{
-  if (this!=&x){
-    if (reservado>0){
-      for (int i=0; i<n_rule; i++)
-	delete rule[i];
-
-      delete [] rule;
-      delete [] peso;
-      delete [] n_mas;
-      delete [] n_menos;
-      delete [] modificada;
-      if (domain!=0)
-	  delete domain;
-      if (domain_funcion!=0)
-	  delete domain_funcion;
-    }
-
-    reservado=x.reservado;
-    n_rule=x.n_rule;
-    rule = new genetcode*[reservado];
-    peso= new double[reservado];
-    n_mas = new double[reservado];
-    n_menos= new double[reservado];
-    modificada = new bool [reservado];
-    for (int i=0; i<n_rule; i++){
-	rule[i] = new genetcode;
-	rule[i][0] = x.rule[i][0];
-	peso[i] = x.peso[i];
-	n_mas[i]=x.n_mas[i];
-	n_menos[i]=x.n_menos[i];
-	modificada[i]=x.modificada[i];
-    }
-    domain = new VectorVar;
-    domain[0] = x.domain[0];
-    domain_funcion= new VectorVar;
-    domain_funcion[0]= x.domain_funcion[0];
-
-    return *this;
-  }
-
-  return *this;
+// Las variables de funciones.
+int Funciones(const genetcode& code) {
+  const std::vector<int>& funciones = code.Integer(1);
+  return static_cast<int>(
+      std::count_if(funciones.begin(), funciones.end(), [](int f) { return f != 0; }));
 }
 
+}  // namespace
 
-// Añadir el dominio a un conjunto de reglas
-// Precondicion: Usar solo una vez sobre un ruleset por el constructor por defecto
-void ruleset::AddDomain(const VectorVar &x){
-  domain = new VectorVar;
-  domain[0]=x;
-}
-
-void ruleset::AddDomain_Funcion(const VectorVar &x){
-  domain_funcion = new VectorVar;
-  domain_funcion[0]=x;
-}
-
-// Operador de reubicaci� de un conjunto de reglas.
-void ruleset::Realloc(){
-  genetcode **aux = new genetcode*[2*reservado+1];
-  double *p = new double[2*reservado+1];
-  double *mas = new double[2*reservado+1];
-  double *menos = new double[2*reservado+1];
-  bool *m = new bool[2*reservado+1];
-
-  for (int i=0; i<n_rule; i++){
-    aux[i]=rule[i];
-    rule[i]=0;
-    p[i]=peso[i];
-    mas[i]=n_mas[i];
-    menos[i]=n_menos[i];
-    m[i]=modificada[i];
-  }
-  delete [] rule;
-  delete [] peso;
-  delete [] n_mas;
-  delete [] n_menos;
-  delete [] modificada;
-  rule = aux;
-  peso = p;
-  n_mas = mas;
-  n_menos = menos;
-  modificada = m;
-  reservado=2*reservado+1;
-}
-
-// Aniade al principio del ruleset el conjunto de reglas incluido como argumento.
-void ruleset::AddRuleset(ruleset &r){
-  int i=0;
-  while (n_rule+r.n_rule>=reservado){
-    i++;
-    //cout << "Realojo " << i << endl;
-    Realloc();
-  }
-
-  for (int i=n_rule-1; i>=0; i--){
-    rule[i+r.n_rule]=rule[i];
-    peso[i+r.n_rule]=peso[i];
-    n_mas[i+r.n_rule]=n_mas[i];
-    n_menos[i+r.n_rule]=n_menos[i];
-    modificada[i+r.n_rule]=modificada[i];
-
-
-    //cout << "muevo la regla " << i << " a la posicion " << i+r.n_rule << endl;
-  }
-  n_rule=n_rule+r.n_rule;
-
-  for (int i=0; i<r.n_rule; i++){
-    rule[i]= new genetcode;
-    genetcode *x = r.Get_Code_Rule(i);
-    rule[i][0]= x[0];
-    peso[i]=r.peso[i];
-    n_mas[i]=r.n_mas[i];
-    n_menos[i]=r.n_menos[i];
-    modificada[i]=r.peso[i];
-//cout << "Introducida la regla:\n";
-    //cout << SPrint(i) << endl;
-    //cout << " coloco la nueva regla " << i << endl;
+void ruleset::Comprobar(int i) const {
+  // En el original no se comprobaba: leía otra memoria o un puntero sin inicializar.
+  if (i < 0 || i >= N_rule()) {
+    throw std::logic_error("inslv: no existe la regla " + std::to_string(i));
   }
 }
 
-
-
-// Operador que a�de una nueva regla al final del conjunto de reglas.
-// Asocia a la regal el peso "weight".
-void ruleset::Add(const genetcode &x, double weight) {
- if (reservado==n_rule){
-   Realloc();
- }
- rule[n_rule] = new genetcode;
- rule[n_rule][0] = x;
- peso[n_rule]=weight;
- n_mas[n_rule]=0;
- n_menos[n_rule]=0;
- modificada[n_rule]=true;
- n_rule++;
+const ruleset::ReglaCodificada& ruleset::Regla_i(int i) const {
+  Comprobar(i);
+  return reglas_[indice(i)];
 }
 
-
-void ruleset::Add(const genetcode &x, double mas, double menos, bool modif) {
- if (reservado==n_rule){
-   Realloc();
- }
- rule[n_rule] = new genetcode;
- rule[n_rule][0] = x;
- n_mas[n_rule]=mas;
- n_menos[n_rule]=menos;
- modificada[n_rule]=modif;
- peso[n_rule]=(n_mas[n_rule]+1)/(n_mas[n_rule]+n_menos[n_rule]+1);
- n_rule++;
+ruleset::ReglaCodificada& ruleset::Regla_i(int i) {
+  Comprobar(i);
+  return reglas_[indice(i)];
 }
 
+void ruleset::AddDomain(const VectorVar& x) { domain_ = x; }
 
+void ruleset::AddDomain_Funcion(const VectorVar& x) { domain_funcion_ = x; }
 
+void ruleset::Add(const genetcode& x, double weight) { reglas_.push_back({x, weight, 0, 0, true}); }
 
-void ruleset::Add_Weight(int rule, double mas, double menos) {
-  n_mas[rule]+=mas;
-  n_menos[rule]+=menos;
-  peso[rule]=(n_mas[rule]+1)/(n_mas[rule]+n_menos[rule]+1);
+void ruleset::Add(const genetcode& x, double mas, double menos, bool modif) {
+  reglas_.push_back({x, Peso(mas, menos), mas, menos, modif});
 }
 
-
-void ruleset::Recalculate_Weight(int i){
-  peso[i]=(n_mas[i]+1)/(n_mas[i]+n_menos[i]+1);
-}
-
-void ruleset::Recalculate_Weight(){
-  for (int i=0; i<n_rule; i++)
-    Recalculate_Weight(i);
-}
-
-
-double ruleset::Get_Weight(int rule) const{
-  return peso[rule];
-}
-
-
-
-void ruleset::Add_N_Mas(int rule, double value) {
-   n_mas[rule]+=value;
-}
-
-
-double ruleset::Get_N_Mas(int rule) const{
-  return n_mas[rule];
-}
-
-void ruleset::Add_N_Menos(int rule, double value) {
-   n_menos[rule]+=value;
-}
-
-
-
-double ruleset::Get_N_Menos(int rule) const{
-  return n_menos[rule];
-}
-
-
-void ruleset::Modificada(int rule, bool value) {
-   modificada[rule]=value;
-}
-
-
-double ruleset::Get_Modificada(int rule) const{
-  return modificada[rule];
-}
-
-void ruleset::FixModifyToTrue(){
-  for (int i=0; i<n_rule; i++)
-    modificada[i]=true;
-}
-
-
-
-
-
-
-// Operador que elimina la ultima regla del conjunto de reglas.
-void ruleset::Remove(){
-   delete rule[n_rule-1];
-   n_rule--;
-}
-
-
-// Extrae una regla del conjunto de reglas
-genetcode *ruleset::Extract(int i, double &weight){
-  genetcode *aux=0;
-  if (i<n_rule){
-    aux=rule[i];
-    weight=peso[i];
-    for (int j=i+1; j<n_rule; j++){
-       rule[j-1]=rule[j];
-       peso[j-1]=peso[j];
-       n_mas[j-1]=n_mas[j];
-       n_menos[j-1]=n_menos[j];
-       modificada[j-1]=modificada[j];
-    }
-    n_rule--;
+void ruleset::AddRuleset(const ruleset& r) {
+  std::vector<ReglaCodificada> todas = r.reglas_;
+  // Así en el original (modificada[i] = r.peso[i]), seguramente por error: modificada queda cierta
+  // salvo con peso 0. Cambiarlo cambia las reglas.
+  for (ReglaCodificada& regla : todas) {
+    regla.modificada = regla.peso != 0;
   }
-  else
-    weight=-1;
-
-  return aux;
+  todas.insert(todas.end(), std::make_move_iterator(reglas_.begin()),
+               std::make_move_iterator(reglas_.end()));
+  reglas_ = std::move(todas);
 }
 
+void ruleset::Remove() { reglas_.pop_back(); }
 
-
-
-
-// Devuelve el codigo asociado a la regla i
-genetcode *ruleset::Get_Code_Rule(int i) const {
-  genetcode *aux;
-
-  if (i<n_rule)
-   aux=rule[i];
-  else
-    progreso(Verbosidad::depuracion) << "Error en Get_Code_Rule: Indice " << i << " de regla fuera de rango\n";
-
-  return aux;
+void ruleset::Remove(int i) {
+  if (i >= 0 && i < N_rule()) {
+    reglas_.erase(reglas_.begin() + i);
+  }
 }
 
+genetcode* ruleset::Get_Code_Rule(int i) { return &Regla_i(i).codigo; }
 
-
-
-
-
-// Operador que devuelve el numero de reglas que contiene el conjunto de reglas.
-int ruleset::N_rule() const {
-  return n_rule;
+void ruleset::Add_Weight(int i, double mas, double menos) {
+  ReglaCodificada& regla = Regla_i(i);
+  regla.n_mas += mas;
+  regla.n_menos += menos;
+  regla.peso = Peso(regla.n_mas, regla.n_menos);
 }
 
+double ruleset::Get_Weight(int i) const { return Regla_i(i).peso; }
 
-// Operador que devuelve el numero de reglas del conjunto de reglas con peso superior o igual a weight.
+void ruleset::Recalculate_Weight(int i) {
+  ReglaCodificada& regla = Regla_i(i);
+  regla.peso = Peso(regla.n_mas, regla.n_menos);
+}
+
+void ruleset::Recalculate_Weight() {
+  for (ReglaCodificada& regla : reglas_) {
+    regla.peso = Peso(regla.n_mas, regla.n_menos);
+  }
+}
+
+void ruleset::Add_N_Mas(int i, double value) { Regla_i(i).n_mas += value; }
+
+void ruleset::Add_N_Menos(int i, double value) { Regla_i(i).n_menos += value; }
+
+double ruleset::Get_N_Mas(int i) const { return Regla_i(i).n_mas; }
+
+double ruleset::Get_N_Menos(int i) const { return Regla_i(i).n_menos; }
+
+void ruleset::Modificada(int i, bool value) { Regla_i(i).modificada = value; }
+
+bool ruleset::Get_Modificada(int i) const { return Regla_i(i).modificada; }
+
+void ruleset::FixModifyToTrue() {
+  for (ReglaCodificada& regla : reglas_) {
+    regla.modificada = true;
+  }
+}
+
+int ruleset::N_rule() const { return static_cast<int>(reglas_.size()); }
+
 int ruleset::N_rule(double weight) const {
-  int cont=0;
-  for (int i=0; i<n_rule; i++)
-    if (peso[i]>=weight)
-      cont++;
-  return cont;
+  return static_cast<int>(std::count_if(reglas_.begin(), reglas_.end(),
+                                        [&](const auto& regla) { return regla.peso >= weight; }));
 }
 
-
-// Devuelve el numero medio de variables por regla en la base de reglas.
-double ruleset::Variables_per_rule() const{
- int r,*nr;
- double **mr, cont=0;
-
- for (int i=0; i<n_rule; i++){
-   rule[i][0].GetReal(r,nr,mr);
-   for (int j=0;j<nr[0]-1;j++)
-     if (mr[0][j]>=mr[0][nr[0]-1])
-       cont=cont+1;
- }
-
- return cont/n_rule;
+double ruleset::Variables_per_rule() const {
+  int total = 0;
+  for (const ReglaCodificada& regla : reglas_) {
+    total += SobreElUmbral(regla.codigo);
+  }
+  return 1.0 * total / N_rule();
 }
 
-
-int ruleset::Numero_Ceros_of_rule(int i) const{
- int r,*nr,*nn,**nnn,n;
- int b, *nb;
- char **mb;
- double **mr, cont1=0, cont2=0;
- int tama=0, acu=0;
-
-   rule[i][0].GetBinary(b,nb,mb);
-   rule[i][0].GetReal(r,nr,mr);
-
-   for (int j=0;j<nr[0]-1;j++){
-     int longitud=domain[0].SizeDomain(j);
-     if (mr[0][j]>=mr[0][nr[0]-1]){
-       for (int s=0; s<longitud; s++)
-         if (mb[0][tama+s]=='0')
-	   acu++;
-     }
-     tama+=longitud;
-   }
-
- return acu;
+int ruleset::Variables_of_rule(int i) const {
+  const genetcode& code = Regla_i(i).codigo;
+  return SobreElUmbral(code) + Funciones(code);
 }
 
-
-
-int ruleset::Variables_of_rule(int i) const{
- int r,*nr,*nn,**nnn,n;
- double **mr, cont1=0, cont2=0;
-
-   rule[i][0].GetReal(r,nr,mr);
-   for (int j=0;j<nr[0]-1;j++)
-     if (mr[0][j]>=mr[0][nr[0]-1])
-       cont1=cont1+1;
-
-   rule[i][0].GetInteger(n,nn,nnn);
-   for (int j=0; j<nn[1]; j++)
-     if (nnn[1][j]!=0)
-       cont2++;
-
- return cont1+cont2;
-}
-
-
-
-int ruleset::New_Atributes_of_rule(int i) const{
- int r,*nr,*nn,**nnn,n;
- double **mr, cont1=0, cont2=0;
-
- rule[i][0].GetInteger(n,nn,nnn);
- for (int j=0; j<nn[1]; j++)
-   if (nnn[1][j]!=0)
-     cont2++;
-
- return cont2;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Devuelve la proporcion de variables usadas en las reglas en relacion al global de variables involucradas
-
-
-
-
-//Devuelve la proporcion de variables usadas en las reglas en relacion al global de variables involucradas
-// y ademas en frec devuelve el numero de veces que aparece cada variable en la base de reglas
-
-double ruleset::Frecuence_each_Variables(int *frec) const {
- int r,*nr,b,*nb;
- char **mb;
- double **mr, cont=0;
-
- rule[0][0].GetReal(r,nr,mr);
-
- for (int j=0; j<nr[0]-1; j++)
-   frec[j]=0;
-
- int donde,z, n_casos;
- char *s;
- for (int i=0; i<n_rule; i++){
-   rule[i][0].GetReal(r,nr,mr);
-   rule[i][0].GetBinary(b,nb,mb);
-   donde=0;
-   s= new char[nb[0]+1];
-   for (int j=0; j<nb[0]; j++)
-     s[j]=mb[0][j];
-   s[nb[0]]='\0';
-
-   for (int j=0;j<nr[0]-1;j++){
-     n_casos=domain[0].SizeDomain(j);
-     for(z=0; z<n_casos && s[donde+z]=='1';z++);
-
-     if (mr[0][j]>=mr[0][nr[0]-1] && z!=n_casos)
-       frec[j]++;
-     donde+=n_casos;
-   }
-
-   delete []s;
- }
-
- for (int j=0; j<nr[0]-1; j++)
-   if (frec[j]>0)
-     cont=cont+1;
-
-
-
- return cont/(nr[0]-1);
-}
-
-
-int ruleset::Condiciones_per_RB() const{
- int r,*nr,b,*nb;
- char **mb;
- double **mr, cont=0;
-
- rule[0][0].GetReal(r,nr,mr);
-
- int donde,z, n_casos, medida=0;
- char *s;
- for (int i=0; i<n_rule; i++){
-   rule[i][0].GetReal(r,nr,mr);
-   rule[i][0].GetBinary(b,nb,mb);
-   donde=0;
-   s= new char[nb[0]+1];
-   for (int j=0; j<nb[0]; j++)
-     s[j]=mb[0][j];
-   s[nb[0]]='\0';
-
-   for (int j=0;j<nr[0]-1;j++){
-     n_casos=domain[0].SizeDomain(j);
-     for(z=0; z<n_casos && s[donde+z]=='1';z++);
-
-     if (mr[0][j]>=mr[0][nr[0]-1] && z!=n_casos)
-       medida++;
-     donde+=n_casos;
-   }
-
-   delete []s;
- }
-
-
- return medida;
-
-}
-
-
-
-
-
-
-// Operador que devuelve el ordinal de la regla con mejor adaptacion sobre el ejemplo (v) con el conjunto de reglas y
-// el grado de adaptacion de esa regla
-//
-int ruleset::InferenceC(const vectordouble &v, double &grado, int &regla_disparada) const{
- double max=0,aux;
- int re=-1;
- int b,*nb,n,*nn,**nnn,r,*nr;
- char **mb;
- double **mr;
- string regla, regla_funcion;
- int var1, var2;
-
-
- for (int i=0; i<n_rule; i++){
-    rule[i][0].GetBinary(b,nb,mb);
-    char *s= new char[nb[0]+1];
-    for (int j=0; j<nb[0]; j++)
-      s[j]=mb[0][j];
-    s[nb[0]]='\0';
-    regla=s;
-    delete []s;
-
-    s= new char[nb[1]+1];
-    for (int j=0; j<nb[1]; j++)
-      s[j]=mb[1][j];
-    s[nb[1]]='\0';
-    regla_funcion=s;
-    delete []s;
-
-    rule[i][0].GetInteger(n,nn,nnn);
-    rule[i][0].GetReal(r,nr,mr);
-    aux=domain[0].Adaptacion(v,regla,mr[0],mr[0][nr[0]-1]);
-    aux=domain_funcion[0].Adaptacion_funcion(v,regla_funcion, nnn[1], nn[1], aux);
-
-    //Aplicar las relaciones
-
-    //aux=domain[0].Adaptacion(v,regla);
-
-    aux = aux*peso[i];
-
-
-
-    if (aux>max){
-     max=aux;
-     re=i;
-     grado = aux;
+int ruleset::New_Atributes_of_rule(int i) const { return Funciones(Regla_i(i).codigo); }
+
+int ruleset::Numero_Ceros_of_rule(int i) const {
+  const genetcode& code = Regla_i(i).codigo;
+  const std::vector<double>& niveles = code.Real(0);
+  const std::vector<char>& bits = code.Binary(0);
+  const std::size_t atributos = niveles.size() - 1;
+  int ceros = 0;
+  std::size_t donde = 0;
+  for (std::size_t j = 0; j < atributos; ++j) {
+    const auto n_casos = indice(domain_.SizeDomain(static_cast<int>(j)));
+    if (niveles[j] >= niveles.back()) {
+      const std::span<const char> etiquetas = std::span(bits).subspan(donde, n_casos);
+      ceros += static_cast<int>(std::count(etiquetas.begin(), etiquetas.end(), '0'));
     }
-    else if (re!=-1 && aux>0 && aux==max && peso[i]>peso[re]) {
-           max=aux;
-           re=i;
-           grado = aux;
-         }
- }
-
- regla_disparada=re;
-
- if (re!=-1) {
-   rule[re][0].GetInteger(n,nn,nnn);
-   return nnn[0][0];
- }
- else
-   return -1;
+    donde += n_casos;
+  }
+  return ceros;
 }
 
+std::vector<ruleset::AtributoRelevante> ruleset::Relevantes(const genetcode& code) const {
+  const std::vector<double>& niveles = code.Real(0);
+  const std::vector<char>& bits = code.Binary(0);
+  std::vector<AtributoRelevante> relevantes;
+  std::size_t donde = 0;
+  for (int j = 0; j < domain_.N_Antecedente(); ++j) {
+    const auto n_casos = indice(domain_.SizeDomain(j));
+    const std::span<const char> etiquetas = std::span(bits).subspan(donde, n_casos);
+    if (niveles[indice(j)] >= niveles.back() &&
+        !std::all_of(etiquetas.begin(), etiquetas.end(), [](char bit) { return bit == '1'; })) {
+      relevantes.push_back({j, donde, n_casos});
+    }
+    donde += n_casos;
+  }
+  return relevantes;
+}
 
+double ruleset::Frecuence_each_Variables(int* frec) const {
+  // En el original leía la regla 0 para saber cuántos atributos hay, aunque no hubiera reglas.
+  const int atributos = domain_.N_Antecedente();
+  std::fill(frec, frec + atributos, 0);
+  for (const ReglaCodificada& regla : reglas_) {
+    for (const AtributoRelevante& relevante : Relevantes(regla.codigo)) {
+      ++frec[relevante.atributo];
+    }
+  }
+  const auto usados = std::count_if(frec, frec + atributos, [](int veces) { return veces > 0; });
+  return static_cast<double>(usados) / atributos;
+}
 
+int ruleset::Condiciones_per_RB() const {
+  std::size_t condiciones = 0;
+  for (const ReglaCodificada& regla : reglas_) {
+    condiciones += Relevantes(regla.codigo).size();
+  }
+  return static_cast<int>(condiciones);
+}
 
+double ruleset::Adaptacion(const vectordouble& v, const ReglaCodificada& regla) const {
+  const genetcode& code = regla.codigo;
+  const std::vector<double>& niveles = code.Real(0);
+  const std::vector<int>& funciones = code.Integer(1);
+  const double adaptacion = domain_.Adaptacion(v, Cadena(code, 0), niveles.data(), niveles.back());
+  return domain_funcion_.Adaptacion_funcion(v, Cadena(code, 1), funciones.data(),
+                                            static_cast<int>(funciones.size()), adaptacion) *
+         regla.peso;
+}
 
+int ruleset::InferenceC(const vectordouble& v, double& grado, int& regla_disparada) const {
+  double max = 0;
+  int re = -1;
+  for (int i = 0; i < N_rule(); ++i) {
+    const ReglaCodificada& regla = Regla_i(i);
+    const double aux = Adaptacion(v, regla);
+    if (aux > max || (re != -1 && aux > 0 && aux == max && regla.peso > Regla_i(re).peso)) {
+      max = aux;
+      re = i;
+      grado = aux;
+    }
+  }
+  regla_disparada = re;
+  return re != -1 ? Class_of_rule(re) : -1;
+}
 
-int ruleset::InferenceC(const vectordouble &v, int clase, double &grado_p, double &peso_p, double &grado_n, double &peso_n, int &regla_disparada, int &aislada) const{
- double max=0,aux, grado=0;
- int re=-1;
- int b,*nb,n,*nn,**nnn,r,*nr;
- char **mb;
- double **mr;
- string regla, regla_funcion;
- int var1, var2;
- double *adaptacion_particular = new double[n_rule];
- bool clasifica_bien=false;
- int de_clase=0, de_noclase=0, indice_pos=n_rule, indice_neg=n_rule;
+int ruleset::InferenceC(const vectordouble& v, int clase, double& grado_p, double& peso_p,
+                        double& grado_n, double& peso_n, int& regla_disparada, int& aislada) const {
+  const int n_rule = N_rule();
+  // Lo que se adapta a cada regla: en positivo, las de su clase; en negativo, las de otra.
+  std::vector<double> adaptacion_particular;
+  adaptacion_particular.reserve(reglas_.size());
+  double max = 0;
+  int re = -1;
+  bool clasifica_bien = false;
+  int indice_pos = n_rule;
+  int indice_neg = n_rule;
+  grado_p = 0;
+  peso_p = 0;
+  grado_n = 0;
+  peso_n = 0;
 
- grado_p=0;
- peso_p=0;
- grado_n=0;
- peso_n=0;
-
- for (int i=0; i<n_rule; i++){
-    rule[i][0].GetBinary(b,nb,mb);
-    char *s= new char[nb[0]+1];
-    for (int j=0; j<nb[0]; j++)
-      s[j]=mb[0][j];
-    s[nb[0]]='\0';
-    regla=s;
-    delete []s;
-
-    s= new char[nb[1]+1];
-    for (int j=0; j<nb[1]; j++)
-      s[j]=mb[1][j];
-    s[nb[1]]='\0';
-    regla_funcion=s;
-    delete []s;
-
-    rule[i][0].GetInteger(n,nn,nnn);
-    rule[i][0].GetReal(r,nr,mr);
-
-    aux=domain[0].Adaptacion(v,regla,mr[0],mr[0][nr[0]-1]);
-    aux=domain_funcion[0].Adaptacion_funcion(v,regla_funcion, nnn[1], nn[1], aux);
-
-    //Aplicar las relaciones
-
-    //aux=domain[0].Adaptacion(v,regla);
-
-    aux = aux*peso[i];
-
-    if (nnn[0][0]==clase)
-      adaptacion_particular[i]=aux;
-    else
-      adaptacion_particular[i]=-aux;
-
-
-
-    if (aux>0) {
-      if (nnn[0][0]==clase){
-        if (aux>grado_p or (aux==grado_p and peso[i]>peso_p)){
-          grado_p=aux;
-          peso_p=peso[i];
-          indice_pos=i;
+  for (int i = 0; i < n_rule; ++i) {
+    const ReglaCodificada& regla = Regla_i(i);
+    const double aux = Adaptacion(v, regla);
+    const bool de_su_clase = Class_of_rule(i) == clase;
+    adaptacion_particular.push_back(de_su_clase ? aux : -aux);
+    if (aux > 0) {
+      if (de_su_clase) {
+        if (aux > grado_p || (aux == grado_p && regla.peso > peso_p)) {
+          grado_p = aux;
+          peso_p = regla.peso;
+          indice_pos = i;
         }
-      }
-      else {
-        if (aux>grado_n or (aux==grado_n and peso[i]>peso_n)){
-          grado_n=aux;
-          peso_n=peso[i];
-          indice_neg=i;
-        }
+      } else if (aux > grado_n || (aux == grado_n && regla.peso > peso_n)) {
+        grado_n = aux;
+        peso_n = regla.peso;
+        indice_neg = i;
       }
     }
-
-
-    if (aux>max){
-     max=aux;
-     re=i;
-     grado = aux;
-     if (nnn[0][0]==clase)
-       clasifica_bien=true;
-     else
-       clasifica_bien=false;
+    if (aux > max || (re != -1 && aux > 0 && aux == max && regla.peso > Regla_i(re).peso)) {
+      max = aux;
+      re = i;
+      clasifica_bien = de_su_clase;
     }
-    else if (re!=-1 && aux>0 && aux==max && peso[i]>peso[re]) {
-           max=aux;
-           re=i;
-           grado = aux;
-           if (nnn[0][0]==clase)
-             clasifica_bien=true;
-           else
-            clasifica_bien=false;
-         }
- }
-
- // Numero de reglas de la clase que clasifican correctamente el ejemplo antes de una regla que lo clasifical mal o no lo clasifica.
-
- if (clasifica_bien){
-   de_clase=0;
-   for (int i=0; i<n_rule;i++)
-     if (adaptacion_particular[i]>0 and
-        ((adaptacion_particular[i]>grado_n) or
-        (adaptacion_particular[i]==grado_n and peso[i]>peso_n) or
-        (adaptacion_particular[i]==grado_n and peso[i]==peso_n and i<indice_neg)) )
-       de_clase++;
-   if (de_clase==0){
-      progreso(Verbosidad::depuracion) << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p << " Grado Neg: "<< grado_n << "  Regla: " << re <<endl;
-      for (int t=0; t<n_rule; t++)
-        progreso(Verbosidad::depuracion) <<"\t"<<adaptacion_particular[t];
-      progreso(Verbosidad::depuracion) << endl;
-   }
-
-   aislada=de_clase;
- }
- else {
-   if (grado_p==0)
-     de_noclase=-1000;
-   else {
-     de_noclase=0;
-     for (int i=0; i<n_rule; i++)
-       if (adaptacion_particular[i]<0 and
-          ((-adaptacion_particular[i]>grado_p) or
-          (-adaptacion_particular[i]==grado_p and peso[i]>peso_p) or
-          (-adaptacion_particular[i]==grado_p and peso[i]==peso_p and i<indice_pos) ))
-         de_noclase--;
-   }
-
-   aislada=de_noclase;
- }
-
-
-
- delete []adaptacion_particular;
-
- regla_disparada=re;
-
- if (re!=-1) {
-   rule[re][0].GetInteger(n,nn,nnn);
-   return nnn[0][0];
- }
- else
-   return -1;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-int ruleset::Class_of_rule (int i) const{
- int n,*nn,**nnn;
- rule[i][0].GetInteger(n,nn,nnn);
- return nnn[0][0];
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-string ruleset::SPrint_Consequent(int i) const{
- int n,*nn,**nnn;
-
- rule[i][0].GetInteger(n,nn,nnn);
- return domain[0].SPrintDomain(domain[0].Consecuente(),nnn[0][0]);
-}
-
-
-
-string ruleset::SPrint(int i) const{
- string buffer="";
- int b,*nb,n,*nn,**nnn,r,*nr;
- char **mb;
- double **mr;
- string regla, regla_funcion;
- int var1, var2;
- int n_ant;
-
- // extraer la componente binaria
- rule[i][0].GetBinary(b,nb,mb);
- char *s= new char[nb[0]+1];
- for (int j=0; j<nb[0]; j++)
-   s[j]=mb[0][j];
- s[nb[0]]='\0';
- regla=s;
- delete []s;
-
- s= new char[nb[1]+1];
- for (int j=0; j<nb[1]; j++)
-   s[j]=mb[1][j];
- s[nb[1]]='\0';
- regla_funcion=s;
- delete []s;
-
-
- rule[i][0].GetInteger(n,nn,nnn);
- rule[i][0].GetReal(r,nr,mr);
- n_ant = domain[0].N_Antecedente();
- int z=0;
- int j=0;
- int donde=0;
- int n_casos=0;
- buffer+= "IF\n";
- while (j<n_ant){
-
-   if (domain[0].IsActiva(j) && domain[0].IsAntecedente(j)){
-     n_casos=domain[0].SizeDomain(j);
-     for(z=0; z<n_casos && regla[donde+z]=='1';z++);
-     if (mr[0][j]>=mr[0][nr[0]-1] && z!=n_casos){
-       buffer+="\t";
-       buffer+=domain[0].SPrintVar(j);
-       buffer+=" = {";
-       for(int t=donde; t<donde+n_casos;t++){
-         if (regla[t]=='1'){
-           buffer+= " ";
-	   buffer+=domain[0].SPrintDomain(j,t-donde);
-         }
-        }
-       buffer+= "}\n";
-     }
-
-   }
-   donde+=n_casos;
-   j++;
- }
-
- //Parte de funciones
- donde=0;
- for (int j=0; j<nn[1]; j++){
-     if (nnn[1][j]!=0){
-        n_casos=domain_funcion[0].SizeDomain(nnn[1][j]-1);
-        for(z=0; z<n_casos && regla_funcion[donde+z]=='1';z++);
-        buffer+="\t";
-        buffer+=domain_funcion[0].SPrintVar(nnn[1][j]-1);
-        buffer+=" = {";
-        for(int t=donde; t<donde+n_casos;t++){
-            if (regla_funcion[t]=='1'){
-                buffer+= " ";
-                buffer+=domain_funcion[0].SPrintDomain(nnn[1][j]-1,t-donde);
-            }
-        }
-       buffer+= "}\n";
-     }
-     n_casos=2;
-     donde+=n_casos;
-}
-
-
-
-
-
- //Conclusion de la regla
- buffer+="THEN ";
- buffer+=domain[0].SPrintVar(domain[0].Consecuente());
- buffer+=" IS ";
- buffer+=domain[0].SPrintDomain(domain[0].Consecuente(),nnn[0][0]);
- buffer+="   W ";
- ostringstream ss;
- ss << peso[i];
- buffer+= ss.str();
- buffer+=" and N+= ";
- ostringstream ss2;
- ss2 << n_mas[i];
- buffer+= ss2.str();
- buffer+=" and N-= ";
- ostringstream ss3;
- ss3 << n_menos[i];
- buffer+= ss3.str();
- buffer+="\n";
-
- return buffer;
-
-}
-
-
-
-
-
-void ruleset::SaveRuleInterpreted_append(const char *nomfich) const {
-  ofstream f(nomfich,ios::app);
-  string regla;
-  progreso(Verbosidad::depuracion) << "Numero de reglas =" << n_rule << endl;
-  for (int i=0; i<n_rule; i++){
-    regla=SPrint(i);
-    f << regla.c_str() << endl;
   }
 
-  f.close();
+  // Si la regla i, con esa adaptación, gana a la mejor de la otra parte.
+  const auto gana = [&](int i, double adaptacion, double grado, double peso, int mejor) {
+    const double peso_i = Regla_i(i).peso;
+    return adaptacion > grado || (adaptacion == grado && peso_i > peso) ||
+           (adaptacion == grado && peso_i == peso && i < mejor);
+  };
+
+  if (clasifica_bien) {
+    aislada = 0;
+    for (int i = 0; i < n_rule; ++i) {
+      const double aux = adaptacion_particular[indice(i)];
+      if (aux > 0 && gana(i, aux, grado_n, peso_n, indice_neg)) {
+        ++aislada;
+      }
+    }
+    if (aislada == 0) {
+      std::ostream& salida = progreso(Verbosidad::depuracion);
+      salida << "Error!!!!  Clase " << clase << "  Grado Pos: " << grado_p
+             << " Grado Neg: " << grado_n << "  Regla: " << re << '\n';
+      for (const double aux : adaptacion_particular) {
+        salida << '\t' << aux;
+      }
+      salida << '\n';
+    }
+  } else if (grado_p == 0) {
+    aislada = -1000;
+  } else {
+    aislada = 0;
+    for (int i = 0; i < n_rule; ++i) {
+      const double aux = adaptacion_particular[indice(i)];
+      if (aux < 0 && gana(i, -aux, grado_p, peso_p, indice_pos)) {
+        --aislada;
+      }
+    }
+  }
+
+  regla_disparada = re;
+  return re != -1 ? Class_of_rule(re) : -1;
 }
 
+int ruleset::Class_of_rule(int i) const { return Regla_i(i).codigo.GetValueInteger(0, 0); }
 
+std::string ruleset::SPrint_Consequent(int i) const {
+  return domain_.SPrintDomain(domain_.Consecuente(), Class_of_rule(i));
+}
 
+std::string ruleset::SPrint(int i) const {
+  const ReglaCodificada& regla = Regla_i(i);
+  const genetcode& code = regla.codigo;
+  const std::vector<char>& bits = code.Binary(0);
+  std::ostringstream buffer;
+  buffer << "IF\n";
+  for (const AtributoRelevante& relevante : Relevantes(code)) {
+    buffer << '\t' << domain_.SPrintVar(relevante.atributo) << " = {";
+    for (std::size_t t = 0; t < relevante.n_casos; ++t) {
+      if (bits[relevante.donde + t] == '1') {
+        buffer << ' ' << domain_.SPrintDomain(relevante.atributo, static_cast<int>(t));
+      }
+    }
+    buffer << "}\n";
+  }
 
-// Condiciones del antecedente de la regla i: los atributos relevantes, con las etiquetas que
-// admiten. Un atributo es relevante si su nivel (parte real del código genético) llega al umbral
-// de la regla y no admite todas sus etiquetas.
-//
-// Es la parte general de SplitAntecedent, que estaba en Old/: la interpretación de PlanMiner
-// (solo atributos de hasta dos etiquetas, con el nombre de la etiqueta o su centro) se hace fuera.
-std::vector<Condicion> ruleset::Antecedente(int i) const{
+  const std::vector<char>& bits_funcion = code.Binary(1);
+  std::size_t donde = 0;
+  for (const int funcion : code.Integer(1)) {
+    if (funcion != 0) {
+      const int variable = funcion - 1;
+      buffer << '\t' << domain_funcion_.SPrintVar(variable) << " = {";
+      for (int t = 0; t < domain_funcion_.SizeDomain(variable); ++t) {
+        if (bits_funcion[donde + indice(t)] == '1') {
+          buffer << ' ' << domain_funcion_.SPrintDomain(variable, t);
+        }
+      }
+      buffer << "}\n";
+    }
+    donde += 2;
+  }
+
+  const int consecuente = domain_.Consecuente();
+  buffer << "THEN " << domain_.SPrintVar(consecuente) << " IS "
+         << domain_.SPrintDomain(consecuente, Class_of_rule(i)) << "   W " << regla.peso
+         << " and N+= " << regla.n_mas << " and N-= " << regla.n_menos << '\n';
+  return buffer.str();
+}
+
+void ruleset::SaveRuleInterpreted_append(const std::string& nomfich) const {
+  std::ofstream fichero(nomfich, std::ios::app);
+  progreso(Verbosidad::depuracion) << "Numero de reglas =" << N_rule() << '\n';
+  for (int i = 0; i < N_rule(); ++i) {
+    fichero << SPrint(i) << '\n';
+  }
+}
+
+// La parte general de SplitAntecedent, que estaba en old/: la interpretación de PlanMiner (solo
+// atributos de hasta dos etiquetas, con el nombre de la etiqueta o su centro) se hace fuera.
+std::vector<Condicion> ruleset::Antecedente(int i) const {
+  const genetcode& code = Regla_i(i).codigo;
+  const std::vector<char>& bits = code.Binary(0);
   std::vector<Condicion> condiciones;
-
-  int b,*nb,n,*nn,**nnn,r,*nr;
-  char **mb;
-  double **mr;
-  string regla;
-  int n_ant;
-
-  // extraer la componente binaria
-  rule[i][0].GetBinary(b,nb,mb);
-  char *s= new char[nb[0]+1];
-  for (int j=0; j<nb[0]; j++){
-    s[j]=mb[0][j];
-  }
-  s[nb[0]]='\0';
-  regla=s;
-  delete []s;
-
-  rule[i][0].GetInteger(n,nn,nnn);
-  rule[i][0].GetReal(r,nr,mr);
-  n_ant = domain[0].N_Antecedente();
-  int z=0;
-  int j=0;
-  int donde=0;
-  int n_casos=0;
-  while (j<n_ant){
-    if (domain[0].IsActiva(j) && domain[0].IsAntecedente(j)){
-      n_casos=domain[0].SizeDomain(j);
-      for(z=0; z<n_casos && regla[donde+z]=='1';z++);
-      if (mr[0][j]>=mr[0][nr[0]-1] && z!=n_casos){
-        Condicion condicion;
-        condicion.atributo = j;
-        for(int t=donde; t<donde+n_casos;t++){
-          if (regla[t]=='1'){
-            condicion.etiquetas.push_back(t-donde);
-          }
-        }
-        condiciones.push_back(condicion);
+  for (const AtributoRelevante& relevante : Relevantes(code)) {
+    Condicion condicion;
+    condicion.atributo = indice(relevante.atributo);
+    for (std::size_t t = 0; t < relevante.n_casos; ++t) {
+      if (bits[relevante.donde + t] == '1') {
+        condicion.etiquetas.push_back(t);
       }
     }
-    donde+=n_casos;
-    j++;
+    condiciones.push_back(condicion);
   }
   return condiciones;
 }
