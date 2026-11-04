@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/aprendizaje/aprender.h"
+#include "inslv/aprendizaje/aprender.hpp"
 #include "inslv/comun/progreso.hpp"
 
 namespace inslv {
@@ -142,7 +142,7 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
   const auto inicio = std::chrono::steady_clock::now();
   const difuso::Variables variables(datos);
   const datos::Ejemplos ejemplos(columnas);
-  std::vector<Regla> reglas = Aprender(variables, ejemplos, opciones);
+  std::vector<Regla> reglas = aprendizaje::aprender(variables, ejemplos, opciones);
   const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - inicio;
 
   comun::progreso(Verbosidad::resumen)

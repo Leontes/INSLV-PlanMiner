@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 
-#include "inslv/aprendizaje/aprender.h"
-#include "inslv/aprendizaje/bondad.h"
-#include "inslv/aprendizaje/tabla.h"
+#include "inslv/aprendizaje/aprender.hpp"
+#include "inslv/aprendizaje/bondad.hpp"
+#include "inslv/aprendizaje/tabla.hpp"
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/codigo.hpp"
@@ -43,17 +43,17 @@ class Bondad : public testing::Test {
   // La bondad de la regla con estos valores en la posición 0 de la población.
   double valora(const inslv::genetico::Codigo& code, inslv::genetico::Valoracion& valor) {
     G.poner_codigo(0, code);
-    const inslv::Evaluacion ev = evaluacion();
-    return inslv::Bondad(ev, 0, valor, eliminables);
+    const inslv::aprendizaje::Evaluacion ev = evaluacion();
+    return inslv::aprendizaje::bondad(ev, 0, valor, eliminables);
   }
 
-  [[nodiscard]] inslv::Evaluacion evaluacion() {
+  [[nodiscard]] inslv::aprendizaje::Evaluacion evaluacion() {
     return {G, V, E, R, false, por_clase, tabla, basica, errores, 0};
   }
 
   inslv::difuso::Variables V = variables();
   inslv::datos::Ejemplos E = ejemplos();
-  inslv::TablaDeAdaptaciones tabla{V, E};
+  inslv::aprendizaje::TablaDeAdaptaciones tabla{V, E};
   inslv::genetico::MultiPoblacion G = poblacion();
   inslv::reglas::ConjuntoDeReglas R;
   std::vector<int> por_clase = E.sin_clasificar_bien_por_clase(2, 2);
@@ -110,18 +110,19 @@ TEST(Multipoblacion, ValorarQuitaLaMarcaDeModificado) {
 }
 
 TEST_F(Bondad, ElPesoDeUnIndividuo) {
-  double n_mas = 0;
-  double n_menos = 0;
+  double aciertos = 0;
+  double fallos = 0;
   // Si a es True, Si: acierta los cuatro ejemplos que cubre.
   G.poner_codigo(0, {"0111", 1, {1, 0, 0.5}});
-  EXPECT_EQ(inslv::Weight_Individual(G, E, tabla, 0, n_mas, n_menos), 1);
-  EXPECT_EQ(n_mas, 4);
-  EXPECT_EQ(n_menos, 0);
+  EXPECT_EQ(inslv::aprendizaje::peso_del_individuo(G, E, tabla, 0, aciertos, fallos), 1);
+  EXPECT_EQ(aciertos, 4);
+  EXPECT_EQ(fallos, 0);
   // Si a es True, No: los falla.
   G.poner_codigo(0, {"0111", 0, {1, 0, 0.5}});
-  EXPECT_DOUBLE_EQ(inslv::Weight_Individual(G, E, tabla, 0, n_mas, n_menos), 1.0 / 5.0);
-  EXPECT_EQ(n_mas, 0);
-  EXPECT_EQ(n_menos, 4);
+  EXPECT_DOUBLE_EQ(inslv::aprendizaje::peso_del_individuo(G, E, tabla, 0, aciertos, fallos),
+                   1.0 / 5.0);
+  EXPECT_EQ(aciertos, 0);
+  EXPECT_EQ(fallos, 4);
 }
 
 TEST_F(Bondad, UnaReglaSinAtributosNoEsValida) {
@@ -161,8 +162,8 @@ TEST_F(Bondad, UnaReglaQueSoloAciertaEsMejorQueUnaQueTambienFalla) {
 TEST_F(Bondad, GeneralizarQuitaElAtributoQueNoHaceFalta) {
   // Si a es True y b es True, Si: sin b acierta el doble.
   G.poner_codigo(0, {"0101", 1, {1, 1, 0.5}});
-  const inslv::Evaluacion ev = evaluacion();
-  inslv::Obtener_Regla_Discriminante(ev, 0, eliminables);
+  const inslv::aprendizaje::Evaluacion ev = evaluacion();
+  inslv::aprendizaje::generalizar(ev, 0, eliminables);
   EXPECT_EQ(G.niveles(0)[0], 1);
   EXPECT_LT(G.niveles(0)[1], 0.5);
   EXPECT_FALSE(G.modificado(0));
@@ -171,8 +172,8 @@ TEST_F(Bondad, GeneralizarQuitaElAtributoQueNoHaceFalta) {
 TEST_F(Bondad, EspecializarQuitaLasEtiquetasQueNoHacenFalta) {
   // Si a es False o True, Si: acierta la mitad y falla la otra; con a en True solo acierta.
   G.poner_codigo(0, {"1111", 1, {1, 0, 0.5}});
-  const inslv::Evaluacion ev = evaluacion();
-  inslv::Obtener_Regla_Descriptiva(ev, 0, eliminables);
+  const inslv::aprendizaje::Evaluacion ev = evaluacion();
+  inslv::aprendizaje::especializar(ev, 0, eliminables);
   EXPECT_EQ(G.etiquetas(0).substr(0, 2), "01");
   EXPECT_FALSE(G.modificado(0));
 }
@@ -185,7 +186,7 @@ TEST(Aciertos, AnotaLoQueDaCadaEjemplo) {
   // Si a es True, Si: acierta los cuatro con a a 1 y no dice nada de los otros.
   R.anadir({"0111", 1, {1, 0, 0.5}}, 0.5);
 
-  EXPECT_EQ(inslv::Aciertos(R, V, E), 0.5);
+  EXPECT_EQ(inslv::aprendizaje::aciertos(R, V, E), 0.5);
 
   EXPECT_EQ(E.sin_clasificar_bien(), 4);
   EXPECT_FALSE(E.bien_clasificado(0));
@@ -203,7 +204,7 @@ TEST(Aciertos, LasReglasQueDisparan) {
   R.anadir({"0111", 1, {1, 0, 0.5}}, 0.5);   // Cubre la mitad.
   R.anadir({"0111", 0, {1, 0, 0.5}}, 0.25);  // Cubre lo mismo, con menos peso: nunca gana.
   R.anadir({"1011", 0, {1, 0, 0.5}}, 0.5);   // Cubre la otra mitad.
-  EXPECT_EQ(inslv::Reglas_Que_Disparan(R, E), (std::vector<int>{0, 2}));
+  EXPECT_EQ(inslv::aprendizaje::reglas_que_disparan(R, E), (std::vector<int>{0, 2}));
 }
 
 }  // namespace

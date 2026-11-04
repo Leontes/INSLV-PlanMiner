@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/aprendizaje/patrones.h"
+#include "inslv/aprendizaje/patrones.hpp"
 #include "inslv/datos/ejemplos.hpp"
 #include "inslv/inslv.hpp"
 
@@ -78,8 +78,8 @@ TEST(Arreglos, LosDesconocidosNoSeComprueban) {
 TEST(Arreglos, Patron1ReglaSinEsaRegla) {
   // En el original, con R_mix vacío se leía la regla -1 y el programa reventaba.
   const inslv::reglas::ConjuntoDeReglas reglas;
-  EXPECT_EQ(inslv::Patron1Regla(reglas, -1), "");
-  EXPECT_EQ(inslv::Patron1Regla(reglas, 0), "");
+  EXPECT_EQ(inslv::aprendizaje::patron_de_regla(reglas, -1), "");
+  EXPECT_EQ(inslv::aprendizaje::patron_de_regla(reglas, 0), "");
 }
 
 TEST(Arreglos, LosErroresInternosSonExcepciones) {

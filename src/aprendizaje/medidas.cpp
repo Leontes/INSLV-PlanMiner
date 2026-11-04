@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include "inslv/aprendizaje/medidas.h"
+#include "inslv/aprendizaje/medidas.hpp"
 
 #include <cmath>
 #include <cstddef>
@@ -7,30 +7,31 @@
 
 #include "inslv/comun/progreso.hpp"
 
-namespace inslv {
+namespace inslv::aprendizaje {
 
 namespace {
 
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Las probabilidades de cada etiqueta de la variable en los ejemplos sin clasificar bien.
-std::vector<double> CalcularProbabilidadSimpleVariable(const difuso::Variables& V,
-                                                       const datos::Ejemplos& E, int variable) {
-  const auto n_casos = indice(V.numero_de_etiquetas(variable));
+std::vector<double> probabilidad_de_cada_etiqueta(const difuso::Variables& variables,
+                                                  const datos::Ejemplos& ejemplos, int variable) {
+  const auto n_casos = indice(variables.numero_de_etiquetas(variable));
   std::vector<double> p(n_casos, 0);
-  std::vector<double> aux(n_casos);
+  std::vector<double> termino(n_casos);
   int ne = 0;
-  for (int i = 0; i < E.numero_de_ejemplos(); ++i) {
-    if (!E.bien_clasificado(i)) {
+  for (int i = 0; i < ejemplos.numero_de_ejemplos(); ++i) {
+    if (!ejemplos.bien_clasificado(i)) {
       double suma = 0;
       for (std::size_t j = 0; j < n_casos; ++j) {
-        aux[j] = V.adaptacion(E.valor(i, variable), variable, static_cast<int>(j));
-        suma += aux[j];
+        termino[j] =
+            variables.adaptacion(ejemplos.valor(i, variable), variable, static_cast<int>(j));
+        suma += termino[j];
       }
       // Añadir los valores a la sumatoria
       if (suma > 0) {
         for (std::size_t j = 0; j < n_casos; ++j) {
-          p[j] = p[j] + (aux[j] / suma);
+          p[j] = p[j] + (termino[j] / suma);
         }
         ++ne;
       }
@@ -46,28 +47,28 @@ std::vector<double> CalcularProbabilidadSimpleVariable(const difuso::Variables& 
 }
 
 // Las probabilidades de cada par de etiquetas de dos variables, igual.
-std::vector<std::vector<double>> CalcularProbabilidadConjunta2Variables(const difuso::Variables& V,
-                                                                        const datos::Ejemplos& E,
-                                                                        int var1, int var2) {
-  const auto n_casos1 = indice(V.numero_de_etiquetas(var1));
-  const auto n_casos2 = indice(V.numero_de_etiquetas(var2));
+std::vector<std::vector<double>> probabilidad_conjunta(const difuso::Variables& variables,
+                                                       const datos::Ejemplos& ejemplos, int var1,
+                                                       int var2) {
+  const auto n_casos1 = indice(variables.numero_de_etiquetas(var1));
+  const auto n_casos2 = indice(variables.numero_de_etiquetas(var2));
   std::vector<std::vector<double>> m(n_casos1, std::vector<double>(n_casos2, 0));
-  std::vector<std::vector<double>> aux(n_casos1, std::vector<double>(n_casos2));
+  std::vector<std::vector<double>> termino(n_casos1, std::vector<double>(n_casos2));
   int ne = 0;
-  for (int i = 0; i < E.numero_de_ejemplos(); ++i) {
-    if (!E.bien_clasificado(i)) {
+  for (int i = 0; i < ejemplos.numero_de_ejemplos(); ++i) {
+    if (!ejemplos.bien_clasificado(i)) {
       double suma = 0;
       for (std::size_t j = 0; j < n_casos1; ++j) {
         for (std::size_t k = 0; k < n_casos2; ++k) {
-          aux[j][k] = V.adaptacion(E.valor(i, var1), var1, static_cast<int>(j)) *
-                      V.adaptacion(E.valor(i, var2), var2, static_cast<int>(k));
-          suma = suma + aux[j][k];
+          termino[j][k] = variables.adaptacion(ejemplos.valor(i, var1), var1, static_cast<int>(j)) *
+                          variables.adaptacion(ejemplos.valor(i, var2), var2, static_cast<int>(k));
+          suma = suma + termino[j][k];
         }
       }
       if (suma > 0) {
         for (std::size_t j = 0; j < n_casos1; ++j) {
           for (std::size_t k = 0; k < n_casos2; ++k) {
-            m[j][k] = m[j][k] + (aux[j][k] / suma);
+            m[j][k] = m[j][k] + (termino[j][k] / suma);
           }
         }
       }
@@ -86,43 +87,48 @@ std::vector<std::vector<double>> CalcularProbabilidadConjunta2Variables(const di
 
 }  // namespace
 
-std::vector<std::vector<double>> MedidasDeInformacion(const difuso::Variables& V,
-                                                      const datos::Ejemplos& E) {
-  const int conse = V.consecuente();
-  const auto n_clases = indice(V.numero_de_etiquetas(conse));
-  std::vector<std::vector<double>> I(indice(V.numero_de_atributos()),
-                                     std::vector<double>(n_clases + 1));
+std::vector<std::vector<double>> medidas_de_informacion(const difuso::Variables& variables,
+                                                        const datos::Ejemplos& ejemplos) {
+  const int clase = variables.consecuente();
+  const auto n_clases = indice(variables.numero_de_etiquetas(clase));
+  std::vector<std::vector<double>> medidas(indice(variables.numero_de_atributos()),
+                                           std::vector<double>(n_clases + 1));
 
-  const std::vector<double> py = CalcularProbabilidadSimpleVariable(V, E, conse);
+  const std::vector<double> p_clase = probabilidad_de_cada_etiqueta(variables, ejemplos, clase);
 
-  for (std::size_t i = 0; i < I.size(); ++i) {
+  for (std::size_t i = 0; i < medidas.size(); ++i) {
     const int atributo = static_cast<int>(i);
-    const std::vector<double> px = CalcularProbabilidadSimpleVariable(V, E, atributo);
-    const std::vector<std::vector<double>> pxy =
-        CalcularProbabilidadConjunta2Variables(V, E, atributo, conse);
+    const std::vector<double> p_atributo =
+        probabilidad_de_cada_etiqueta(variables, ejemplos, atributo);
+    const std::vector<std::vector<double>> p_conjunta =
+        probabilidad_conjunta(variables, ejemplos, atributo, clase);
 
-    double I1 = 0;
-    double H1 = 0;
+    double informacion = 0;
+    double entropia = 0;
     for (std::size_t k = 0; k < n_clases; ++k) {
-      double I2 = 0;
-      double H2 = 0;
-      for (std::size_t q = 0; q < px.size(); ++q) {
-        double aux = pxy[q][k] == 0 ? 0 : pxy[q][k] * std::log((px[q] * py[k]) / pxy[q][k]);
-        I2 = I2 - aux;
-        I1 = I1 - aux;
+      double informacion_clase = 0;
+      double entropia_clase = 0;
+      for (std::size_t q = 0; q < p_atributo.size(); ++q) {
+        double termino =
+            p_conjunta[q][k] == 0
+                ? 0
+                : p_conjunta[q][k] * std::log((p_atributo[q] * p_clase[k]) / p_conjunta[q][k]);
+        informacion_clase = informacion_clase - termino;
+        informacion = informacion - termino;
 
-        aux = pxy[q][k] == 0 ? 0 : pxy[q][k] * std::log(pxy[q][k]);
-        H2 = H2 - aux;
-        H1 = H1 - aux;
+        termino = p_conjunta[q][k] == 0 ? 0 : p_conjunta[q][k] * std::log(p_conjunta[q][k]);
+        entropia_clase = entropia_clase - termino;
+        entropia = entropia - termino;
       }
-      I[i][k + 1] = H2 == 0 ? 0 : I2 / H2;
+      medidas[i][k + 1] = entropia_clase == 0 ? 0 : informacion_clase / entropia_clase;
     }
-    I[i][0] = H1 == 0 ? 0 : I1 / H1;
+    medidas[i][0] = entropia == 0 ? 0 : informacion / entropia;
 
-    V.pintar_nombre(atributo);
-    comun::progreso(Verbosidad::depuracion) << ": " << I1 << "/" << H1 << ": " << I[i][0] << '\n';
+    variables.pintar_nombre(atributo);
+    comun::progreso(Verbosidad::depuracion)
+        << ": " << informacion << "/" << entropia << ": " << medidas[i][0] << '\n';
   }
-  return I;
+  return medidas;
 }
 
-}  // namespace inslv
+}  // namespace inslv::aprendizaje

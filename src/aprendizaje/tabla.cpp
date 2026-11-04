@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include "inslv/aprendizaje/tabla.h"
+#include "inslv/aprendizaje/tabla.hpp"
 
 #include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-namespace inslv {
+namespace inslv::aprendizaje {
 
 namespace {
 
@@ -14,24 +14,25 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 }  // namespace
 
-TablaDeAdaptaciones::TablaDeAdaptaciones(const difuso::Variables& V, const datos::Ejemplos& E)
-    : n_antecedente_(V.numero_de_atributos()), consecuente_(V.consecuente()) {
-  const int n = V.numero_de_variables();
-  const int m = E.numero_de_ejemplos();
+TablaDeAdaptaciones::TablaDeAdaptaciones(const difuso::Variables& variables,
+                                         const datos::Ejemplos& ejemplos)
+    : n_antecedente_(variables.numero_de_atributos()), consecuente_(variables.consecuente()) {
+  const int n = variables.numero_de_variables();
+  const int m = ejemplos.numero_de_ejemplos();
 
   adaptaciones_.resize(indice(n));
   for (int v = 0; v < n; ++v) {
-    adaptaciones_[indice(v)].assign(indice(V.numero_de_etiquetas(v)),
+    adaptaciones_[indice(v)].assign(indice(variables.numero_de_etiquetas(v)),
                                     std::vector<double>(indice(m)));
   }
 
   for (int e = 0; e < m; ++e) {
     for (int v = 0; v < n; ++v) {
-      const double valor = E.valor(e, v);
+      const double valor = ejemplos.valor(e, v);
       std::vector<std::vector<double>>& etiquetas = adaptaciones_[indice(v)];
       int valores_distinto_cero = 0;
       for (std::size_t j = 0; j < etiquetas.size(); ++j) {
-        const double adaptacion = V.adaptacion(valor, v, static_cast<int>(j));
+        const double adaptacion = variables.adaptacion(valor, v, static_cast<int>(j));
         etiquetas[j][indice(e)] = adaptacion;
         if (adaptacion > 0 && adaptacion <= 1) {
           ++valores_distinto_cero;
@@ -46,11 +47,12 @@ TablaDeAdaptaciones::TablaDeAdaptaciones(const difuso::Variables& V, const datos
   }
 }
 
-double TablaDeAdaptaciones::Etiqueta(int ejemplo, int variable, int etiqueta) const {
+double TablaDeAdaptaciones::adaptacion_a_etiqueta(int ejemplo, int variable, int etiqueta) const {
   return adaptaciones_[indice(variable)][indice(etiqueta)][indice(ejemplo)];
 }
 
-double TablaDeAdaptaciones::Variable(int ejemplo, int variable, const char* etiquetas) const {
+double TablaDeAdaptaciones::adaptacion_a_variable(int ejemplo, int variable,
+                                                  const char* etiquetas) const {
   const std::vector<std::vector<double>>& tabla = adaptaciones_[indice(variable)];
   double max = 0;
   for (std::size_t etiqueta = 0; etiqueta < tabla.size() && max < 1; ++etiqueta) {
@@ -66,13 +68,13 @@ double TablaDeAdaptaciones::Variable(int ejemplo, int variable, const char* etiq
   return max;
 }
 
-double TablaDeAdaptaciones::Antecedente(int ejemplo, const std::string& etiquetas,
-                                        const std::vector<double>& niveles) const {
+double TablaDeAdaptaciones::adaptacion_al_antecedente(int ejemplo, const std::string& etiquetas,
+                                                      const std::vector<double>& niveles) const {
   double max = 1;
   std::size_t trozo = 0;
   for (int v = 0; v < n_antecedente_ && max > 0; ++v) {
     if (niveles[indice(v)] >= niveles.back()) {
-      const double aux = Variable(ejemplo, v, etiquetas.data() + trozo);
+      const double aux = adaptacion_a_variable(ejemplo, v, etiquetas.data() + trozo);
       if (aux < max) {
         max = aux;
       }
@@ -82,12 +84,12 @@ double TablaDeAdaptaciones::Antecedente(int ejemplo, const std::string& etiqueta
   return max;
 }
 
-void TablaDeAdaptaciones::Consecuente(int ejemplo, int etiqueta, double& pos, double& neg) const {
-  pos = Etiqueta(ejemplo, consecuente_, etiqueta);
+void TablaDeAdaptaciones::consecuente(int ejemplo, int etiqueta, double& pos, double& neg) const {
+  pos = adaptacion_a_etiqueta(ejemplo, consecuente_, etiqueta);
   neg = pos == 1 ? 0 : 1;
 }
 
-int TablaDeAdaptaciones::MejorEtiqueta(int ejemplo, int variable) const {
+int TablaDeAdaptaciones::mejor_etiqueta(int ejemplo, int variable) const {
   const std::vector<std::vector<double>>& tabla = adaptaciones_[indice(variable)];
   std::size_t mejor = 0;
   double max = 0;
@@ -100,4 +102,4 @@ int TablaDeAdaptaciones::MejorEtiqueta(int ejemplo, int variable) const {
   return static_cast<int>(mejor);
 }
 
-}  // namespace inslv
+}  // namespace inslv::aprendizaje

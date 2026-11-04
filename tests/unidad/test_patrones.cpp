@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "inslv/aprendizaje/patrones.h"
+#include "inslv/aprendizaje/patrones.hpp"
 #include "inslv/difuso/variables.hpp"
 #include "inslv/genetico/codigo.hpp"
 #include "inslv/inslv.hpp"
@@ -40,8 +40,8 @@ TEST(Patrones, ElPatronDeUnaRegla) {
   const inslv::difuso::Variables V = variables();
   inslv::reglas::ConjuntoDeReglas R = conjunto(V);
   R.anadir(regla("0101", 1), 0.5);
-  EXPECT_EQ(inslv::Patron1Regla(R, 0), "0101");
-  EXPECT_EQ(inslv::Patron1Regla(R, 1), "");
+  EXPECT_EQ(inslv::aprendizaje::patron_de_regla(R, 0), "0101");
+  EXPECT_EQ(inslv::aprendizaje::patron_de_regla(R, 1), "");
 }
 
 TEST(Patrones, ElPatronDeDosReglasEmparejadas) {
@@ -50,7 +50,7 @@ TEST(Patrones, ElPatronDeDosReglasEmparejadas) {
   inslv::reglas::ConjuntoDeReglas discriminante = conjunto(V);
   descriptiva.anadir(regla("0101", 1), 0.5);
   discriminante.anadir(regla("0111", 1), 0.5);
-  EXPECT_EQ(inslv::Patron2Reglas(descriptiva, discriminante, V, 0), "01?1");
+  EXPECT_EQ(inslv::aprendizaje::patron_de_dos_reglas(descriptiva, discriminante, V, 0), "01?1");
 }
 
 TEST(Patrones, UnAtributoPorDebajoDelUmbralAdmiteTodas) {
@@ -60,13 +60,13 @@ TEST(Patrones, UnAtributoPorDebajoDelUmbralAdmiteTodas) {
   descriptiva.anadir(regla("0101", 1), 0.5);
   // b está por debajo del umbral: sus etiquetas valen como si admitiera las dos.
   discriminante.anadir({"0100", 1, {1, 0, 0.5}}, 0.5);
-  EXPECT_EQ(inslv::Patron2Reglas(descriptiva, discriminante, V, 0), "01?1");
+  EXPECT_EQ(inslv::aprendizaje::patron_de_dos_reglas(descriptiva, discriminante, V, 0), "01?1");
 }
 
 TEST(Patrones, EspecificacionDeOtra) {
-  EXPECT_TRUE(inslv::ComprobacionEspGen("0100", "0111"));
-  EXPECT_TRUE(inslv::ComprobacionEspGen("0111", "0111"));
-  EXPECT_FALSE(inslv::ComprobacionEspGen("1000", "0111"));
+  EXPECT_TRUE(inslv::aprendizaje::es_especificacion("0100", "0111"));
+  EXPECT_TRUE(inslv::aprendizaje::es_especificacion("0111", "0111"));
+  EXPECT_FALSE(inslv::aprendizaje::es_especificacion("1000", "0111"));
 }
 
 TEST(Patrones, FiltrarQuitaLasReglasDeLosTresConjuntos) {
@@ -80,7 +80,7 @@ TEST(Patrones, FiltrarQuitaLasReglasDeLosTresConjuntos) {
     R_mix.anadir(regla("0101", 1), peso);
   }
 
-  inslv::Filtrar_Reglas_New(R, R_dis, R_mix, {0, 2});
+  inslv::aprendizaje::quitar_reglas(R, R_dis, R_mix, {0, 2});
 
   for (const inslv::reglas::ConjuntoDeReglas* reglas : {&R, &R_dis, &R_mix}) {
     ASSERT_EQ(reglas->numero_de_reglas(), 1);
@@ -108,7 +108,7 @@ TEST_F(Analizar, CombinaDosReglasCompatibles) {
   anade("0101", "0111", "01?1", 1, 3, 1);
   anade("0110", "0111", "011?", 1, 5, 2);
 
-  inslv::AnalizarConjuntosDeReglas(V, R, R_Descrip, R_mix, 1);
+  inslv::aprendizaje::combinar_reglas(V, R, R_Descrip, R_mix, 1);
 
   // La nueva (la primera) se va y la otra se queda con la combinación y sus ejemplos.
   ASSERT_EQ(R.numero_de_reglas(), 1);
@@ -124,7 +124,7 @@ TEST_F(Analizar, QuitaUnaReglaConElMismoPatronQueOtraDeSuClase) {
   anade("0101", "0111", "01?1", 1, 3, 1);
   anade("0101", "0111", "01?1", 1, 5, 2);
 
-  inslv::AnalizarConjuntosDeReglas(V, R, R_Descrip, R_mix, 1);
+  inslv::aprendizaje::combinar_reglas(V, R, R_Descrip, R_mix, 1);
 
   ASSERT_EQ(R.numero_de_reglas(), 1);
   EXPECT_EQ(R.aciertos(0), 5);
@@ -134,7 +134,7 @@ TEST_F(Analizar, ContradiccionConElMismoPatronDeOtraClase) {
   anade("0101", "0111", "01?1", 1, 3, 1);
   anade("0101", "0111", "01?1", 0, 5, 2);
 
-  inslv::AnalizarConjuntosDeReglas(V, R, R_Descrip, R_mix, 1);
+  inslv::aprendizaje::combinar_reglas(V, R, R_Descrip, R_mix, 1);
 
   // No se quita ninguna, pero a la nueva sus aciertos le cuentan como fallos.
   ASSERT_EQ(R.numero_de_reglas(), 2);
@@ -147,7 +147,7 @@ TEST_F(Analizar, NoTocaLasIncompatibles) {
   anade("0101", "0101", "0101", 1, 3, 1);
   anade("1001", "1001", "1001", 1, 5, 2);
 
-  inslv::AnalizarConjuntosDeReglas(V, R, R_Descrip, R_mix, 1);
+  inslv::aprendizaje::combinar_reglas(V, R, R_Descrip, R_mix, 1);
 
   ASSERT_EQ(R.numero_de_reglas(), 2);
   EXPECT_EQ(R.codigo(0).etiquetas, "0101");
