@@ -76,24 +76,6 @@ void Ejemplos::anotar(int i, bool bien_clasificado, double grado_p, double peso_
   regla_aislada_[e] = aislada;
 }
 
-bool Ejemplos::bien_clasificado(int i) const { return bien_clasificado_[indice(i)]; }
-
-double Ejemplos::grado_positivo(int i) const { return grado_positivo_[indice(i)]; }
-
-double Ejemplos::grado_negativo(int i) const { return grado_negativo_[indice(i)]; }
-
-double Ejemplos::peso_positivo(int i) const { return peso_positivo_[indice(i)]; }
-
-double Ejemplos::peso_negativo(int i) const { return peso_negativo_[indice(i)]; }
-
-int Ejemplos::clase(int variable_clase, int i) const {
-  return static_cast<int>(valores_[indice(i)][indice(variable_clase)]);
-}
-
-int Ejemplos::regla_usada(int i) const { return regla_usada_[indice(i)]; }
-
-int Ejemplos::regla_aislada(int i) const { return regla_aislada_[indice(i)]; }
-
 Ejemplos Ejemplos::primeros(int n) const { return subconjunto(0, n - 1); }
 
 Ejemplos Ejemplos::subconjunto(int ini, int fin) const {

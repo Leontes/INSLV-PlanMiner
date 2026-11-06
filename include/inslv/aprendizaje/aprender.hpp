@@ -22,8 +22,8 @@ double aciertos(const reglas::ConjuntoDeReglas& reglas, const difuso::Variables&
                                                    const datos::Ejemplos& ejemplos);
 /// Actualiza con esos ejemplos el peso de las reglas modificadas. Usa el último individuo de
 /// poblacion.
-void actualizar_pesos(genetico::MultiPoblacion& poblacion, const datos::Ejemplos& ejemplos,
-                      reglas::ConjuntoDeReglas& reglas, const TablaDeAdaptaciones& tabla);
+void actualizar_pesos(genetico::MultiPoblacion& poblacion, reglas::ConjuntoDeReglas& reglas,
+                      const TablaDeAdaptaciones& tabla);
 /// Aprende las reglas.
 /// @param variables las variables: los atributos y, al final, la clase.
 /// @param ejemplos los ejemplos.

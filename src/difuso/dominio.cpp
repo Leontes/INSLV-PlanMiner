@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -24,7 +25,7 @@ double Dominio::adaptacion(double x, int etiqueta) const {
   return etiquetas_[static_cast<std::size_t>(etiqueta)].adaptacion(x);
 }
 
-double Dominio::adaptacion(double x, const std::string& etiquetas) const {
+double Dominio::adaptacion(double x, std::string_view etiquetas) const {
   if (etiquetas_.empty()) {
     throw std::logic_error("inslv: el dominio no está creado");
   }

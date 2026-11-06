@@ -2,6 +2,7 @@
 // Los ejemplos con los que se aprende.
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 #include "inslv/datos/ejemplo.hpp"
@@ -35,14 +36,29 @@ class Ejemplos {
   /// Anota lo que da clasificar el ejemplo i (ver la clase).
   void anotar(int i, bool bien_clasificado, double grado_p, double peso_p, double grado_n,
               double peso_n, int regla, int aislada);
-  [[nodiscard]] bool bien_clasificado(int i) const;
-  [[nodiscard]] double grado_positivo(int i) const;
-  [[nodiscard]] double grado_negativo(int i) const;
-  [[nodiscard]] double peso_positivo(int i) const;
-  [[nodiscard]] double peso_negativo(int i) const;
-  [[nodiscard]] int clase(int variable_clase, int i) const;
-  [[nodiscard]] int regla_usada(int i) const;
-  [[nodiscard]] int regla_aislada(int i) const;
+  [[nodiscard]] bool bien_clasificado(int i) const {
+    return bien_clasificado_[static_cast<std::size_t>(i)];
+  }
+  [[nodiscard]] double grado_positivo(int i) const {
+    return grado_positivo_[static_cast<std::size_t>(i)];
+  }
+  [[nodiscard]] double grado_negativo(int i) const {
+    return grado_negativo_[static_cast<std::size_t>(i)];
+  }
+  [[nodiscard]] double peso_positivo(int i) const {
+    return peso_positivo_[static_cast<std::size_t>(i)];
+  }
+  [[nodiscard]] double peso_negativo(int i) const {
+    return peso_negativo_[static_cast<std::size_t>(i)];
+  }
+  [[nodiscard]] int clase(int variable_clase, int i) const {
+    return static_cast<int>(
+        valores_[static_cast<std::size_t>(i)][static_cast<std::size_t>(variable_clase)]);
+  }
+  [[nodiscard]] int regla_usada(int i) const { return regla_usada_[static_cast<std::size_t>(i)]; }
+  [[nodiscard]] int regla_aislada(int i) const {
+    return regla_aislada_[static_cast<std::size_t>(i)];
+  }
 
   /// Los n primeros ejemplos, sin las anotaciones.
   [[nodiscard]] Ejemplos primeros(int n) const;

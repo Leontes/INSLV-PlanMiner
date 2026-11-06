@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "inslv/difuso/etiqueta.hpp"
@@ -21,7 +22,7 @@ class Dominio {
   /// etiqueta): la de la primera a la que se adapta el valor o, si se adapta a otra más, 1 (supone
   /// que las etiquetas forman una partición). Lanza std::logic_error si el dominio está vacío o la
   /// cadena es más larga que las etiquetas.
-  [[nodiscard]] double adaptacion(double x, const std::string& etiquetas) const;
+  [[nodiscard]] double adaptacion(double x, std::string_view etiquetas) const;
   /// Las etiquetas, a la depuración.
   void pintar() const;
   [[nodiscard]] const std::string& nombre_de_etiqueta(int i) const;

@@ -168,14 +168,14 @@ std::vector<int> reglas_que_disparan(const reglas::ConjuntoDeReglas& reglas,
   return lista;
 }
 
-void actualizar_pesos(genetico::MultiPoblacion& poblacion, const datos::Ejemplos& ejemplos,
-                      reglas::ConjuntoDeReglas& reglas, const TablaDeAdaptaciones& tabla) {
+void actualizar_pesos(genetico::MultiPoblacion& poblacion, reglas::ConjuntoDeReglas& reglas,
+                      const TablaDeAdaptaciones& tabla) {
   double aciertos_de_la_regla = 0;
   double fallos_de_la_regla = 0;
   for (int i = 0; i < reglas.numero_de_reglas(); ++i) {
     if (reglas.modificada(i)) {
       poblacion.poner_codigo(poblacion.numero_de_individuos() - 1, reglas.codigo(i));
-      peso_del_individuo(poblacion, ejemplos, tabla, poblacion.numero_de_individuos() - 1,
+      peso_del_individuo(poblacion, tabla, poblacion.numero_de_individuos() - 1,
                          aciertos_de_la_regla, fallos_de_la_regla);
       reglas.sumar_ejemplos(i, aciertos_de_la_regla, fallos_de_la_regla);
       reglas.marcar_modificada(i, false);
@@ -325,8 +325,8 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
     descriptivas.marcar_todas_modificadas();
     discriminantes.marcar_todas_modificadas();
 
-    actualizar_pesos(poblacion, ejemplos_del_episodio, descriptivas, tabla);
-    actualizar_pesos(poblacion, ejemplos_del_episodio, discriminantes, tabla);
+    actualizar_pesos(poblacion, descriptivas, tabla);
+    actualizar_pesos(poblacion, discriminantes, tabla);
 
     discriminantes.recalcular_peso();
     descriptivas.recalcular_peso();
@@ -423,8 +423,8 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
         const datos::Ejemplos anteriores = ejemplos.subconjunto(
             indice_episodio > 10 ? (indice_episodio - 10) * tamano_episodio : 0, inicio - 1);
         const TablaDeAdaptaciones tabla_anteriores(variables, anteriores);
-        actualizar_pesos(poblacion, anteriores, nuevas_descriptivas, tabla_anteriores);
-        actualizar_pesos(poblacion, anteriores, nuevas_discriminantes, tabla_anteriores);
+        actualizar_pesos(poblacion, nuevas_descriptivas, tabla_anteriores);
+        actualizar_pesos(poblacion, nuevas_discriminantes, tabla_anteriores);
       }
 
       descriptivas.anadir_al_principio(nuevas_descriptivas);

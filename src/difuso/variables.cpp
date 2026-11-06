@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -19,7 +20,7 @@ namespace {
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Cuántas etiquetas admite (los 1 de la cadena).
-int etiquetas_activas(const std::string& sub) {
+int etiquetas_activas(std::string_view sub) {
   return static_cast<int>(std::count(sub.begin(), sub.end(), '1'));
 }
 
@@ -92,7 +93,7 @@ double Variables::adaptacion(const datos::Ejemplo& x, const std::string& etiquet
     const Dominio& dominio = variables_[indice(i)].dominio();
     const int tam = dominio.numero_de_etiquetas();
     if (niveles[indice(i)] >= niveles.back()) {
-      const std::string sub = etiquetas.substr(trozo, indice(tam));
+      const std::string_view sub = std::string_view(etiquetas).substr(trozo, indice(tam));
       const int unos = etiquetas_activas(sub);
       if (unos == 0) {
         max = 0;
@@ -110,7 +111,7 @@ bool Variables::es_valida(const std::string& etiquetas, const std::vector<double
   for (int i = 0; i < numero_de_atributos(); ++i) {
     const auto tam = indice(numero_de_etiquetas(i));
     if (niveles[indice(i)] >= niveles.back() &&
-        etiquetas_activas(etiquetas.substr(trozo, tam)) == 0) {
+        etiquetas_activas(std::string_view(etiquetas).substr(trozo, tam)) == 0) {
       return false;
     }
     trozo += tam;

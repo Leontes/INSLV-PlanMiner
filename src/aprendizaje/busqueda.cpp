@@ -146,13 +146,13 @@ void buscar_regla(const Evaluacion& evaluacion, GeneradorDeAzar& azar,
       generalizar(evaluacion, 0, reglas_a_eliminar);
       discriminante = poblacion.codigo(0);
       bondad(evaluacion, 0, valor, reglas_a_eliminar);
-      peso_del_individuo(poblacion, ejemplos, evaluacion.tabla, 0, aciertos_discriminante,
+      peso_del_individuo(poblacion, evaluacion.tabla, 0, aciertos_discriminante,
                          fallos_discriminante);
       gen = {valor[0], valor[1]};
 
       especializar(evaluacion, 0, reglas_a_eliminar);
       bondad(evaluacion, 0, valor, reglas_a_eliminar);
-      peso = peso_del_individuo(poblacion, ejemplos, evaluacion.tabla, 0, aciertos_descriptiva,
+      peso = peso_del_individuo(poblacion, evaluacion.tabla, 0, aciertos_descriptiva,
                                 fallos_descriptiva);
       esp = {valor[0], valor[1]};
       descriptiva = poblacion.codigo(0);

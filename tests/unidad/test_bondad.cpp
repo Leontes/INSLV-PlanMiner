@@ -114,12 +114,12 @@ TEST_F(Bondad, ElPesoDeUnIndividuo) {
   double fallos = 0;
   // Si a es True, Si: acierta los cuatro ejemplos que cubre.
   G.poner_codigo(0, {"0111", 1, {1, 0, 0.5}});
-  EXPECT_EQ(inslv::aprendizaje::peso_del_individuo(G, E, tabla, 0, aciertos, fallos), 1);
+  EXPECT_EQ(inslv::aprendizaje::peso_del_individuo(G, tabla, 0, aciertos, fallos), 1);
   EXPECT_EQ(aciertos, 4);
   EXPECT_EQ(fallos, 0);
   // Si a es True, No: los falla.
   G.poner_codigo(0, {"0111", 0, {1, 0, 0.5}});
-  EXPECT_DOUBLE_EQ(inslv::aprendizaje::peso_del_individuo(G, E, tabla, 0, aciertos, fallos),
+  EXPECT_DOUBLE_EQ(inslv::aprendizaje::peso_del_individuo(G, tabla, 0, aciertos, fallos),
                    1.0 / 5.0);
   EXPECT_EQ(aciertos, 0);
   EXPECT_EQ(fallos, 4);

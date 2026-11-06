@@ -174,21 +174,23 @@ void especializar(const Evaluacion& evaluacion, int individuo,
 }
 
 double peso_del_individuo(const genetico::MultiPoblacion& poblacion,
-                          const datos::Ejemplos& ejemplos, const TablaDeAdaptaciones& tabla,
-                          int individuo, double& aciertos, double& fallos) {
+                          const TablaDeAdaptaciones& tabla, int individuo, double& aciertos,
+                          double& fallos) {
   const std::string& etiquetas = poblacion.etiquetas(individuo);
   const std::vector<double>& niveles = poblacion.niveles(individuo);
   const int clase = poblacion.clase(individuo);
 
+  std::vector<double> adaptacion;
+  tabla.adaptaciones_al_antecedente(etiquetas, niveles, adaptacion);
+  const std::vector<double>& de_la_clase = tabla.adaptaciones_a_clase(clase);
+
   double positivos = 0;
   double negativos = 0;
-  for (int j = 0; j < ejemplos.numero_de_ejemplos(); ++j) {
-    double aux_p = 0;
-    double aux_n = 0;
-    tabla.consecuente(j, clase, aux_p, aux_n);
-    const double x = tabla.adaptacion_al_antecedente(j, etiquetas, niveles);
-    positivos = positivos + (x * aux_p);
-    negativos = negativos + (x * aux_n);
+  for (std::size_t j = 0; j < adaptacion.size(); ++j) {
+    const double aux_p = de_la_clase[j];
+    const double aux_n = aux_p == 1 ? 0 : 1;
+    positivos = positivos + (adaptacion[j] * aux_p);
+    negativos = negativos + (adaptacion[j] * aux_n);
   }
 
   aciertos = positivos;
@@ -242,16 +244,16 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
   }
 
   // Calculo previo para obtener el peso de la regla
-  std::vector<double> adaptacion(indice(ne));
+  std::vector<double> adaptacion;
+  evaluacion.tabla.adaptaciones_al_antecedente(etiquetas, niveles, adaptacion);
+  const std::vector<double>& de_la_clase = evaluacion.tabla.adaptaciones_a_clase(clase);
   double positivos = 0;
   double negativos = 0;
   double afecta = 0;
-  for (int j = 0; j < ne; ++j) {
-    double aux_p = 0;
-    double aux_n = 0;
-    evaluacion.tabla.consecuente(j, clase, aux_p, aux_n);
-
-    const double a = evaluacion.tabla.adaptacion_al_antecedente(j, etiquetas, niveles);
+  for (std::size_t j = 0; j < adaptacion.size(); ++j) {
+    const double aux_p = de_la_clase[j];
+    const double aux_n = aux_p == 1 ? 0 : 1;
+    const double a = adaptacion[j];
 
     if (a * aux_p > 0) {
       ++afecta;
@@ -259,7 +261,7 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
 
     positivos = positivos + (a * aux_p);
     negativos = negativos + (a * aux_n);
-    adaptacion[indice(j)] = aux_p < aux_n ? -a : a;
+    adaptacion[j] = aux_p < aux_n ? -a : a;
   }
 
   const double peso = (positivos + 1) / (positivos + negativos + 1);

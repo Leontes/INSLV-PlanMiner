@@ -43,37 +43,66 @@ TEST(Tabla, LaAdaptacionAVariasEtiquetas) {
   const inslv::difuso::Variables V = variables();
   const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
   const inslv::aprendizaje::TablaDeAdaptaciones tabla(V, E);
-  EXPECT_DOUBLE_EQ(tabla.adaptacion_a_variable(0, 0, "10"), 0.75);
-  EXPECT_DOUBLE_EQ(tabla.adaptacion_a_variable(0, 0, "01"), 0.25);
-  EXPECT_EQ(tabla.adaptacion_a_variable(0, 0, "00"), 0);
+  EXPECT_DOUBLE_EQ(tabla.adaptaciones_a_variable(0, "10")[0], 0.75);
+  EXPECT_DOUBLE_EQ(tabla.adaptaciones_a_variable(0, "01")[0], 0.25);
+  EXPECT_EQ(tabla.adaptaciones_a_variable(0, "00")[0], 0);
   // Las etiquetas forman una partición: si dos admitidas se adaptan, 1.
-  EXPECT_EQ(tabla.adaptacion_a_variable(0, 0, "11"), 1);
+  EXPECT_EQ(tabla.adaptaciones_a_variable(0, "11")[0], 1);
 }
 
 TEST(Tabla, ElAntecedenteEsElMenorDeLosAtributosRelevantes) {
   const inslv::difuso::Variables V = variables();
   const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
   const inslv::aprendizaje::TablaDeAdaptaciones tabla(V, E);
+  std::vector<double> adaptacion;
   // Los dos relevantes: t en Alto (0,25) y c en True (1).
-  EXPECT_DOUBLE_EQ(tabla.adaptacion_al_antecedente(0, "0101", {1, 1, 0.5}), 0.25);
+  tabla.adaptaciones_al_antecedente("0101", {1, 1, 0.5}, adaptacion);
+  EXPECT_EQ(adaptacion.size(), 1U);
+  EXPECT_DOUBLE_EQ(adaptacion[0], 0.25);
   // t por debajo del umbral: no cuenta.
-  EXPECT_EQ(tabla.adaptacion_al_antecedente(0, "0101", {0, 1, 0.5}), 1);
+  tabla.adaptaciones_al_antecedente("0101", {0, 1, 0.5}, adaptacion);
+  EXPECT_EQ(adaptacion[0], 1);
   // c en False, que no se adapta.
-  EXPECT_EQ(tabla.adaptacion_al_antecedente(0, "0110", {1, 1, 0.5}), 0);
+  tabla.adaptaciones_al_antecedente("0110", {1, 1, 0.5}, adaptacion);
+  EXPECT_EQ(adaptacion[0], 0);
+  // Ninguno relevante: se adapta del todo.
+  tabla.adaptaciones_al_antecedente("0000", {0, 0, 0.5}, adaptacion);
+  EXPECT_EQ(adaptacion[0], 1);
 }
 
-TEST(Tabla, ElConsecuenteEsPositivoONegativo) {
+TEST(Tabla, CadaEjemploConSuAdaptacion) {
   const inslv::difuso::Variables V = variables();
-  const inslv::datos::Ejemplos E({{0.25}, {1}, {0}});
+  const inslv::datos::Ejemplos E({{0.25, 0.75, 0}, {1, 0, 1}, {0, 1, 0}});
   const inslv::aprendizaje::TablaDeAdaptaciones tabla(V, E);
-  double pos = -1;
-  double neg = -1;
-  tabla.consecuente(0, 0, pos, neg);
-  EXPECT_EQ(pos, 1);
-  EXPECT_EQ(neg, 0);
-  tabla.consecuente(0, 1, pos, neg);
-  EXPECT_EQ(pos, 0);
-  EXPECT_EQ(neg, 1);
+  std::vector<double> adaptacion;
+  tabla.adaptaciones_al_antecedente("1001", {1, 1, 0.5}, adaptacion);
+  ASSERT_EQ(adaptacion.size(), 3U);
+  EXPECT_DOUBLE_EQ(adaptacion[0], 0.75);
+  EXPECT_EQ(adaptacion[1], 0);
+  EXPECT_EQ(adaptacion[2], 1);
+}
+
+TEST(Tabla, OlvidarLosConjuntosNoCambiaElResultado) {
+  const inslv::difuso::Variables V = variables();
+  const inslv::datos::Ejemplos E({{0.25, 0.75, 0}, {1, 0, 1}, {0, 1, 0}});
+  const inslv::aprendizaje::TablaDeAdaptaciones con_memoria(V, E);
+  // Sin memoria: los olvida en cada llamada.
+  const inslv::aprendizaje::TablaDeAdaptaciones sin_memoria(V, E, 0);
+  std::vector<double> una;
+  std::vector<double> otra;
+  for (const std::string etiquetas : {"1001", "0110", "1111", "1001", "0101", "1001"}) {
+    con_memoria.adaptaciones_al_antecedente(etiquetas, {1, 1, 0.5}, una);
+    sin_memoria.adaptaciones_al_antecedente(etiquetas, {1, 1, 0.5}, otra);
+    EXPECT_EQ(una, otra) << etiquetas;
+  }
+}
+
+TEST(Tabla, LaAdaptacionALaClase) {
+  const inslv::difuso::Variables V = variables();
+  const inslv::datos::Ejemplos E({{0.25, 0.25}, {1, 1}, {0, 1}});
+  const inslv::aprendizaje::TablaDeAdaptaciones tabla(V, E);
+  EXPECT_EQ(tabla.adaptaciones_a_clase(0), (std::vector<double>{1, 0}));
+  EXPECT_EQ(tabla.adaptaciones_a_clase(1), (std::vector<double>{0, 1}));
 }
 
 TEST(Tabla, LaMejorEtiqueta) {

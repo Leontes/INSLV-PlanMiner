@@ -32,8 +32,8 @@ struct Evaluacion {
 
 /// El peso del individuo y, en aciertos y fallos, lo que acierta y lo que falla.
 double peso_del_individuo(const genetico::MultiPoblacion& poblacion,
-                          const datos::Ejemplos& ejemplos, const TablaDeAdaptaciones& tabla,
-                          int individuo, double& aciertos, double& fallos);
+                          const TablaDeAdaptaciones& tabla, int individuo, double& aciertos,
+                          double& fallos);
 /// Valora el individuo y devuelve su peso. En reglas_a_eliminar, las reglas que puede sustituir (si
 /// la regla no es válida, no lo cambia). Baja el nivel de los atributos que admiten todas sus
 /// etiquetas.
