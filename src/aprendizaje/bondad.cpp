@@ -374,11 +374,12 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
     valor[3] = -ganancia_en_variables;
     valor[4] = 0;
     valor[5] = ceros_variables;
-    // En el original, con una sola regla leía el peso de una regla que no existe: memoria sin
-    // inicializar o de una regla ya quitada. No decide nada: dos individuos solo empatan hasta
-    // aquí si los dos pasan por esta rama, y entonces leen el mismo valor (y forzándolo a 0, 1e9 y
-    // -1e9, las reglas de los conjuntos de prueba no cambian).
-    valor[6] = reglas_eliminables < n_reglas ? -reglas.peso(reglas_eliminables) : 0;
+    // El original ponía aquí el peso de la regla 1 (usaba reglas_eliminables, que aquí es 1, como
+    // índice), sin existir siempre. No decidía nada: dos individuos solo empatan hasta aquí si los
+    // dos pasan por esta rama, y entonces leían el mismo valor. Con el índice bien,
+    // reglas_a_eliminar[0], sí decide, pero no mejora: cambia 155 de 1000 experimentos y el acierto
+    // no se distingue del azar (privado/resultados/valor6-2026-11-06.csv).
+    valor[6] = 0;
   }
 
   return peso;
