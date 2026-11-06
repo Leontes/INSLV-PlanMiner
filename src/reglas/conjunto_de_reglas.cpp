@@ -69,20 +69,15 @@ ConjuntoDeReglas::ReglaCodificada& ConjuntoDeReglas::regla_i(int i) {
 void ConjuntoDeReglas::poner_variables(const difuso::Variables& x) { variables_ = x; }
 
 void ConjuntoDeReglas::anadir(const genetico::Codigo& x, double peso) {
-  reglas_.push_back({x, peso, 0, 0, true});
+  reglas_.push_back({x, peso, 0, 0});
 }
 
-void ConjuntoDeReglas::anadir(const genetico::Codigo& x, double mas, double menos, bool modif) {
-  reglas_.push_back({x, peso_de(mas, menos), mas, menos, modif});
+void ConjuntoDeReglas::anadir(const genetico::Codigo& x, double mas, double menos) {
+  reglas_.push_back({x, peso_de(mas, menos), mas, menos});
 }
 
 void ConjuntoDeReglas::anadir_al_principio(const ConjuntoDeReglas& r) {
   std::vector<ReglaCodificada> todas = r.reglas_;
-  // Así en el original (modificada[i] = r.peso[i]), seguramente por error: modificada queda cierta
-  // salvo con peso 0. Cambiarlo cambia las reglas.
-  for (ReglaCodificada& regla : todas) {
-    regla.modificada = regla.peso != 0;
-  }
   todas.insert(todas.end(), std::make_move_iterator(reglas_.begin()),
                std::make_move_iterator(reglas_.end()));
   reglas_ = std::move(todas);
@@ -127,16 +122,6 @@ void ConjuntoDeReglas::sumar_fallos(int i, double value) { regla_i(i).fallos += 
 double ConjuntoDeReglas::aciertos(int i) const { return regla_i(i).aciertos; }
 
 double ConjuntoDeReglas::fallos(int i) const { return regla_i(i).fallos; }
-
-void ConjuntoDeReglas::marcar_modificada(int i, bool value) { regla_i(i).modificada = value; }
-
-bool ConjuntoDeReglas::modificada(int i) const { return regla_i(i).modificada; }
-
-void ConjuntoDeReglas::marcar_todas_modificadas() {
-  for (ReglaCodificada& regla : reglas_) {
-    regla.modificada = true;
-  }
-}
 
 int ConjuntoDeReglas::numero_de_reglas() const { return static_cast<int>(reglas_.size()); }
 

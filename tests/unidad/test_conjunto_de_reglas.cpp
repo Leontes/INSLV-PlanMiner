@@ -46,9 +46,8 @@ inslv::datos::Ejemplo ejemplo(double a, double b) { return inslv::datos::Ejemplo
 
 TEST(ConjuntoDeReglas, ElPesoSaleDeLosAciertosYLosFallos) {
   inslv::reglas::ConjuntoDeReglas reglas = conjunto();
-  reglas.anadir(regla("0111", 1, 1, 0), 3, 1, false);
+  reglas.anadir(regla("0111", 1, 1, 0), 3, 1);
   EXPECT_DOUBLE_EQ(reglas.peso(0), 4.0 / 5.0);
-  EXPECT_FALSE(reglas.modificada(0));
 
   reglas.sumar_ejemplos(0, 1, 2);
   EXPECT_DOUBLE_EQ(reglas.peso(0), 5.0 / 8.0);
@@ -86,7 +85,6 @@ TEST(ConjuntoDeReglas, AddRulesetAnadeAlPrincipio) {
   inslv::reglas::ConjuntoDeReglas otras = conjunto();
   otras.anadir(regla("1011", 0, 1, 0), 0.25);
   otras.anadir(regla("1101", 0, 0, 1), 0);
-  otras.marcar_modificada(0, false);
 
   reglas.anadir_al_principio(otras);
 
@@ -96,10 +94,6 @@ TEST(ConjuntoDeReglas, AddRulesetAnadeAlPrincipio) {
   EXPECT_EQ(reglas.peso(1), 0);
   EXPECT_EQ(reglas.clase(2), 1);
   EXPECT_EQ(reglas.peso(2), 0.5);
-  // Como en el original: modificada queda cierta salvo con peso 0.
-  EXPECT_TRUE(reglas.modificada(0));
-  EXPECT_FALSE(reglas.modificada(1));
-  EXPECT_TRUE(reglas.modificada(2));
 }
 
 TEST(ConjuntoDeReglas, QuitarReglas) {
@@ -173,7 +167,7 @@ TEST(ConjuntoDeReglas, SoloCuentanLosAtributosRelevantes) {
 
 TEST(ConjuntoDeReglas, ElTextoDeUnaRegla) {
   inslv::reglas::ConjuntoDeReglas reglas = conjunto();
-  reglas.anadir(regla("0111", 1, 1, 0), 3, 1, false);
+  reglas.anadir(regla("0111", 1, 1, 0), 3, 1);
   EXPECT_EQ(reglas.texto(0), "SI\n\ta = { True}\nENTONCES Clase ES Si   P 0.8 y N+= 3 y N-= 1\n");
   EXPECT_EQ(reglas.texto_del_consecuente(0), "Si");
 }

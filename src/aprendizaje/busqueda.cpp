@@ -158,8 +158,8 @@ void buscar_regla(const Evaluacion& evaluacion, GeneradorDeAzar& azar,
       descriptiva = poblacion.codigo(0);
     } while (esp != gen || !es_especificacion(descriptiva.etiquetas, discriminante.etiquetas));
 
-    descriptivas.anadir(descriptiva, aciertos_descriptiva, fallos_descriptiva, false);
-    discriminantes.anadir(discriminante, aciertos_discriminante, fallos_discriminante, false);
+    descriptivas.anadir(descriptiva, aciertos_descriptiva, fallos_descriptiva);
+    discriminantes.anadir(discriminante, aciertos_discriminante, fallos_discriminante);
 
     const std::string patron = patron_de_dos_reglas(descriptivas, discriminantes, variables,
                                                     descriptivas.numero_de_reglas() - 1);

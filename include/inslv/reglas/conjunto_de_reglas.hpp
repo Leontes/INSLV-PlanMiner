@@ -24,10 +24,10 @@ class ConjuntoDeReglas {
   /// Las variables de los atributos y la clase.
   void poner_variables(const difuso::Variables& x);
 
-  /// Añade una regla al final, con ese peso (N+ y N- a 0) y como modificada.
+  /// Añade una regla al final, con ese peso (N+ y N- a 0).
   void anadir(const genetico::Codigo& x, double peso);
   /// Añade una regla al final, con el peso que sale de sus N+ y N-.
-  void anadir(const genetico::Codigo& x, double mas, double menos, bool modif);
+  void anadir(const genetico::Codigo& x, double mas, double menos);
   /// Añade al principio una copia de las reglas de r.
   void anadir_al_principio(const ConjuntoDeReglas& r);
   /// Quita la última regla.
@@ -50,11 +50,6 @@ class ConjuntoDeReglas {
   void sumar_fallos(int i, double value);
   [[nodiscard]] double aciertos(int i) const;
   [[nodiscard]] double fallos(int i) const;
-  /// Si la regla ha cambiado y hay que volver a calcular su peso.
-  void marcar_modificada(int i, bool value);
-  [[nodiscard]] bool modificada(int i) const;
-  void marcar_todas_modificadas();
-
   [[nodiscard]] int numero_de_reglas() const;
   /// Cuántas reglas tienen un peso de al menos minimo.
   [[nodiscard]] int numero_con_peso(double minimo) const;
@@ -98,7 +93,6 @@ class ConjuntoDeReglas {
     double peso = 0;
     double aciertos = 0;
     double fallos = 0;
-    bool modificada = true;
   };
 
   // Un atributo relevante de una regla: dónde empiezan sus etiquetas en Binary(0) y cuántas son.

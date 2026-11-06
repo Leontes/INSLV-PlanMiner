@@ -292,8 +292,6 @@ void combinar_reglas(const difuso::Variables& variables, reglas::ConjuntoDeRegla
         }
 
         eliminar[indice(i)] = true;
-        descriptivas.marcar_modificada(j, true);
-        discriminantes.marcar_modificada(j, true);
 
         if (grados_de_libertad(patron_j) >= grados_de_libertad(patron_i_guardado)) {
           descriptivas.sumar_aciertos(j, descriptivas.aciertos(i));

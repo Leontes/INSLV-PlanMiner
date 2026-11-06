@@ -20,8 +20,8 @@ double aciertos(const reglas::ConjuntoDeReglas& reglas, const difuso::Variables&
 /// Las reglas que clasifican algún ejemplo, bien o mal.
 [[nodiscard]] std::vector<int> reglas_que_disparan(const reglas::ConjuntoDeReglas& reglas,
                                                    const datos::Ejemplos& ejemplos);
-/// Actualiza con esos ejemplos el peso de las reglas modificadas. Usa el último individuo de
-/// poblacion.
+/// Suma a cada regla lo que acierta y lo que falla en los ejemplos de la tabla y recalcula su peso.
+/// Usa el último individuo de la población.
 void actualizar_pesos(genetico::MultiPoblacion& poblacion, reglas::ConjuntoDeReglas& reglas,
                       const TablaDeAdaptaciones& tabla);
 /// Aprende las reglas.

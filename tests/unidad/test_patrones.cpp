@@ -93,9 +93,9 @@ class Analizar : public testing::Test {
   // Añade una regla a los tres conjuntos, con su patrón.
   void anade(const std::string& descriptiva, const std::string& discriminante,
              const std::string& patron, int clase, double mas, double menos) {
-    R_Descrip.anadir(regla(descriptiva, clase), mas, menos, false);
-    R.anadir(regla(discriminante, clase), mas, menos, false);
-    R_mix.anadir(regla(patron, clase), mas, menos, false);
+    R_Descrip.anadir(regla(descriptiva, clase), mas, menos);
+    R.anadir(regla(discriminante, clase), mas, menos);
+    R_mix.anadir(regla(patron, clase), mas, menos);
   }
 
   inslv::difuso::Variables V = variables();
@@ -117,7 +117,6 @@ TEST_F(Analizar, CombinaDosReglasCompatibles) {
   EXPECT_EQ(R_mix.codigo(0).etiquetas, "0111");
   EXPECT_EQ(R.aciertos(0), 8);
   EXPECT_EQ(R.fallos(0), 3);
-  EXPECT_TRUE(R.modificada(0));
 }
 
 TEST_F(Analizar, QuitaUnaReglaConElMismoPatronQueOtraDeSuClase) {

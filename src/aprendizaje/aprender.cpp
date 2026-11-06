@@ -172,14 +172,11 @@ void actualizar_pesos(genetico::MultiPoblacion& poblacion, reglas::ConjuntoDeReg
                       const TablaDeAdaptaciones& tabla) {
   double aciertos_de_la_regla = 0;
   double fallos_de_la_regla = 0;
+  const int ultimo = poblacion.numero_de_individuos() - 1;
   for (int i = 0; i < reglas.numero_de_reglas(); ++i) {
-    if (reglas.modificada(i)) {
-      poblacion.poner_codigo(poblacion.numero_de_individuos() - 1, reglas.codigo(i));
-      peso_del_individuo(poblacion, tabla, poblacion.numero_de_individuos() - 1,
-                         aciertos_de_la_regla, fallos_de_la_regla);
-      reglas.sumar_ejemplos(i, aciertos_de_la_regla, fallos_de_la_regla);
-      reglas.marcar_modificada(i, false);
-    }
+    poblacion.poner_codigo(ultimo, reglas.codigo(i));
+    peso_del_individuo(poblacion, tabla, ultimo, aciertos_de_la_regla, fallos_de_la_regla);
+    reglas.sumar_ejemplos(i, aciertos_de_la_regla, fallos_de_la_regla);
   }
 }
 
@@ -322,9 +319,6 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
         << "En la iteración " << episodios_con_reglas << " el umbral se ha fijado a "
         << umbral_acierto << " (" << umbral_acierto * (1 + margen) << ")\n";
 
-    descriptivas.marcar_todas_modificadas();
-    discriminantes.marcar_todas_modificadas();
-
     actualizar_pesos(poblacion, descriptivas, tabla);
     actualizar_pesos(poblacion, discriminantes, tabla);
 
@@ -341,14 +335,13 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
 
       for (const int regla : reglas_que_disparan(descriptivas, ejemplos_a_cubrir)) {
         nuevas_descriptivas.anadir(descriptivas.codigo(regla), descriptivas.aciertos(regla),
-                                   descriptivas.fallos(regla), false);
+                                   descriptivas.fallos(regla));
 
         const double aciertos_de_la_regla = discriminantes.aciertos(regla);
         const double fallos_de_la_regla = discriminantes.fallos(regla);
         nuevas_discriminantes.anadir(discriminantes.codigo(regla), aciertos_de_la_regla,
-                                     fallos_de_la_regla, false);
-        nuevos_patrones.anadir(patrones.codigo(regla), aciertos_de_la_regla, fallos_de_la_regla,
-                               false);
+                                     fallos_de_la_regla);
+        nuevos_patrones.anadir(patrones.codigo(regla), aciertos_de_la_regla, fallos_de_la_regla);
       }
 
       comun::progreso(Verbosidad::detalle)
@@ -418,14 +411,6 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
       } while (anadida);
 
       ++episodios_con_reglas;
-
-      if (indice_episodio > 1) {
-        const datos::Ejemplos anteriores = ejemplos.subconjunto(
-            indice_episodio > 10 ? (indice_episodio - 10) * tamano_episodio : 0, inicio - 1);
-        const TablaDeAdaptaciones tabla_anteriores(variables, anteriores);
-        actualizar_pesos(poblacion, nuevas_descriptivas, tabla_anteriores);
-        actualizar_pesos(poblacion, nuevas_discriminantes, tabla_anteriores);
-      }
 
       descriptivas.anadir_al_principio(nuevas_descriptivas);
       discriminantes.anadir_al_principio(nuevas_discriminantes);
