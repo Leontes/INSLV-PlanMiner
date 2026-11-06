@@ -22,7 +22,9 @@ tiene que dar exactamente las mismas reglas que el original.
 - **Clasificación** (`clasificar`), no solo aprendizaje de reglas.
 - **Un lector del formato de NSLV** (dominios `.dom` y ejemplos `.datos`).
 - **Sin fugas de memoria, sin llamadas que terminen el programa y sin tocar la salida estándar**
-  salvo que se pida, con una verbosidad por niveles. Queda el generador aleatorio global (`rand`).
+  salvo que se pida, con una verbosidad por niveles.
+- **Sin estado global:** el generador aleatorio es propio y se puede llamar a `aprender` desde varios
+  hilos.
 
 ## Uso
 

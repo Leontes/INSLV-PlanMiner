@@ -25,7 +25,7 @@ using Valoracion = std::array<double, 7>;
 /// El original tenía además el nivel de valor en funciones (40 bits) y el nivel de variable en
 /// funciones (20 enteros), para variables construidas a partir de otras que nunca se creaban, y una
 /// población real de un valor que no se leía. Sus valores no influían en nada, pero mutar y cruzar
-/// esas poblaciones pedía números al azar: hasta que haya un generador propio (fase B), se piden
+/// esas poblaciones pedía números al azar: se siguen pidiendo
 /// los mismos, para que las reglas no cambien.
 class MultiPoblacion {
  public:
@@ -68,17 +68,17 @@ class MultiPoblacion {
   /// Inicializa las poblaciones: el nivel de valor, con sujetos (por variable, la etiqueta de un
   /// ejemplo, o -1); las clases, por turnos; el nivel de variable, con I
   /// (PoblacionReal::inicializar).
-  void inicializar(const std::vector<std::vector<double>>& I,
+  void inicializar(GeneradorDeAzar& azar, const std::vector<std::vector<double>>& I,
                    const std::vector<std::vector<int>>& sujetos,
                    const std::vector<int>& n_etiquetas_variable);
 
   /// Con probabilidad 0,25 muta el nivel de variable de los dos últimos.
-  void mutar_niveles();
+  void mutar_niveles(GeneradorDeAzar& azar);
   /// Muta los dos últimos: cada población, con su probabilidad, hasta que le toque a alguna.
-  void mutar();
+  void mutar(GeneradorDeAzar& azar);
   /// Copia en los dos últimos dos individuos al azar (con probabilidad it, el primero y otro) y
   /// los cruza en dos puntos en las poblaciones que toque al azar, al menos en una.
-  void cruzar(double it);
+  void cruzar(GeneradorDeAzar& azar, double it);
 
  private:
   int n_individuos_;

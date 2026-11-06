@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <cstddef>
-#include <cstdlib>
 #include <ctime>
 #include <format>
 #include <fstream>
@@ -195,12 +194,14 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
   if (informe) {
     std::ofstream out(fichero);
     out << "Experimento: " << fichero << '\n';
-    const std::time_t ahora = std::time(nullptr);
-    out << std::ctime(&ahora);  // NOLINT(concurrency-mt-unsafe)
+    out << std::format("{:%F %T} UTC\n", std::chrono::time_point_cast<std::chrono::seconds>(
+                                             std::chrono::system_clock::now()));
     out << "===================================================\n\n";
   }
 
-  std::srand(opciones.semilla);
+  GeneradorDeAzar generador_propio;
+  GeneradorDeAzar& azar = opciones.azar != nullptr ? *opciones.azar : generador_propio;
+  azar.sembrar(opciones.semilla);
   comun::progreso(Verbosidad::depuracion) << "Semilla " << opciones.semilla << '\n';
 
   const int tama_valor = variables.etiquetas_de_atributos();
@@ -384,7 +385,7 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
                                     nuevas_descriptivas, reducir_reglas,    ejemplos_por_clase,
                                     tabla_a_cubrir,      basica_para_regla, errores_para_regla,
                                     reglas_iniciales};
-        buscar_regla(evaluacion, nuevas_descriptivas, nuevas_discriminantes, nuevos_patrones,
+        buscar_regla(evaluacion, azar, nuevas_descriptivas, nuevas_discriminantes, nuevos_patrones,
                      medidas, primera_vez, reglas_a_eliminar, anadida);
 
         primera_vez = false;

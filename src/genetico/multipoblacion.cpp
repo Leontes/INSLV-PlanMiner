@@ -26,9 +26,9 @@ bool mayor(const Valoracion& v1, const Valoracion& v2) {
 
 // Pide números al azar que no se usan: los de las poblaciones del original que no influían en
 // nada (ver la clase).
-void gastar(int numeros) {
+void gastar(GeneradorDeAzar& azar, int numeros) {
   for (int i = 0; i < numeros; ++i) {
-    aleatorio();
+    azar();
   }
 }
 
@@ -160,78 +160,78 @@ void MultiPoblacion::valorar(int i, const Valoracion& valoracion) {
 
 const Valoracion& MultiPoblacion::valoracion(int i) const { return valoracion_[indice(i)]; }
 
-void MultiPoblacion::inicializar(const std::vector<std::vector<double>>& I,
+void MultiPoblacion::inicializar(GeneradorDeAzar& azar, const std::vector<std::vector<double>>& I,
                                  const std::vector<std::vector<int>>& sujetos,
                                  const std::vector<int>& n_etiquetas_variable) {
-  etiquetas_.inicializar(sujetos, n_etiquetas_variable);
-  gastar(n_individuos_ * bits_de_funciones);
+  etiquetas_.inicializar(azar, sujetos, n_etiquetas_variable);
+  gastar(azar, n_individuos_ * bits_de_funciones);
   clases_.inicializar();
-  niveles_.inicializar(I, n_clases_);
+  niveles_.inicializar(azar, I, n_clases_);
   modificado_.assign(modificado_.size(), true);
   valoracion_.assign(valoracion_.size(), Valoracion{});
 }
 
-void MultiPoblacion::mutar_niveles() {
-  if (!con_probabilidad(0.5) && con_probabilidad(0.5)) {
-    niveles_.mutar();
+void MultiPoblacion::mutar_niveles(GeneradorDeAzar& azar) {
+  if (!con_probabilidad(azar, 0.5) && con_probabilidad(azar, 0.5)) {
+    niveles_.mutar(azar);
   }
 }
 
-void MultiPoblacion::mutar() {
+void MultiPoblacion::mutar(GeneradorDeAzar& azar) {
   bool mutado = false;
   while (!mutado) {
-    if (con_probabilidad(0.5)) {
-      etiquetas_.mutar();
+    if (con_probabilidad(azar, 0.5)) {
+      etiquetas_.mutar(azar);
       mutado = true;
     }
-    if (con_probabilidad(0.5)) {
-      gastar(2 * bits_de_funciones);
+    if (con_probabilidad(azar, 0.5)) {
+      gastar(azar, 2 * bits_de_funciones);
       mutado = true;
     }
-    if (con_probabilidad(0.5)) {
-      clases_.mutar();
+    if (con_probabilidad(azar, 0.5)) {
+      clases_.mutar(azar);
       mutado = true;
     }
-    if (con_probabilidad(0.8)) {
+    if (con_probabilidad(azar, 0.8)) {
       mutado = true;
     }
-    if (con_probabilidad(0.8)) {
-      niveles_.mutar();
+    if (con_probabilidad(azar, 0.8)) {
+      niveles_.mutar(azar);
       mutado = true;
     }
   }
 }
 
-void MultiPoblacion::cruzar(double it) {
+void MultiPoblacion::cruzar(GeneradorDeAzar& azar, double it) {
   const int penultimo = n_individuos_ - 2;
   const int ultimo = n_individuos_ - 1;
   int a = 0;
-  if (con_probabilidad(1 - it)) {
-    a = individuo_al_azar(penultimo, -1, 0);
+  if (con_probabilidad(azar, 1 - it)) {
+    a = individuo_al_azar(azar, penultimo, -1, 0);
   }
-  const int b = individuo_al_azar(penultimo, a, 0);
+  const int b = individuo_al_azar(azar, penultimo, a, 0);
   copiar(penultimo, a);
   copiar(ultimo, b);
 
   // En el original, con probabilidad 1 este cruce y si no, otros (AND/OR y NAND/NOR) que nunca
   // se aplicaban. Se mantiene por el número que pide.
-  static_cast<void>(con_probabilidad(1.0));
+  static_cast<void>(con_probabilidad(azar, 1.0));
   bool cruzado = false;
   while (!cruzado) {
-    if (con_probabilidad(0.25)) {
-      etiquetas_.cruzar_en_dos_puntos(penultimo, ultimo);
+    if (con_probabilidad(azar, 0.25)) {
+      etiquetas_.cruzar_en_dos_puntos(azar, penultimo, ultimo);
       cruzado = true;
     }
-    if (con_probabilidad(0.25)) {
-      gastar(puntos_de_cruce);
+    if (con_probabilidad(azar, 0.25)) {
+      gastar(azar, puntos_de_cruce);
       cruzado = true;
     }
-    if (con_probabilidad(0.25)) {
-      gastar(puntos_de_cruce);
+    if (con_probabilidad(azar, 0.25)) {
+      gastar(azar, puntos_de_cruce);
       cruzado = true;
     }
-    if (con_probabilidad(0.25)) {
-      niveles_.cruzar_en_dos_puntos(penultimo, ultimo);
+    if (con_probabilidad(azar, 0.25)) {
+      niveles_.cruzar_en_dos_puntos(azar, penultimo, ultimo);
       cruzado = true;
     }
   }

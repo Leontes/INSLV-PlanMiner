@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "inslv/aprendizaje/bondad.hpp"
+#include "inslv/generador_de_azar.hpp"
 #include "inslv/reglas/conjunto_de_reglas.hpp"
 
 namespace inslv::aprendizaje {
@@ -13,8 +14,9 @@ namespace inslv::aprendizaje {
 /// descriptivas, la discriminante a discriminantes y su patrón a patrones (en anadida, si la ha
 /// añadido). En reglas_a_eliminar, las reglas que puede sustituir. medidas: las medidas de
 /// información, para la población inicial; solo se crea una si primera_vez o si no hay reglas.
-void buscar_regla(const Evaluacion& evaluacion, reglas::ConjuntoDeReglas& descriptivas,
-                  reglas::ConjuntoDeReglas& discriminantes, reglas::ConjuntoDeReglas& patrones,
+void buscar_regla(const Evaluacion& evaluacion, GeneradorDeAzar& azar,
+                  reglas::ConjuntoDeReglas& descriptivas, reglas::ConjuntoDeReglas& discriminantes,
+                  reglas::ConjuntoDeReglas& patrones,
                   const std::vector<std::vector<double>>& medidas, bool primera_vez,
                   std::vector<int>& reglas_a_eliminar, bool& anadida);
 

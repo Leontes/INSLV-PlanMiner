@@ -18,7 +18,8 @@ std::size_t indice(int i) { return static_cast<std::size_t>(i); }
 
 // Un individuo por cada elemento de la población: un ejemplo al azar de su clase sin clasificar
 // bien, como la mejor etiqueta de cada atributo; -1 si no quedan ejemplos de la clase.
-std::vector<std::vector<int>> sujetos_iniciales(const difuso::Variables& variables,
+std::vector<std::vector<int>> sujetos_iniciales(GeneradorDeAzar& azar,
+                                                const difuso::Variables& variables,
                                                 const datos::Ejemplos& ejemplos, int clases,
                                                 int n_individuos, const TablaDeAdaptaciones& tabla,
                                                 const std::vector<int>& n_ejemplos_por_clase) {
@@ -26,7 +27,7 @@ std::vector<std::vector<int>> sujetos_iniciales(const difuso::Variables& variabl
       indice(n_individuos), std::vector<int>(indice(variables.numero_de_atributos()), -1));
   for (int i = 0; i < n_individuos; ++i) {
     if (n_ejemplos_por_clase[indice(i % clases)] != 0) {
-      int a = genetico::individuo_al_azar(ejemplos.numero_de_ejemplos(), -1, 0);
+      int a = genetico::individuo_al_azar(azar, ejemplos.numero_de_ejemplos(), -1, 0);
       while (ejemplos.bien_clasificado(a) ||
              tabla.adaptacion_a_etiqueta(a, variables.consecuente(), i % clases) == 0) {
         a = (a + 1) % ejemplos.numero_de_ejemplos();
@@ -41,8 +42,9 @@ std::vector<std::vector<int>> sujetos_iniciales(const difuso::Variables& variabl
 
 }  // namespace
 
-void buscar_regla(const Evaluacion& evaluacion, reglas::ConjuntoDeReglas& descriptivas,
-                  reglas::ConjuntoDeReglas& discriminantes, reglas::ConjuntoDeReglas& patrones,
+void buscar_regla(const Evaluacion& evaluacion, GeneradorDeAzar& azar,
+                  reglas::ConjuntoDeReglas& descriptivas, reglas::ConjuntoDeReglas& discriminantes,
+                  reglas::ConjuntoDeReglas& patrones,
                   const std::vector<std::vector<double>>& medidas, bool primera_vez,
                   std::vector<int>& reglas_a_eliminar, bool& anadida) {
   genetico::MultiPoblacion& poblacion = evaluacion.poblacion;
@@ -57,14 +59,14 @@ void buscar_regla(const Evaluacion& evaluacion, reglas::ConjuntoDeReglas& descri
     const std::vector<int> n_ejemplos_por_clase =
         ejemplos.sin_clasificar_bien_por_clase(variables.consecuente(), n_clases);
     const std::vector<std::vector<int>> sujetos =
-        sujetos_iniciales(variables, ejemplos, n_clases, poblacion.numero_de_individuos(),
+        sujetos_iniciales(azar, variables, ejemplos, n_clases, poblacion.numero_de_individuos(),
                           evaluacion.tabla, n_ejemplos_por_clase);
     std::vector<int> etiquetas_por_atributo;
     etiquetas_por_atributo.reserve(static_cast<std::size_t>(variables.numero_de_atributos()));
     for (int i = 0; i < variables.numero_de_atributos(); ++i) {
       etiquetas_por_atributo.push_back(variables.numero_de_etiquetas(i));
     }
-    poblacion.inicializar(medidas, sujetos, etiquetas_por_atributo);
+    poblacion.inicializar(azar, medidas, sujetos, etiquetas_por_atributo);
   } else {
     for (int i = 0; i < poblacion.numero_de_individuos(); ++i) {
       poblacion.marcar_modificado(i);
@@ -85,15 +87,15 @@ void buscar_regla(const Evaluacion& evaluacion, reglas::ConjuntoDeReglas& descri
   int sin_cambios = 0;
   while (sin_cambios <= max_iter) {
     if ((descriptivas.numero_de_reglas() > 1 && poblacion.valoracion(0)[0] <= 0 &&
-         genetico::con_probabilidad(0.75)) ||
-        (descriptivas.numero_de_reglas() > 1 && genetico::con_probabilidad(0.01))) {
+         genetico::con_probabilidad(azar, 0.75)) ||
+        (descriptivas.numero_de_reglas() > 1 && genetico::con_probabilidad(azar, 0.01))) {
       // En el original elegía aquí una regla que luego no usaba. Se mantiene por el número que
       // pide.
-      static_cast<void>(genetico::individuo_al_azar(descriptivas.numero_de_reglas(), -1, -1));
-      poblacion.mutar_niveles();
+      static_cast<void>(genetico::individuo_al_azar(azar, descriptivas.numero_de_reglas(), -1, -1));
+      poblacion.mutar_niveles(azar);
     } else {
-      poblacion.cruzar((1.0 * sin_cambios) / max_iter);
-      poblacion.mutar();
+      poblacion.cruzar(azar, (1.0 * sin_cambios) / max_iter);
+      poblacion.mutar(azar);
     }
     valorar_modificados(evaluacion);
     poblacion.colocar_los_dos_ultimos();

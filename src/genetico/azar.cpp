@@ -1,30 +1,35 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "inslv/genetico/azar.hpp"
 
-#include <cstdlib>
 #include <utility>
 
 namespace inslv::genetico {
 
-int aleatorio() {
-  return std::rand();  // NOLINT(concurrency-mt-unsafe)
+namespace {
+
+// Un entero de 0 a n - 1. Con estas operaciones y en este orden, como el original.
+int menor_que(GeneradorDeAzar& azar, int n) {
+  const double nd = n;
+  return static_cast<int>(nd * azar() / (GeneradorDeAzar::maximo + 1.0));
 }
 
-bool con_probabilidad(double x) { return 1.0 * aleatorio() / (RAND_MAX * 1.0) <= x; }
+}  // namespace
 
-int individuo_al_azar(int n, int menos_este, int minimo) {
-  const double nd = n;
+bool con_probabilidad(GeneradorDeAzar& azar, double x) {
+  return 1.0 * azar() / (GeneradorDeAzar::maximo * 1.0) <= x;
+}
+
+int individuo_al_azar(GeneradorDeAzar& azar, int n, int menos_este, int minimo) {
   int a = 0;
   do {
-    a = static_cast<int>(nd * aleatorio() / (RAND_MAX + 1.0));
+    a = menor_que(azar, n);
   } while (a == menos_este || a < minimo);
   return a;
 }
 
-void dos_puntos_de_corte(int n, int& a, int& b) {
-  const double nd = n;
-  a = static_cast<int>(nd * aleatorio() / (RAND_MAX + 1.0));
-  b = static_cast<int>(nd * aleatorio() / (RAND_MAX + 1.0));
+void dos_puntos_de_corte(GeneradorDeAzar& azar, int n, int& a, int& b) {
+  a = menor_que(azar, n);
+  b = menor_que(azar, n);
   if (a > b) {
     std::swap(a, b);
   }

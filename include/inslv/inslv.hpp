@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "inslv/generador_de_azar.hpp"
+
 namespace inslv {
 
 /// Etiqueta difusa trapezoidal [a, b, c, d], con a <= b <= c <= d. La adaptación de un valor es 1
@@ -92,6 +94,9 @@ struct Opciones {
   /// Semilla del generador de números aleatorios. Con la misma semilla y los mismos datos, las
   /// mismas reglas.
   unsigned semilla = 0;
+  /// El generador que usar; si es nulo, uno propio. Se siembra con semilla al empezar: pasarlo solo
+  /// hace falta para seguir su secuencia después de aprender.
+  GeneradorDeAzar* azar = nullptr;
   /// Qué versión de las reglas se devuelve.
   TipoDeReglas reglas = TipoDeReglas::descriptivas;
   /// Ejemplos por episodio del aprendizaje incremental (entre 1 y el máximo de int).
@@ -110,8 +115,8 @@ struct Opciones {
 /// etiquetas, etiquetas que no cumplen a <= b <= c <= d, valores que no se adaptan a ninguna
 /// etiqueta de su atributo o clases fuera de rango) o el tamaño del episodio no es válido.
 ///
-/// Usa el generador de números aleatorios de la biblioteca de C (srand y rand): no se puede llamar
-/// a la vez desde varios hilos, y reinicia el generador del programa que lo llama.
+/// No tiene estado global: se puede llamar a la vez desde varios hilos, siempre que cada uno use
+/// sus datos, su generador y su flujo de progreso.
 std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones = {});
 
 /// Clasifica los ejemplos con las reglas, como la inferencia de NSLV: gana la regla con mayor

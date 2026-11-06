@@ -17,13 +17,13 @@ void PoblacionEntera::inicializar() {
   }
 }
 
-void PoblacionEntera::mutar() {
+void PoblacionEntera::mutar(GeneradorDeAzar& azar) {
   for (std::size_t i = individuos_.size() - 2; i < individuos_.size(); ++i) {
     for (int& valor : individuos_[i]) {
-      if (con_probabilidad(prob_mutacion_)) {
+      if (con_probabilidad(azar, prob_mutacion_)) {
         int nuevo = 0;
         do {
-          nuevo = aleatorio() % rango_;
+          nuevo = azar() % rango_;
         } while (nuevo == valor);
         valor = nuevo;
       }

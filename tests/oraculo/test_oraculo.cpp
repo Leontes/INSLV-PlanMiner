@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 
@@ -41,6 +42,19 @@ TEST_P(Oraculo, MismasReglasYClasesQueOld) {
               inslv::pruebas::describir(original.clases))
         << nombre;
   }
+}
+
+// Lo que necesita un programa que discretiza con rand() después de aprender, como PlanMiner.
+TEST_P(Oraculo, ElGeneradorAcabaDondeOldDejaRand) {
+  const inslv::Datos datos = inslv::pruebas::leer_caso(GetParam()).datos;
+  inslv::Opciones opciones;
+  static_cast<void>(inslv::pruebas::aprender_con_old(datos, opciones, datos));
+  const int siguiente_de_old = std::rand();  // NOLINT(concurrency-mt-unsafe)
+
+  inslv::GeneradorDeAzar azar;
+  opciones.azar = &azar;
+  static_cast<void>(inslv::aprender(datos, opciones));
+  EXPECT_EQ(azar(), siguiente_de_old);
 }
 
 INSTANTIATE_TEST_SUITE_P(PlanMiner, Oraculo, testing::ValuesIn(inslv::pruebas::ficheros_de_casos()),

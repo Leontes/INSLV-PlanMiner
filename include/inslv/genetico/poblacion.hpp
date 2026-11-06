@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "inslv/generador_de_azar.hpp"
+
 namespace inslv::genetico {
 
 /// Una población de n individuos del mismo tamaño. Es la de un genético estacionario: los
@@ -23,7 +25,7 @@ class Poblacion {
 
   /// Intercambia entre indiv1 e indiv2 los valores de dos puntos al azar (el segundo, sin
   /// incluir).
-  void cruzar_en_dos_puntos(int indiv1, int indiv2);
+  void cruzar_en_dos_puntos(GeneradorDeAzar& azar, int indiv1, int indiv2);
 
  protected:
   std::vector<Cromosoma> individuos_;

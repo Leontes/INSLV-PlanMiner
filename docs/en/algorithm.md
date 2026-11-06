@@ -76,9 +76,13 @@ finds is added, and it starts again as long as it keeps adding rules.
 
 ### The random generator
 
-It uses `srand` and `rand` from the C library, with `Opciones::semilla`: the same seed and the
-same data give the same rules. That is why `aprender` cannot be called from several threads at
-once, and why it resets the random generator of the calling program.
+It uses its own generator (`GeneradorDeAzar`), seeded with `Opciones::semilla`: the same seed and the
+same data give the same rules, on any platform. It gives the same sequence as `srand` and `rand` from
+glibc, because the rules depend on it, but it has no global state: it does not touch the generator
+of the calling program, and `aprender` can be called from several threads at once.
+
+To carry on with its sequence after learning, pass your own generator in `Opciones::azar`. That is
+what it takes to reproduce a program that went on using `rand()` after calling the original.
 
 ## What it reports while learning
 

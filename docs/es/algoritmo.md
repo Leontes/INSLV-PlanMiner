@@ -74,9 +74,14 @@ vuelve a empezar mientras siga añadiendo reglas.
 
 ### El generador aleatorio
 
-Usa `srand` y `rand` de la biblioteca de C, con `Opciones::semilla`: con la misma semilla y los
-mismos datos, las mismas reglas. Por eso no se puede llamar a `aprender` a la vez desde varios
-hilos, y reinicia el generador del programa que lo llama.
+Usa un generador propio (`GeneradorDeAzar`), sembrado con `Opciones::semilla`: con la misma semilla y
+los mismos datos, las mismas reglas, en cualquier plataforma. Da la misma secuencia que `srand` y
+`rand` de glibc, porque las reglas dependen de ella, pero no tiene estado global: no toca el
+generador del programa y se puede llamar a `aprender` a la vez desde varios hilos.
+
+Quien quiera seguir su secuencia después de aprender puede pasar su generador en `Opciones::azar`.
+Es lo que hace falta para reproducir lo que hacía un programa que seguía usando `rand()` después de
+llamar al original.
 
 ## Lo que cuenta mientras aprende
 

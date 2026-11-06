@@ -11,14 +11,15 @@ namespace inslv::genetico {
 
 namespace {
 
-char bit_aleatorio() { return con_probabilidad(0.9) ? '1' : '0'; }
+char bit_aleatorio(GeneradorDeAzar& azar) { return con_probabilidad(azar, 0.9) ? '1' : '0'; }
 
 }  // namespace
 
 PoblacionBinaria::PoblacionBinaria(double mut, int n, int tama)
     : Poblacion<std::string>(n, tama), prob_mutacion_(mut) {}
 
-void PoblacionBinaria::inicializar(const std::vector<std::vector<int>>& sujeto,
+void PoblacionBinaria::inicializar(GeneradorDeAzar& azar,
+                                   const std::vector<std::vector<int>>& sujeto,
                                    const std::vector<int>& tama_dom) {
   for (std::size_t i = 0; i < individuos_.size(); ++i) {
     std::string& individuo = individuos_[i];
@@ -27,7 +28,7 @@ void PoblacionBinaria::inicializar(const std::vector<std::vector<int>>& sujeto,
       const auto bits = static_cast<std::size_t>(tama_dom[k]);
       if (sujeto[i][k] == -1) {
         for (std::size_t l = 0; l < bits; ++l) {
-          individuo[j + l] = bit_aleatorio();
+          individuo[j + l] = bit_aleatorio(azar);
         }
       } else {
         for (std::size_t l = 0; l < bits; ++l) {
@@ -40,10 +41,10 @@ void PoblacionBinaria::inicializar(const std::vector<std::vector<int>>& sujeto,
   }
 }
 
-void PoblacionBinaria::mutar() {
+void PoblacionBinaria::mutar(GeneradorDeAzar& azar) {
   for (std::size_t i = individuos_.size() - 2; i < individuos_.size(); ++i) {
     for (char& bit : individuos_[i]) {
-      if (con_probabilidad(prob_mutacion_)) {
+      if (con_probabilidad(azar, prob_mutacion_)) {
         bit = bit == '1' ? '0' : '1';
       }
     }

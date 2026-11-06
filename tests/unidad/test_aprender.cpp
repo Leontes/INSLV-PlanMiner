@@ -4,12 +4,14 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "inslv/inslv.hpp"
@@ -67,6 +69,50 @@ TEST(Aprender, EncuentraElAtributoQueDecideLaClase) {
 TEST(Aprender, MismaSemillaMismasReglas) {
   const inslv::Datos datos = clase_es_a();
   EXPECT_EQ(describir(inslv::aprender(datos)), describir(inslv::aprender(datos)));
+}
+
+TEST(Aprender, NoTocaElGeneradorDelPrograma) {
+  const inslv::Datos datos = clase_es_a();
+  std::srand(123);                       // NOLINT(concurrency-mt-unsafe)
+  const int sin_aprender = std::rand();  // NOLINT(concurrency-mt-unsafe)
+  std::srand(123);                       // NOLINT(concurrency-mt-unsafe)
+  static_cast<void>(inslv::aprender(datos));
+  EXPECT_EQ(std::rand(), sin_aprender);  // NOLINT(concurrency-mt-unsafe)
+}
+
+TEST(Aprender, SeSiembraElGeneradorDeLasOpciones) {
+  const inslv::Datos datos = clase_es_a();
+  const std::string sin_generador = describir(inslv::aprender(datos));
+
+  // Da igual en qué estado venga: se siembra con la semilla de las opciones.
+  inslv::GeneradorDeAzar azar(99);
+  azar();
+  inslv::Opciones opciones;
+  opciones.azar = &azar;
+  EXPECT_EQ(describir(inslv::aprender(datos, opciones)), sin_generador);
+  const int siguiente = azar();
+
+  // Y se queda donde acabó el aprendizaje, igual cada vez.
+  EXPECT_EQ(describir(inslv::aprender(datos, opciones)), sin_generador);
+  EXPECT_EQ(azar(), siguiente);
+}
+
+TEST(Aprender, DesdeVariosHilosDaLasMismasReglas) {
+  const inslv::Datos datos = clase_es_a();
+  const std::string esperado = describir(inslv::aprender(datos));
+
+  std::vector<std::string> resultados(8);
+  std::vector<std::thread> hilos;
+  hilos.reserve(resultados.size());
+  for (std::string& resultado : resultados) {
+    hilos.emplace_back([&datos, &resultado] { resultado = describir(inslv::aprender(datos)); });
+  }
+  for (std::thread& hilo : hilos) {
+    hilo.join();
+  }
+  for (const std::string& resultado : resultados) {
+    EXPECT_EQ(resultado, esperado);
+  }
 }
 
 TEST(Aprender, AdmiteValoresDesconocidos) {

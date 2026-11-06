@@ -18,7 +18,7 @@ class PoblacionEntera : public Poblacion<std::vector<int>> {
 
   /// Cambia cada valor de los dos últimos individuos, con la probabilidad de mutación, por otro
   /// al azar distinto.
-  void mutar();
+  void mutar(GeneradorDeAzar& azar);
 
  private:
   double prob_mutacion_;

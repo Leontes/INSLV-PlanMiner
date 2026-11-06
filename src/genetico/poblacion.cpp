@@ -42,12 +42,12 @@ void Poblacion<Cromosoma>::intercambiar(int i, int j) {
 }
 
 template <typename Cromosoma>
-void Poblacion<Cromosoma>::cruzar_en_dos_puntos(int indiv1, int indiv2) {
+void Poblacion<Cromosoma>::cruzar_en_dos_puntos(GeneradorDeAzar& azar, int indiv1, int indiv2) {
   Cromosoma& uno = individuos_[indice(indiv1)];
   Cromosoma& otro = individuos_[indice(indiv2)];
   int p1 = 0;
   int p2 = 0;
-  dos_puntos_de_corte(static_cast<int>(uno.size()), p1, p2);
+  dos_puntos_de_corte(azar, static_cast<int>(uno.size()), p1, p2);
   std::swap_ranges(uno.begin() + p1, uno.begin() + p2, otro.begin() + p1);
 }
 

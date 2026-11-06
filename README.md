@@ -22,7 +22,9 @@ step has to give exactly the same rules as the original.
 - **Classification** (`clasificar`), not only rule learning.
 - **A reader for the NSLV format** (`.dom` domains and `.datos` examples).
 - **No memory leaks, no calls that end the program, no use of the standard output** unless asked
-  for, with a levelled verbosity. What remains is the global random generator (`rand`).
+  for, with a levelled verbosity.
+- **No global state:** the random generator is its own, and `aprender` can be called from several
+  threads.
 
 ## Usage
 

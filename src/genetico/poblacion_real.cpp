@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdlib>
 #include <vector>
 
 #include "inslv/comun/progreso.hpp"
@@ -31,7 +30,8 @@ namespace inslv::genetico {
 PoblacionReal::PoblacionReal(double mut, int n, int tama)
     : Poblacion<std::vector<double>>(n, tama), prob_mutacion_(mut) {}
 
-void PoblacionReal::inicializar(const std::vector<std::vector<double>>& I, int clases) {
+void PoblacionReal::inicializar(GeneradorDeAzar& azar, const std::vector<std::vector<double>>& I,
+                                int clases) {
   const std::size_t atributos = individuos_[0].size() - 1;
   comun::progreso(Verbosidad::depuracion) << "CL " << atributos << '\n';
   // Si I[j][c + 1] es el mismo para todos los atributos j.
@@ -52,18 +52,18 @@ void PoblacionReal::inicializar(const std::vector<std::vector<double>>& I, int c
     const std::size_t c = i % static_cast<std::size_t>(clases);
     std::vector<double>& individuo = individuos_[i];
     for (std::size_t j = 0; j < atributos; ++j) {
-      individuo[j] = constante[c] ? aleatorio() / (RAND_MAX + 1.0) : I[j][c + 1];
+      individuo[j] = constante[c] ? azar() / (GeneradorDeAzar::maximo + 1.0) : I[j][c + 1];
     }
     individuo.back() = 0.2;
   }
 }
 
-void PoblacionReal::mutar() {
+void PoblacionReal::mutar(GeneradorDeAzar& azar) {
   for (std::size_t i = individuos_.size() - 2; i < individuos_.size(); ++i) {
     std::vector<double>& individuo = individuos_[i];
     const std::size_t umbral = individuo.size() - 1;
     for (std::size_t k = 0; k < umbral; ++k) {
-      if (con_probabilidad(prob_mutacion_)) {
+      if (con_probabilidad(azar, prob_mutacion_)) {
         const double valor =
             individuo[k] < individuo[umbral] ? individuo[umbral] + 0.01 : individuo[umbral] - 0.01;
         individuo[k] = std::clamp(valor, 0.0, 1.0);
