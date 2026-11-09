@@ -28,7 +28,7 @@ si x1 es {Baja, Media} y x3 es {Alta} entonces Iris-virginica   (peso 0.97)
   bondad: la más general (discriminante: solo las condiciones mínimas para separar la clase) y la
   más específica (descriptiva: con todas las condiciones que puede añadir sin perder bondad).
   `Opciones::reglas` elige cuáles se devuelven; las descriptivas son las que usa PlanMiner.
-- **Características (experimental).** Con ruido, a las descriptivas les faltan condiciones que se
+- **Características.** Con ruido, a las descriptivas les faltan condiciones que se
   cumplen en casi todos sus ejemplos: como cada una deja fuera alguno, cuesta bondad y no entra. Las
   características (`TipoDeReglas::caracteristicas`) son las descriptivas con todas las condiciones que
   cumple al menos un `1 - Opciones::tolerancia_al_ruido` de los ejemplos de su clase que cubren. Se

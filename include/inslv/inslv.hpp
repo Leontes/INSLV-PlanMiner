@@ -72,10 +72,8 @@ enum class TipoDeReglas {
   /// La más general: solo las condiciones mínimas del antecedente.
   discriminantes,
   /// La descriptiva con todas las condiciones que cumplen sus ejemplos, aunque cuesten bondad,
-  /// salvo
-  /// una fracción tolerancia_al_ruido de ellos. Con ruido, a las descriptivas les faltan
-  /// condiciones
-  /// que se cumplen en casi todos sus ejemplos. Experimental (fase B).
+  /// salvo una fracción tolerancia_al_ruido de ellos. Con ruido, a las descriptivas les faltan
+  /// condiciones que se cumplen en casi todos sus ejemplos.
   caracteristicas,
 };
 

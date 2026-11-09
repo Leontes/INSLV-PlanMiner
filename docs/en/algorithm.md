@@ -30,7 +30,7 @@ if x1 is {Baja, Media} and x3 is {Alta} then Iris-virginica   (weight 0.97)
   the class) and the most specific one (descriptive: with every condition it can add without
   losing fitness). `Opciones::reglas` chooses which ones are returned; PlanMiner uses the
   descriptive ones.
-- **Characteristic (experimental).** With noise, descriptive rules lack conditions that hold in
+- **Characteristic.** With noise, descriptive rules lack conditions that hold in
   almost all their examples: as each one leaves some out, it costs fitness and is not added. The
   characteristic rules (`TipoDeReglas::caracteristicas`) are the descriptive ones with every condition
   met by at least `1 - Opciones::tolerancia_al_ruido` of the examples of their class they cover. They
