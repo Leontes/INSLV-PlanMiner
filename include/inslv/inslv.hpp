@@ -64,13 +64,19 @@ struct Regla {
   double peso = 0.0;
 };
 
-/// Qué versión de cada regla devuelve aprender. El genético obtiene las dos a la vez, con la misma
-/// bondad.
+/// Qué versión de cada regla devuelve aprender. El genético obtiene las dos primeras a la vez, con
+/// la misma bondad.
 enum class TipoDeReglas {
-  /// La más específica. Son las que usa PlanMiner.
+  /// La más específica con esa bondad. Son las que usa PlanMiner.
   descriptivas,
   /// La más general: solo las condiciones mínimas del antecedente.
   discriminantes,
+  /// La descriptiva con todas las condiciones que cumplen sus ejemplos, aunque cuesten bondad,
+  /// salvo
+  /// una fracción tolerancia_al_ruido de ellos. Con ruido, a las descriptivas les faltan
+  /// condiciones
+  /// que se cumplen en casi todos sus ejemplos. Experimental (fase B).
+  caracteristicas,
 };
 
 /// Cuánto cuenta aprender de lo que hace. Cada nivel incluye los anteriores.
@@ -99,6 +105,9 @@ struct Opciones {
   GeneradorDeAzar* azar = nullptr;
   /// Qué versión de las reglas se devuelve.
   TipoDeReglas reglas = TipoDeReglas::descriptivas;
+  /// Con TipoDeReglas::caracteristicas, la fracción de los ejemplos de una regla que puede
+  /// incumplir una condición que se le añade (desde 0, sin llegar a 1).
+  double tolerancia_al_ruido = 0;
   /// Ejemplos por episodio del aprendizaje incremental (entre 1 y el máximo de int).
   std::size_t tamano_episodio = 5000;
   /// Cuánto se cuenta del aprendizaje.

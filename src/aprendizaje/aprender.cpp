@@ -11,6 +11,7 @@
 
 #include "inslv/aprendizaje/bondad.hpp"
 #include "inslv/aprendizaje/busqueda.hpp"
+#include "inslv/aprendizaje/caracteristicas.hpp"
 #include "inslv/aprendizaje/medidas.hpp"
 #include "inslv/aprendizaje/patrones.hpp"
 #include "inslv/aprendizaje/tabla.hpp"
@@ -474,14 +475,17 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
                      static_cast<double>(std::clock() - empieza_el_reloj) / CLOCKS_PER_SEC);
   }
 
-  // Las descriptivas (descriptivas) o sus versiones discriminantes (discriminantes), emparejadas
-  // regla a regla.
+  // Las descriptivas, sus versiones discriminantes (emparejadas regla a regla) o las
+  // características, que salen de las descriptivas.
   const reglas::ConjuntoDeReglas& elegidas =
       opciones.reglas == TipoDeReglas::discriminantes ? discriminantes : descriptivas;
   std::vector<Regla> reglas;
   for (int i = 0; i < elegidas.numero_de_reglas(); ++i) {
     Regla regla;
-    regla.antecedente = elegidas.antecedente(i);
+    regla.antecedente =
+        opciones.reglas == TipoDeReglas::caracteristicas
+            ? caracterizar(elegidas, i, variables, ejemplos, opciones.tolerancia_al_ruido)
+            : elegidas.antecedente(i);
     regla.consecuente = indice(elegidas.clase(i));
     regla.cubiertos = elegidas.aciertos(i);
     regla.peso = elegidas.peso(i);

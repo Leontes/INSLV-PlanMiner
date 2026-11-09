@@ -101,6 +101,19 @@ void comprobar(const Datos& datos) {
   comprobar_valores(datos);
 }
 
+// El nombre de un tipo de reglas, para el progreso.
+const char* nombre(TipoDeReglas tipo) {
+  switch (tipo) {
+    case TipoDeReglas::descriptivas:
+      return "descriptivas";
+    case TipoDeReglas::discriminantes:
+      return "discriminantes";
+    case TipoDeReglas::caracteristicas:
+      return "características";
+  }
+  return "";
+}
+
 }  // namespace
 
 std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
@@ -109,6 +122,10 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
       opciones.tamano_episodio > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
     throw std::invalid_argument("inslv: el tamaño del episodio tiene que estar entre 1 y " +
                                 std::to_string(std::numeric_limits<int>::max()));
+  }
+  if (std::isnan(opciones.tolerancia_al_ruido) || opciones.tolerancia_al_ruido < 0 ||
+      opciones.tolerancia_al_ruido >= 1) {
+    throw std::invalid_argument("inslv: la tolerancia al ruido tiene que estar en [0, 1)");
   }
 
   // datos::Ejemplos recibe las columnas de todas las variables, con la clase al final. Los
@@ -136,8 +153,7 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
   comun::progreso(Verbosidad::resumen) << std::format(
       "INSLV: {} ejemplos, {} atributos y {} clases; {} {} de hasta {} ejemplos; reglas {}\n",
       datos.clases.size(), datos.atributos.size(), datos.clase.etiquetas.size(), episodios,
-      episodios == 1 ? "episodio" : "episodios", opciones.tamano_episodio,
-      opciones.reglas == TipoDeReglas::descriptivas ? "descriptivas" : "discriminantes");
+      episodios == 1 ? "episodio" : "episodios", opciones.tamano_episodio, nombre(opciones.reglas));
 
   const auto inicio = std::chrono::steady_clock::now();
   const difuso::Variables variables(datos);
