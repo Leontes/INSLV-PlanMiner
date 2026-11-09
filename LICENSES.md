@@ -13,9 +13,11 @@ be distributed under version 3.
 
 ## Test data
 
-- `tests/datos/nslv/`: public datasets. irs, wne and aut are Iris, Wine and Automobile, from the
-  UCI Machine Learning Repository. All of them, ring and boxA included, follow the terms of their
-  originals.
+- `tests/datos/nslv/`: irs, wne and aut are Iris, Wine and Automobile, from the UCI Machine
+  Learning Repository. ring is Ringnorm, Leo Breiman's artificial problem, in the KEEL version
+  (taken from DELVE). They follow the terms of their originals. boxA is by Raúl Pérez, who built
+  it to test NSLV during its development: it is not a public benchmark, but one designed to measure
+  the behaviour of the algorithm.
 - `tests/datos/keel/`: the Automobile partitions in the KEEL format. They follow the terms of
   their original.
 - `tests/datos/planminer/`: the cases come from the blocksworld and depots test traces of the

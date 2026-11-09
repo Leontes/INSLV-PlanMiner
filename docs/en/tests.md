@@ -37,8 +37,8 @@ In `tests/datos`:
 | irs | 150 | 4 | 3 | |
 | wne | 178 | 13 | 3 | |
 | aut | 205 | 25 | 6 | unknown values, nominal attributes with up to 22 labels |
-| boxA | 1000 | 6 | 3 | |
-| ring | 7400 | 20 | 2 | with 9 partitions it takes more than one episode (5000 examples) |
+| boxA | 1000 | 6 | 3 | by Raúl Pérez, to test NSLV |
+| ring | 7400 | 20 | 2 | Breiman's Ringnorm, KEEL version; with 9 partitions it takes more than one episode (5000 examples) |
 
 ## Reference rules
 

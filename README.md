@@ -130,5 +130,5 @@ git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
 
 The code and the documentation are distributed under the
 [GNU General Public License version 3](LICENSE) (`GPL-3.0-only`). INSLV is based on NSLV, by
-Raúl Pérez (© 2002–2003); the port is © 2026 José Segura. The test datasets keep the terms of
-their originals. See [LICENSES.md](LICENSES.md).
+Raúl Pérez (© 2002–2003); the port is © 2026 José Segura. The public test datasets keep the
+terms of their originals. See [LICENSES.md](LICENSES.md).

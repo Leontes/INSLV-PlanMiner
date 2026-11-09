@@ -37,8 +37,8 @@ En `tests/datos`:
 | irs | 150 | 4 | 3 | |
 | wne | 178 | 13 | 3 | |
 | aut | 205 | 25 | 6 | valores desconocidos, atributos nominales de hasta 22 etiquetas |
-| boxA | 1000 | 6 | 3 | |
-| ring | 7400 | 20 | 2 | con 9 particiones pasa de un episodio (5000 ejemplos) |
+| boxA | 1000 | 6 | 3 | de Raúl Pérez, para probar NSLV |
+| ring | 7400 | 20 | 2 | Ringnorm de Breiman, versión de KEEL; con 9 particiones pasa de un episodio (5000 ejemplos) |
 
 ## Las reglas de referencia
 
