@@ -138,6 +138,23 @@ TEST(Aprender, EscribeElInformeSiSePide) {
   std::filesystem::remove(informe);
 }
 
+// El caso con el que el original reventaba (HALLAZGOS: barman y counters en PlanMiner): ninguna
+// regla es posible, porque el único atributo tiene una sola etiqueta (la discretización de
+// PlanMiner deja un solo cluster en total-cost). La primera vuelta del genético no añade ninguna, y
+// el original leía la regla -1 de los patrones, que estaban vacíos. Volcado de PlanMiner (barman,
+// 6 trazas completas del banco).
+TEST(Aprender, SinNingunaReglaPosibleNoDaReglas) {
+  inslv::Datos datos;
+  const inslv::Variable coste{"value (total-cost)", {{"L_0", 37.9999, 38, 38.05, 39.0005}}};
+  datos.atributos = {coste};
+  datos.clase = {"Class", {{"PreState", 0, 0, 0, 0}, {"PostState", 1, 1, 1, 1}}};
+  datos.valores = {{38, 39}};
+  datos.clases = {0, 1};
+  std::vector<inslv::Regla> reglas;
+  EXPECT_NO_THROW(reglas = inslv::aprender(datos));
+  EXPECT_TRUE(reglas.empty());
+}
+
 TEST(Aprender, RechazaDatosIncoherentes) {
   inslv::Datos datos = clase_es_a();
   datos.valores.pop_back();
