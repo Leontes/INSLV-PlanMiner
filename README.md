@@ -7,10 +7,10 @@ are processed in episodes. INSLV learns the rules that
 [PlanMiner](https://github.com/Leontes/PlanMiner) turns into the preconditions and effects of
 planning actions.
 
-This repository ports INSLV to modern C++ (C++20). **Work in progress:** the implementation is
-still the original one, without its dead code and with its failures fixed, behind a new interface
-in Spanish (`inslv::aprender` and `inslv::clasificar`). It is modernized step by step, and every
-step has to give exactly the same rules as the original.
+This repository ports INSLV to modern C++ (C++20): the original implementation, without its dead
+code, with its failures fixed and modernized, behind an interface in Spanish (`inslv::aprender` and
+`inslv::clasificar`). With the default options it gives exactly the same rules as the original,
+checked at every step; whatever changes the rules is an option.
 
 ## What it adds to the original
 
@@ -20,6 +20,8 @@ step has to give exactly the same rules as the original.
   PlanMiner needs; it now also gives the discriminant ones (only the minimal conditions in the
   antecedent).
 - **Classification** (`clasificar`), not only rule learning.
+- **Characteristic rules** (optional), for noisy data: the descriptive ones with the conditions
+  met by almost all their examples.
 - **Comparisons between attributes** (optional): the rules can compare two attributes with the
   same unit (`x1 < x2`), which the original had prepared and switched off.
 - **A reader for the NSLV format** (`.dom` domains and `.datos` examples).
@@ -27,6 +29,8 @@ step has to give exactly the same rules as the original.
   for, with a levelled verbosity.
 - **No global state:** the random generator is its own, and `aprender` can be called from several
   threads.
+- **Faster**, with the same rules: in the PlanMiner benchmark, its 270 learnings go from 14 059 s
+  to 4038 s.
 
 ## Usage
 

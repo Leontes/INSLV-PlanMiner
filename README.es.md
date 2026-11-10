@@ -7,10 +7,10 @@ ejemplos se procesan por episodios. INSLV aprende las reglas que
 [PlanMiner](https://github.com/Leontes/PlanMiner) convierte en las precondiciones y los efectos
 de las acciones de planificación.
 
-Este repositorio porta INSLV a C++ moderno (C++20). **En desarrollo:** la implementación sigue
-siendo la original, sin su código muerto y con sus fallos corregidos, detrás de una interfaz nueva
-en castellano (`inslv::aprender` e `inslv::clasificar`). Se moderniza paso a paso, y cada paso
-tiene que dar exactamente las mismas reglas que el original.
+Este repositorio porta INSLV a C++ moderno (C++20): la implementación original, sin su código
+muerto, con sus fallos corregidos y modernizada, detrás de una interfaz en castellano
+(`inslv::aprender` e `inslv::clasificar`). Con las opciones por defecto da exactamente las mismas
+reglas que el original, comprobado en cada paso; lo que cambia las reglas son opciones.
 
 ## Qué añade al original
 
@@ -20,6 +20,8 @@ tiene que dar exactamente las mismas reglas que el original.
   las que necesita PlanMiner; ahora da también las discriminantes (solo las condiciones mínimas del
   antecedente).
 - **Clasificación** (`clasificar`), no solo aprendizaje de reglas.
+- **Reglas características** (opcional), para datos con ruido: las descriptivas con las
+  condiciones que cumplen casi todos sus ejemplos.
 - **Comparaciones entre atributos** (opcional): las reglas pueden comparar dos atributos de la
   misma unidad (`x1 < x2`), lo que el original tenía preparado y apagado.
 - **Un lector del formato de NSLV** (dominios `.dom` y ejemplos `.datos`).
@@ -27,6 +29,8 @@ tiene que dar exactamente las mismas reglas que el original.
   salvo que se pida, con una verbosidad por niveles.
 - **Sin estado global:** el generador aleatorio es propio y se puede llamar a `aprender` desde varios
   hilos.
+- **Más rápido**, con las mismas reglas: en el banco de pruebas de PlanMiner, sus 270 aprendizajes
+  pasan de 14 059 s a 4038 s.
 
 ## Uso
 

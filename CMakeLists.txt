@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
   INSLV
-  VERSION 0.1.0
+  VERSION 1.0.0
   DESCRIPTION "Aprendizaje de reglas difusas con el genético de NSLV, en su versión incremental"
   HOMEPAGE_URL "https://github.com/Leontes/INSLV-PlanMiner"
   LANGUAGES CXX)
