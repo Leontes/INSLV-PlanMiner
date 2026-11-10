@@ -133,4 +133,5 @@ git ls-files -- '*.cpp' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
 El código y la documentación se distribuyen con la
 [licencia pública general de GNU, versión 3](LICENSE) (`GPL-3.0-only`). INSLV parte de NSLV,
 de Raúl Pérez (© 2002–2003); el port es © 2026 José Segura. Los conjuntos de datos de prueba
-públicos siguen las condiciones de sus originales. Ver [LICENCIAS.md](LICENCIAS.md).
+siguen las condiciones de sus originales, salvo boxA y ring, que tienen la de INSLV. Ver
+[LICENCIAS.md](LICENCIAS.md).
