@@ -109,7 +109,11 @@ Variable leer_variable(Lector& lector, const std::string& nombre) {
   Variable variable;
   variable.nombre = nombre;
   const std::string de = " de " + nombre;
-  lector.real("la unidad" + de);
+  const std::size_t unidad = lector.natural("la unidad" + de);
+  if (unidad > std::numeric_limits<unsigned>::max()) {
+    lector.error("la unidad" + de + " es demasiado grande: " + std::to_string(unidad));
+  }
+  variable.unidad = static_cast<unsigned>(unidad);
   lector.real("el factor" + de);
   lector.real("el mínimo" + de);
   lector.real("el máximo" + de);

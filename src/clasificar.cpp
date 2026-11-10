@@ -62,13 +62,42 @@ double adaptacion(double valor, const Condicion& condicion, const Variable& atri
   return resultado;
 }
 
+bool es_desconocido(double valor) { return std::isnan(valor) || valor == desconocido; }
+
+std::size_t comparar(double x, double y) {
+  if (x < y) {
+    return comparacion::menor;
+  }
+  return x == y ? comparacion::igual : comparacion::mayor;
+}
+
+// La adaptación de dos valores a una comparación: 1 si su resultado es uno de los de la condición
+// y 0 si no (como el atributo que la representa al aprender, con una etiqueta por resultado).
+double adaptacion(double x, double y, const Condicion& condicion) {
+  if (es_desconocido(x) || es_desconocido(y)) {
+    return 1;
+  }
+  const std::size_t resultado = comparar(x, y);
+  const bool cumple = std::find(condicion.etiquetas.begin(), condicion.etiquetas.end(),
+                                resultado) != condicion.etiquetas.end();
+  return cumple ? 1 : 0;
+}
+
+// La adaptación de un ejemplo a una condición.
+double adaptacion(const Condicion& condicion, const Datos& datos, std::size_t ejemplo) {
+  const double valor = datos.valores[condicion.atributo][ejemplo];
+  if (condicion.comparado_con) {
+    return adaptacion(valor, datos.valores[*condicion.comparado_con][ejemplo], condicion);
+  }
+  return adaptacion(valor, condicion, datos.atributos[condicion.atributo]);
+}
+
 // La adaptación de un ejemplo a una regla: la menor de sus condiciones
 // (difuso::Variables::adaptacion).
 double adaptacion(const Regla& regla, const Datos& datos, std::size_t ejemplo) {
   double menor = 1;
   for (const Condicion& condicion : regla.antecedente) {
-    menor = std::min(menor, adaptacion(datos.valores[condicion.atributo][ejemplo], condicion,
-                                       datos.atributos[condicion.atributo]));
+    menor = std::min(menor, adaptacion(condicion, datos, ejemplo));
     if (menor <= 0) {
       return 0;
     }
@@ -97,6 +126,21 @@ void comprobar(const std::vector<Regla>& reglas, const Datos& datos) {
                                     std::to_string(condicion.atributo) + ", que no existe");
       }
       const Variable& atributo = datos.atributos[condicion.atributo];
+      if (condicion.comparado_con) {
+        if (*condicion.comparado_con >= datos.atributos.size()) {
+          throw std::invalid_argument("inslv: la regla " + std::to_string(r) +
+                                      " compara con el atributo " +
+                                      std::to_string(*condicion.comparado_con) + ", que no existe");
+        }
+        for (const std::size_t resultado : condicion.etiquetas) {
+          if (resultado > comparacion::mayor) {
+            throw std::invalid_argument("inslv: la regla " + std::to_string(r) +
+                                        " usa el resultado " + std::to_string(resultado) +
+                                        " de una comparación, que no existe");
+          }
+        }
+        continue;
+      }
       for (const std::size_t etiqueta : condicion.etiquetas) {
         if (etiqueta >= atributo.etiquetas.size()) {
           throw std::invalid_argument("inslv: la regla " + std::to_string(r) + " usa la etiqueta " +

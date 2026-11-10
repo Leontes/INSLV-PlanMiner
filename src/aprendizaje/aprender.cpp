@@ -2,11 +2,13 @@
 #include "inslv/aprendizaje/aprender.hpp"
 
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <ctime>
 #include <format>
 #include <fstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "inslv/aprendizaje/bondad.hpp"
@@ -25,6 +27,10 @@ namespace inslv::aprendizaje {
 namespace {
 
 std::size_t indice(int i) { return static_cast<std::size_t>(i); }
+
+// El valor que marca un dato desconocido en la implementación (datos::Ejemplos::MISSING y
+// fuzzy_t::MISSING, privados): se adapta por completo a todas las etiquetas.
+constexpr double desconocido = -999999999;
 
 // Por regla, los ejemplos que solo ella clasifica bien y los que clasifica mal por poco.
 void contar_basicos_y_errores(const datos::Ejemplos& ejemplos, std::vector<int>& basica_para_regla,
@@ -492,6 +498,25 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
     reglas.push_back(regla);
   }
   return reglas;
+}
+
+datos::Ejemplos ejemplos_de(const Datos& datos) {
+  std::vector<std::vector<double>> columnas = datos.valores;
+  for (std::vector<double>& columna : columnas) {
+    for (double& valor : columna) {
+      if (std::isnan(valor)) {
+        valor = desconocido;
+      }
+    }
+  }
+  std::vector<double> clases;
+  clases.reserve(datos.clases.size());
+  for (const std::size_t clase : datos.clases) {
+    const ConjuntoDifuso& etiqueta = datos.clase.etiquetas[clase];
+    clases.push_back((etiqueta.b + etiqueta.c) / 2.0);
+  }
+  columnas.push_back(std::move(clases));
+  return datos::Ejemplos(columnas);
 }
 
 }  // namespace inslv::aprendizaje

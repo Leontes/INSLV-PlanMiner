@@ -20,6 +20,8 @@ step has to give exactly the same rules as the original.
   PlanMiner needs; it now also gives the discriminant ones (only the minimal conditions in the
   antecedent).
 - **Classification** (`clasificar`), not only rule learning.
+- **Comparisons between attributes** (optional): the rules can compare two attributes with the
+  same unit (`x1 < x2`), which the original had prepared and switched off.
 - **A reader for the NSLV format** (`.dom` domains and `.datos` examples).
 - **No memory leaks, no calls that end the program, no use of the standard output** unless asked
   for, with a levelled verbosity.
@@ -59,6 +61,7 @@ inslv::Datos datos = inslv::nslv::leer("irs.dom", {"irs1.datos", "irs2.datos"});
 inslv::Opciones opciones;
 opciones.reglas = inslv::TipoDeReglas::discriminantes;
 opciones.tamano_episodio = 50;  // examples per episode (5000 by default)
+opciones.comparaciones = true;  // compare the attributes with the same unit (Variable::unidad)
 opciones.verbosidad = inslv::Verbosidad::episodios;  // a line per episode
 std::vector<inslv::Regla> reglas = inslv::aprender(datos, opciones);
 ```

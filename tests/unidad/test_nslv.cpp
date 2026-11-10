@@ -87,6 +87,18 @@ TEST(Nslv, LeeElDominio) {
   EXPECT_TRUE(datos.clases.empty());
 }
 
+TEST(Nslv, LeeLaUnidadDeCadaVariable) {
+  const inslv::Datos datos = inslv::nslv::leer_dominio(datos_nslv / "wne" / "wne.dom");
+  ASSERT_GE(datos.atributos.size(), 3U);
+  EXPECT_EQ(datos.atributos[0].unidad, 0U);
+  EXPECT_EQ(datos.atributos[1].unidad, 1U);
+  EXPECT_EQ(datos.atributos[2].unidad, 2U);
+  for (const inslv::Variable& atributo :
+       inslv::nslv::leer_dominio(datos_nslv / "boxA" / "boxA.dom").atributos) {
+    EXPECT_EQ(atributo.unidad, 1U) << atributo.nombre;
+  }
+}
+
 TEST(Nslv, LeeLosEjemplos) {
   const inslv::Datos datos = leer_conjunto("irs", {datos_nslv / "irs" / "irs0.datos"});
 
@@ -254,6 +266,8 @@ TEST(Nslv, ErroresDelDominio) {
   espera_error(dominio("1\nClase 1 0 1 0 uno 1\n0 0 0 0 No\n"), fichero, 2,
                "el máximo de Clase no es un número: uno");
   espera_error(dominio("1\nClase 1 0 1 0 1 0\n"), fichero, 2, "Clase no tiene etiquetas");
+  espera_error(dominio("1\nClase 1 1.5 1 0 1 1\n0 0 0 0 No\n"), fichero, 2,
+               "la unidad de Clase no es un número natural: 1.5");
   espera_error(dominio("1\nClase 2 0 1 0 1 1\n0 0 0 0 No\n"), fichero, 2,
                "si Clase es la clase tiene que ser 0 o 1");
   espera_error(dominio("1\nClase 1 0 1 0 1 2\n0 0 0 0 No\n"), fichero, 3,

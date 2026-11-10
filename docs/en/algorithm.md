@@ -35,13 +35,24 @@ if x1 is {Baja, Media} and x3 is {Alta} then Iris-virginica   (weight 0.97)
   characteristic rules (`TipoDeReglas::caracteristicas`) are the descriptive ones with every condition
   met by at least `1 - Opciones::tolerancia_al_ruido` of the examples of their class they cover. They
   are computed at the end, over all the examples: the learning is the same.
+- **Comparisons between attributes.** With `Opciones::comparaciones`, a condition can compare two
+  attributes with the same unit (`Variable::unidad`, other than 0; the NSLV reader takes it from
+  the domain): `x1 < x2`, `x1 = x2`, `x1 <= x2`... Before learning, every pair of attributes with
+  the same unit gives a new attribute, the result of comparing them (less, equal or greater), which
+  is kept if its mutual information with some class is above `Opciones::umbral_de_comparaciones`
+  (0.2) times the largest one of the attributes with that class. The genetic algorithm treats them
+  like the others, and in the rules they become conditions with `Condicion::comparado_con`. It
+  helps when the class depends on a relation between attributes, which single-attribute labels can
+  only approximate with many small rules: in boxA (whether one box fits in the other), the test
+  accuracy goes from 68 % to 99 % and the rules, from 77 to 15. In the other test datasets, the
+  accuracy does not change beyond what varies with the seed.
 
 ## How it classifies
 
 `clasificar` gives each example the class of the rule with the largest membership times weight.
 On a tie, the rule with the larger weight wins and, if they also tie, the first one. If no rule
 has a positive membership, the example gets no class. This is NSLV's inference, and it gives the
-same classes as the original.
+same classes as the original. A comparison holds (1) or not (0); with an unknown value, it holds.
 
 ## How it learns
 
@@ -113,8 +124,9 @@ The verbosity does not change the rules.
 
 ## Compared with the original
 
-With the same data and the same seed, `aprender` gives bit by bit the same rules as the original
-INSLV, and `clasificar`, the same classes as its inference (see [Tests](tests.md)). What changes:
+With the same data, the same seed and the default options, `aprender` gives bit by bit the same
+rules as the original INSLV, and `clasificar`, the same classes as its inference (see
+[Tests](tests.md)). What changes:
 
 - It does not leak memory, does not end the program on an error (it throws exceptions) and does
   not crash when the genetic algorithm finds no rule in its first round.
@@ -123,3 +135,7 @@ INSLV, and `clasificar`, the same classes as its inference (see [Tests](tests.md
 - It does not touch the standard output unless asked to, and what it writes comes in levels.
 - It also gives the discriminant rules, the weight of every rule and the episode size as an
   option, and it classifies.
+- It can compare attributes. The original had something broader prepared, and switched off: new
+  attributes built with functions of pairs of attributes with the same unit (comparisons,
+  arithmetic and logical operations), chosen by their information and with their own place in the
+  genetic algorithm. Of that, INSLV recovers the comparison, as ordinary attributes.

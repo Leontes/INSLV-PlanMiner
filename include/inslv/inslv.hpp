@@ -33,6 +33,9 @@ struct ConjuntoDifuso {
 struct Variable {
   std::string nombre;
   std::vector<ConjuntoDifuso> etiquetas;
+  /// La unidad en que se mide, o 0 si no tiene. Con Opciones::comparaciones, se comparan los
+  /// atributos de la misma unidad.
+  unsigned unidad = 0;
 };
 
 /// Un conjunto de ejemplos, por columnas.
@@ -47,11 +50,21 @@ struct Datos {
   std::vector<std::size_t> clases;
 };
 
+/// Los resultados de comparar dos atributos, en las condiciones con Condicion::comparado_con.
+namespace comparacion {
+inline constexpr std::size_t menor = 0;
+inline constexpr std::size_t igual = 1;
+inline constexpr std::size_t mayor = 2;
+}  // namespace comparacion
+
 /// Una condición del antecedente: el atributo toma alguna de las etiquetas (índices en
-/// Datos::atributos y Variable::etiquetas).
+/// Datos::atributos y Variable::etiquetas). Con comparado_con (Opciones::comparaciones), la
+/// comparación del atributo con ese otro da alguno de los resultados de etiquetas
+/// (comparacion::menor, igual o mayor): {menor} es atributo < comparado_con; {menor, igual}, <=.
 struct Condicion {
   std::size_t atributo = 0;
   std::vector<std::size_t> etiquetas;
+  std::optional<std::size_t> comparado_con = std::nullopt;
 };
 
 /// Una regla: si se cumplen todas las condiciones, el ejemplo es de la clase consecuente.
@@ -108,6 +121,13 @@ struct Opciones {
   double tolerancia_al_ruido = 0;
   /// Ejemplos por episodio del aprendizaje incremental (entre 1 y el máximo de int).
   std::size_t tamano_episodio = 5000;
+  /// Si las reglas pueden comparar atributos: antes de aprender, se añade la comparación de cada
+  /// par de atributos con la misma unidad (menor, igual o mayor) que dé información sobre la
+  /// clase, y las reglas pueden tener condiciones con Condicion::comparado_con.
+  bool comparaciones = false;
+  /// Con comparaciones, se queda una si su información con alguna clase pasa de esta fracción de la
+  /// mayor de los atributos con esa clase (como el original; desde 0).
+  double umbral_de_comparaciones = 0.2;
   /// Cuánto se cuenta del aprendizaje.
   Verbosidad verbosidad = Verbosidad::ninguna;
   /// Adónde va lo que pide verbosidad; si es nulo, a la salida estándar.
@@ -120,7 +140,7 @@ struct Opciones {
 ///
 /// Lanza std::invalid_argument si los datos no son coherentes (tamaños distintos, variables sin
 /// etiquetas, etiquetas que no cumplen a <= b <= c <= d, valores que no se adaptan a ninguna
-/// etiqueta de su atributo o clases fuera de rango) o el tamaño del episodio no es válido.
+/// etiqueta de su atributo o clases fuera de rango) o alguna opción no es válida.
 ///
 /// No tiene estado global: se puede llamar a la vez desde varios hilos, siempre que cada uno use
 /// sus datos, su generador y su flujo de progreso.
@@ -130,12 +150,12 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones = {});
 /// adaptación del ejemplo por su peso; si empatan, la de más peso y, si no, la primera. La
 /// adaptación a una regla es la menor de sus condiciones. La adaptación a una condición es la de
 /// su etiqueta a la que se adapta el valor o, si se adapta a dos o más, 1 (supone que las etiquetas
-/// forman una partición). Un valor desconocido se adapta por completo. Nada si ninguna regla tiene
-/// adaptación positiva.
+/// forman una partición); la de una comparación, 1 si se cumple y 0 si no. Un valor desconocido se
+/// adapta por completo. Nada si ninguna regla tiene adaptación positiva.
 ///
 /// Los atributos de datos tienen que ser los del aprendizaje; sus clases no se usan (pueden estar
 /// vacías). Lanza std::invalid_argument si los valores no son coherentes con los atributos o una
-/// regla usa un atributo o una etiqueta que no existen.
+/// regla usa un atributo, una etiqueta o un resultado de una comparación que no existen.
 std::vector<std::optional<std::size_t>> clasificar(const std::vector<Regla>& reglas,
                                                    const Datos& datos);
 

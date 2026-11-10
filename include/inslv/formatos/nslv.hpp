@@ -5,10 +5,11 @@
 // ficheros de ejemplos (.datos), por ejemplo las particiones de una validación cruzada.
 //
 // Dominio: el número de variables y, por cada una, su nombre, si es la clase (1) o un atributo
-// (0), dos campos que no se usan (unidad y factor), el mínimo, el máximo, el número de etiquetas
-// y cada etiqueta (a b c d nombre). Ejemplos: el número de ejemplos, el número de variables y un
-// ejemplo por fila, con los valores en el orden del dominio. La clase se escribe como el centro
-// de su etiqueta; un valor desconocido, como -999999999. Todo se separa con espacios en blanco.
+// (0), la unidad (Variable::unidad; 0, ninguna), un campo que no se usa (el factor), el mínimo, el
+// máximo, el número de etiquetas y cada etiqueta (a b c d nombre). Ejemplos: el número de ejemplos,
+// el número de variables y un ejemplo por fila, con los valores en el orden del dominio. La clase
+// se escribe como el centro de su etiqueta; un valor desconocido, como -999999999. Todo se separa
+// con espacios en blanco.
 #pragma once
 
 #include <filesystem>

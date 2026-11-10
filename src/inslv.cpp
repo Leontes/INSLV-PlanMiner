@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "inslv/aprendizaje/aprender.hpp"
+#include "inslv/aprendizaje/comparaciones.hpp"
 #include "inslv/comun/progreso.hpp"
 
 namespace inslv {
@@ -127,24 +128,9 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
       opciones.tolerancia_al_ruido >= 1) {
     throw std::invalid_argument("inslv: la tolerancia al ruido tiene que estar en [0, 1)");
   }
-
-  // datos::Ejemplos recibe las columnas de todas las variables, con la clase al final. Los
-  // desconocidos se marcan con su valor y cada clase, con el centro de su etiqueta.
-  std::vector<std::vector<double>> columnas = datos.valores;
-  for (std::vector<double>& columna : columnas) {
-    for (double& valor : columna) {
-      if (std::isnan(valor)) {
-        valor = desconocido;
-      }
-    }
+  if (std::isnan(opciones.umbral_de_comparaciones) || opciones.umbral_de_comparaciones < 0) {
+    throw std::invalid_argument("inslv: el umbral de las comparaciones no puede ser negativo");
   }
-  std::vector<double> clases;
-  clases.reserve(datos.clases.size());
-  for (const std::size_t clase : datos.clases) {
-    const ConjuntoDifuso& etiqueta = datos.clase.etiquetas[clase];
-    clases.push_back((etiqueta.b + etiqueta.c) / 2.0);
-  }
-  columnas.push_back(std::move(clases));
 
   const comun::DestinoDelProgreso destino(
       opciones.progreso != nullptr ? opciones.progreso : &std::cout, opciones.verbosidad);
@@ -156,9 +142,25 @@ std::vector<Regla> aprender(const Datos& datos, const Opciones& opciones) {
       episodios == 1 ? "episodio" : "episodios", opciones.tamano_episodio, nombre(opciones.reglas));
 
   const auto inicio = std::chrono::steady_clock::now();
-  const difuso::Variables variables(datos);
-  const datos::Ejemplos ejemplos(columnas);
+  // Con comparaciones, se aprende con ellas como atributos y las reglas se traducen al final.
+  std::vector<aprendizaje::Par> comparaciones;
+  if (opciones.comparaciones) {
+    const std::vector<aprendizaje::Par> pares = aprendizaje::pares_de_la_misma_unidad(datos);
+    comparaciones =
+        aprendizaje::elegir_comparaciones(datos, pares, opciones.umbral_de_comparaciones);
+    comun::progreso(Verbosidad::resumen)
+        << std::format("INSLV: {} de las {} comparaciones entre atributos de la misma unidad\n",
+                       comparaciones.size(), pares.size());
+  }
+  Datos con_comparaciones;
+  if (!comparaciones.empty()) {
+    con_comparaciones = aprendizaje::con_comparaciones(datos, comparaciones);
+  }
+  const Datos& de_aprendizaje = comparaciones.empty() ? datos : con_comparaciones;
+  const difuso::Variables variables(de_aprendizaje);
+  const datos::Ejemplos ejemplos = aprendizaje::ejemplos_de(de_aprendizaje);
   std::vector<Regla> reglas = aprendizaje::aprender(variables, ejemplos, opciones);
+  aprendizaje::traducir_comparaciones(reglas, datos.atributos.size(), comparaciones);
   const std::chrono::duration<double> segundos = std::chrono::steady_clock::now() - inicio;
 
   comun::progreso(Verbosidad::resumen)

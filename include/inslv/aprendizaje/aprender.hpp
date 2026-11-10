@@ -24,6 +24,10 @@ double aciertos(const reglas::ConjuntoDeReglas& reglas, const difuso::Variables&
 /// Usa el último individuo de la población.
 void actualizar_pesos(genetico::MultiPoblacion& poblacion, reglas::ConjuntoDeReglas& reglas,
                       const TablaDeAdaptaciones& tabla);
+/// Los ejemplos de unos datos de la interfaz: las columnas de los atributos y, al final, la de la
+/// clase, con el centro de la etiqueta de cada una. Los desconocidos (NaN) quedan marcados como
+/// en el original.
+[[nodiscard]] datos::Ejemplos ejemplos_de(const Datos& datos);
 /// Aprende las reglas.
 /// @param variables las variables: los atributos y, al final, la clase.
 /// @param ejemplos los ejemplos.

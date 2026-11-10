@@ -6,5 +6,6 @@ inslv_anadir_tests(inslv_unidad unidad test_aprender.cpp test_nslv.cpp test_opci
                    test_patrones.cpp
                    test_bondad.cpp
                    test_generador_de_azar.cpp
-                   test_caracteristicas.cpp)
+                   test_caracteristicas.cpp
+                   test_comparaciones.cpp)
 target_link_libraries(inslv_unidad PRIVATE inslv_apoyo)

@@ -20,6 +20,8 @@ tiene que dar exactamente las mismas reglas que el original.
   las que necesita PlanMiner; ahora da también las discriminantes (solo las condiciones mínimas del
   antecedente).
 - **Clasificación** (`clasificar`), no solo aprendizaje de reglas.
+- **Comparaciones entre atributos** (opcional): las reglas pueden comparar dos atributos de la
+  misma unidad (`x1 < x2`), lo que el original tenía preparado y apagado.
 - **Un lector del formato de NSLV** (dominios `.dom` y ejemplos `.datos`).
 - **Sin fugas de memoria, sin llamadas que terminen el programa y sin tocar la salida estándar**
   salvo que se pida, con una verbosidad por niveles.
@@ -59,6 +61,7 @@ inslv::Datos datos = inslv::nslv::leer("irs.dom", {"irs1.datos", "irs2.datos"});
 inslv::Opciones opciones;
 opciones.reglas = inslv::TipoDeReglas::discriminantes;
 opciones.tamano_episodio = 50;  // ejemplos por episodio (5000 por defecto)
+opciones.comparaciones = true;  // comparar los atributos de la misma unidad (Variable::unidad)
 opciones.verbosidad = inslv::Verbosidad::episodios;  // una línea por episodio
 std::vector<inslv::Regla> reglas = inslv::aprender(datos, opciones);
 ```

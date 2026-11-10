@@ -33,13 +33,24 @@ si x1 es {Baja, Media} y x3 es {Alta} entonces Iris-virginica   (peso 0.97)
   características (`TipoDeReglas::caracteristicas`) son las descriptivas con todas las condiciones que
   cumple al menos un `1 - Opciones::tolerancia_al_ruido` de los ejemplos de su clase que cubren. Se
   calculan al final, sobre todos los ejemplos: el aprendizaje es el mismo.
+- **Comparaciones entre atributos.** Con `Opciones::comparaciones`, una condición puede comparar
+  dos atributos de la misma unidad (`Variable::unidad`, distinta de 0; el lector de NSLV la toma
+  del dominio): `x1 < x2`, `x1 = x2`, `x1 <= x2`... Antes de aprender, cada par de atributos de la
+  misma unidad da un atributo nuevo, el resultado de compararlos (menor, igual o mayor), que se
+  queda si su información mutua con alguna clase pasa de `Opciones::umbral_de_comparaciones` (0,2)
+  por la mayor de los atributos con esa clase. El genético los trata como a los demás, y en las
+  reglas quedan como condiciones con `Condicion::comparado_con`. Sirve cuando la clase depende de
+  una relación entre atributos, que con etiquetas de un solo atributo solo se puede aproximar con
+  muchas reglas pequeñas: en boxA (si una caja cabe en la otra), el acierto en test pasa del 68 % al
+  99 % y las reglas, de 77 a 15. En los demás conjuntos de prueba, el acierto no cambia más allá de
+  lo que varía con la semilla.
 
 ## Cómo clasifica
 
 `clasificar` da a cada ejemplo la clase de la regla con mayor adaptación por peso. Si empatan,
 gana la de más peso y, si también empatan, la primera. Si ninguna regla tiene adaptación
 positiva, el ejemplo se queda sin clase. Es la inferencia de NSLV, y da las mismas clases que el
-original.
+original. Una comparación se cumple (1) o no (0); con un valor desconocido, se cumple.
 
 ## Cómo aprende
 
@@ -111,9 +122,9 @@ La verbosidad no cambia las reglas.
 
 ## Respecto al original
 
-Con los mismos datos y la misma semilla, `aprender` da bit a bit las mismas reglas que el INSLV
-original, y `clasificar`, las mismas clases que su inferencia (ver [Tests](pruebas.md)). Lo que
-cambia:
+Con los mismos datos, la misma semilla y las opciones por defecto, `aprender` da bit a bit las
+mismas reglas que el INSLV original, y `clasificar`, las mismas clases que su inferencia (ver
+[Tests](pruebas.md)). Lo que cambia:
 
 - No pierde memoria, no termina el programa ante un error (lanza excepciones) y no revienta
   cuando el genético no encuentra ninguna regla en la primera vuelta.
@@ -122,3 +133,7 @@ cambia:
 - No toca la salida estándar salvo que se le pida, y lo que escribe va por niveles.
 - Da también las reglas discriminantes, el peso de cada regla y el tamaño del episodio como
   opción, y clasifica.
+- Puede comparar atributos. El original tenía preparado, y apagado, algo más amplio: atributos
+  nuevos con funciones de pares de atributos de la misma unidad (comparaciones, operaciones
+  aritméticas y lógicas), elegidos por su información y con su sitio en el genético. De eso, INSLV
+  recupera la comparación, como atributos normales.
