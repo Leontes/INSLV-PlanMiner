@@ -37,7 +37,7 @@ En `tests/datos`:
 | irs | 150 | 4 | 3 | |
 | wne | 178 | 13 | 3 | |
 | aut | 205 | 25 | 6 | valores desconocidos, atributos nominales de hasta 22 etiquetas |
-| boxA | 1000 | 6 | 3 | de Raúl Pérez, para probar NSLV: si una caja cabe en la otra, pudiendo girarlas; no se puede expresar con etiquetas de un solo atributo |
+| boxA | 1000 | 6 | 3 | de Raúl Pérez, para ver si un algoritmo detecta relaciones entre atributos: si una caja cabe en la otra, pudiendo girarlas. Con etiquetas de un solo atributo no se puede expresar (las reglas memorizan): sirve para comprobar que las reglas son las del original, no para medir el acierto |
 | ring | 7400 | 20 | 2 | Ringnorm de Breiman, versión de KEEL; con 9 particiones pasa de un episodio (5000 ejemplos) |
 
 ## Las reglas de referencia

@@ -16,8 +16,8 @@ permite distribuirlo con la versión 3.
 - `tests/datos/nslv/`: irs, wne y aut son Iris, Wine y Automobile, del repositorio de aprendizaje
   automático de la UCI. ring es Ringnorm, el problema artificial de Leo Breiman, en la versión de
   KEEL (que lo tomó de DELVE). Siguen las condiciones de sus originales. boxA es de Raúl Pérez, que
-  lo hizo para probar NSLV mientras lo desarrollaba: no es un conjunto público de referencia, sino
-  uno pensado para medir el comportamiento del algoritmo.
+  lo hizo mientras desarrollaba NSLV para ver si un algoritmo detecta relaciones complejas entre
+  atributos: no es un conjunto público de referencia.
 - `tests/datos/keel/`: las particiones de Automobile en el formato de KEEL. Siguen las
   condiciones de su original.
 - `tests/datos/planminer/`: los casos salen de las trazas de prueba de blocksworld y depots del

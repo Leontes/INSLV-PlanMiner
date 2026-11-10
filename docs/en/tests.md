@@ -37,7 +37,7 @@ In `tests/datos`:
 | irs | 150 | 4 | 3 | |
 | wne | 178 | 13 | 3 | |
 | aut | 205 | 25 | 6 | unknown values, nominal attributes with up to 22 labels |
-| boxA | 1000 | 6 | 3 | by Raúl Pérez, to test NSLV: whether one box fits in the other, rotating them; it cannot be expressed with single-attribute labels |
+| boxA | 1000 | 6 | 3 | by Raúl Pérez, to see whether an algorithm detects relations between attributes: whether one box fits in the other, rotating them. It cannot be expressed with single-attribute labels (the rules memorise): it serves to check that the rules are those of the original, not to measure accuracy |
 | ring | 7400 | 20 | 2 | Breiman's Ringnorm, KEEL version; with 9 partitions it takes more than one episode (5000 examples) |
 
 ## Reference rules
