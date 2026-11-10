@@ -247,6 +247,10 @@ std::vector<Regla> aprender(const difuso::Variables& variables, const datos::Eje
   const std::clock_t empieza_el_reloj = std::clock();
   datos::Ejemplos ejemplos_del_episodio;
 
+  // Las decisiones de cada episodio (el umbral, qué reglas siguen, qué ejemplos quedan por cubrir y
+  // contra qué reglas se valora cada individuo) se toman con las descriptivas, aunque se pidan las
+  // discriminantes. Tomarlas con las discriminantes cuando se piden no cambia su acierto (probado
+  // en la fase B).
   while (!salir) {
     int fin = inicio + tamano_episodio;
 

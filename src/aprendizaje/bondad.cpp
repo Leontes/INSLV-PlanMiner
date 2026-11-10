@@ -369,6 +369,11 @@ double bondad(const Evaluacion& evaluacion, int individuo, genetico::Valoracion&
   valor[2] = afecta;
   valor[1] = reglas_eliminables;
 
+  // El desempate cuando la regla sustituiría a una sola. El original tenía otra rama para las
+  // descriptivas, que nunca se usaba (con discriminante a false): n+ - n- frente a la regla que
+  // sustituye y la mejor proporción frente a las de su clase. Probada en la fase B: no cambia el
+  // acierto ni mejora los dominios de PlanMiner, y en algún caso el bucle que empareja la
+  // descriptiva con la discriminante (buscar_regla) no termina.
   if (reglas_eliminables == 1 && (valor[0] == -ne || valor[0] == 0)) {
     valor[2] = aciertos_adicionales > 0 ? 0.1 + aciertos_adicionales : diferencia_peso;
     valor[3] = -ganancia_en_variables;
